@@ -1,20 +1,62 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Dicta AI — app web
 
-# Run and deploy your AI Studio app
+Estúdio de ditado por voz com IA. Você fala do jeito que quiser e o Gemini devolve o texto
+limpo (sem "né", "tipo assim", hesitações e autocorreções) no estilo escolhido: chat, e-mail,
+tópicos, ata de reunião, literal, LinkedIn ou resumo.
 
-This contains everything you need to run your app locally.
+Roda 100% no aparelho: não há servidor. A chave do Gemini fica só no `localStorage` do
+navegador (ou do WebView, dentro do APK) e as chamadas vão direto para o Google.
 
-View your app in AI Studio: https://ai.studio/apps/eaf483bf-c5cd-4092-8801-d156834827e1
+## Rodar localmente
 
-## Run Locally
+Pré-requisito: Node.js 20+.
 
-**Prerequisites:**  Node.js
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
 
+Na primeira abertura o app pede uma chave gratuita do Gemini (Preferências › Chave da IA,
+gerada em https://aistudio.google.com/apikey). Não é preciso `.env`.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Scripts
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | build de produção em `dist/` (usado pelo APK) |
+| `npm run lint` | checagem de tipos (`tsc --noEmit`) |
+| `npm test` | testes unitários (Vitest) |
+
+## Estrutura
+
+```
+src/
+  App.tsx                 estado principal, gravação e chamadas à IA
+  main.tsx                entrada (com ErrorBoundary)
+  types/index.ts          tipos e lista única de estilos (DICTATION_MODES)
+  lib/
+    gemini.ts             cliente Gemini (fila de modelos, limites de tempo, prompts)
+    modes.ts              rótulos/ícones/cores dos estilos
+    native.ts             ponte com o app Android (window.DictaNative)
+    useDialog.ts          Esc/foco para modais
+  utils/
+    speech.ts             gravação (MediaRecorder) e conversão para WAV 16 kHz
+    audio.ts              sons e vibração (respeitam as Preferências)
+    backup.ts             validação de backup e de dados salvos
+    fillers.ts            destaque dos vícios removidos
+    pdfExport.ts          exportação em PDF (jsPDF carregado sob demanda)
+    stats.ts, id.ts, clipboard.ts
+  components/             telas e modais
+```
+
+Os testes ficam ao lado do código (`*.test.ts`) e cobrem a lógica pura: parse da resposta da
+IA, fila de modelos e limites de tentativas, validação de backup, regex de vícios, WAV,
+preferências de som/vibração e validação de upload.
+
+## Notas
+
+- A lógica de prompt existe em duas cópias: `src/lib/gemini.ts` (app) e
+  `android/src/com/charles/dicta/Gemini.java` (teclado nativo). Ao mudar uma, mude a outra.
+- Uploads de áudio têm limite de 14 MB (o Gemini aceita ~20 MB por requisição em base64).
+- Backups exportados nunca incluem a chave da IA; ao importar, tudo é validado.
