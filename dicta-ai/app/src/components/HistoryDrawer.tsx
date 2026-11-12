@@ -5,6 +5,7 @@ import { soundEffects } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 import { exportDocumentToPDF } from '../utils/pdfExport';
 import { saveOrShareFile } from '../lib/native';
+import { MODES, modeShortLabel } from '../lib/modes';
 
 interface HistoryDrawerProps {
   isOpen: boolean;
@@ -31,9 +32,8 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
   const filteredNotes = notes.filter((n) => {
     const matchesFilter = selectedFilter === 'all' || n.mode === selectedFilter;
-    const matchesSearch =
-      n.refinedText.toLowerCase().includes(search.toLowerCase()) ||
-      n.rawText.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchesSearch = !q || (n.refinedText || '').toLowerCase().includes(q) || (n.rawText || '').toLowerCase().includes(q);
     return matchesFilter && matchesSearch;
   });
 
@@ -55,7 +55,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
     const content = notes
       .map(
         (n) =>
-          `# ${new Date(n.timestamp).toLocaleString()} (${n.mode.toUpperCase()})\n\n${n.refinedText}\n\n---\n*Fala bruta:* ${n.rawText}\n*Vícios removidos:* ${n.fillerWordsRemoved.join(', ') || 'Nenhum'}\n`
+          `# ${new Date(n.timestamp).toLocaleString()} (${modeShortLabel(n.mode)})\n\n${n.refinedText}\n\n---\n*Fala bruta:* ${n.rawText}\n*Vícios removidos:* ${n.fillerWordsRemoved.join(', ') || 'Nenhum'}\n`
       )
       .join('\n\n');
 
@@ -109,17 +109,18 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
           </div>
 
           <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-            {(['all', 'casual', 'email', 'bullet', 'verbatim', 'social'] as const).map((mode) => (
+            {(['all', ...MODES.map((m) => m.id)] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setSelectedFilter(mode)}
+                aria-pressed={selectedFilter === mode}
                 className={`px-2.5 py-1 rounded-lg border transition-all uppercase font-medium ${
                   selectedFilter === mode
                     ? 'bg-purple-600 text-white border-purple-500'
                     : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                {mode === 'all' ? 'Todos' : mode}
+                {mode === 'all' ? 'Todos' : modeShortLabel(mode)}
               </button>
             ))}
           </div>
@@ -148,7 +149,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-purple-400">
-                      {note.mode}
+                      {modeShortLabel(note.mode)}
                     </span>
                     <span className="text-[11px] text-zinc-500">
                       {new Date(note.timestamp).toLocaleDateString()} {new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

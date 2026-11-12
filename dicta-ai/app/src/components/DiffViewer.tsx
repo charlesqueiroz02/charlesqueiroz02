@@ -4,6 +4,7 @@ import { nativeShareText } from '../lib/native';
 import { speakText, soundEffects } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 import { exportDocumentToPDF } from '../utils/pdfExport';
+import { splitFillers } from '../utils/fillers';
 
 interface DiffViewerProps {
   rawText: string;
@@ -62,42 +63,24 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     setTimeout(() => setIsPlayingAudio(false), 3000);
   };
 
-  // Build highlighted raw text marking removed filler words
+  // Texto bruto com os vícios removidos destacados
   const renderHighlightedRaw = () => {
     if (!rawText) return null;
-    if (!fillerWordsRemoved || fillerWordsRemoved.length === 0) {
-      return <span>{rawText}</span>;
-    }
-
-    // Create a regex of filler words to highlight
-    const escaped = fillerWordsRemoved
-      .filter((w) => w.trim().length > 0)
-      .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-
-    if (escaped.length === 0) return <span>{rawText}</span>;
-
-    const regex = new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
-    const parts = rawText.split(regex);
-
     return (
       <div className="leading-relaxed">
-        {parts.map((part, i) => {
-          const isFiller = fillerWordsRemoved.some(
-            (f) => f.toLowerCase() === part.toLowerCase()
-          );
-          if (isFiller) {
-            return (
-              <span
-                key={i}
-                className="inline-block bg-rose-500/20 text-rose-300 line-through decoration-rose-500 px-1 py-0.5 rounded mx-0.5 border border-rose-500/30 text-sm font-mono"
-                title="Vício de linguagem / filler removido pelo Dicta"
-              >
-                {part}
-              </span>
-            );
-          }
-          return <span key={i}>{part}</span>;
-        })}
+        {splitFillers(rawText, fillerWordsRemoved || []).map((part, i) =>
+          part.isFiller ? (
+            <del
+              key={i}
+              className="inline-block bg-rose-500/20 text-rose-300 decoration-rose-500 px-1 py-0.5 rounded mx-0.5 border border-rose-500/30 text-sm font-mono"
+              title="Vício de linguagem removido pelo Dicta"
+            >
+              {part.text}
+            </del>
+          ) : (
+            <span key={i}>{part.text}</span>
+          )
+        )}
       </div>
     );
   };

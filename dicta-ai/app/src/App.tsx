@@ -4,9 +4,8 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Mic, Square, Sparkles, BookOpen, History, Settings, Smartphone, Layers, MessageSquare, Mail,
-  ListOrdered, FileCheck, Flame, Zap, HelpCircle, Play, RotateCcw, AlertCircle, X, KeyRound,
-  Users, Clock, Type,
+  Mic, Square, Sparkles, BookOpen, History, Settings, Smartphone, Layers, HelpCircle, Play,
+  RotateCcw, AlertCircle, X, KeyRound, Clock, Type,
 } from 'lucide-react';
 import { DictationMode, DictationNote, DictionaryItem, ToneSettings, isDictationMode } from './types';
 import { MAX_HISTORY, parseBackup, sanitizeDictionary, sanitizeNotes, sanitizeSettings } from './utils/backup';
@@ -23,18 +22,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { AudioUploader } from './components/AudioUploader';
 import { MicPermissionModal } from './components/MicPermissionModal';
 import { copyToClipboard } from './utils/clipboard';
+import { MODES } from './lib/modes';
 import { AIContext, transcribeAudio, refineText, applyVoiceCommand, applyVoiceCommandAudio } from './lib/gemini';
 import { blobToBase64, isNativeApp, saveOrShareFile, syncNativeConfig } from './lib/native';
-
-const MODES = [
-  { id: 'casual', label: 'WhatsApp / Chat', icon: MessageSquare, color: 'from-emerald-500 to-teal-600' },
-  { id: 'email', label: 'E-mail', icon: Mail, color: 'from-blue-500 to-indigo-600' },
-  { id: 'bullet', label: 'Tópicos', icon: ListOrdered, color: 'from-purple-500 to-pink-600' },
-  { id: 'meeting', label: 'Ata de Reunião', icon: Users, color: 'from-sky-500 to-cyan-600' },
-  { id: 'verbatim', label: 'Literal Limpo', icon: FileCheck, color: 'from-amber-500 to-orange-600' },
-  { id: 'social', label: 'LinkedIn', icon: Flame, color: 'from-violet-500 to-purple-600' },
-  { id: 'summary', label: 'Resumo', icon: Zap, color: 'from-cyan-500 to-blue-600' },
-] as const;
 
 const SAMPLE_MESSY_SPEECHES = [
   {
@@ -593,7 +583,7 @@ export default function App() {
               return (
                 <button
                   key={m.id}
-                  onClick={() => handleSwitchMode(m.id as DictationMode)}
+                  onClick={() => handleSwitchMode(m.id)}
                   disabled={isProcessingAI}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all border disabled:opacity-50 ${
                     sel

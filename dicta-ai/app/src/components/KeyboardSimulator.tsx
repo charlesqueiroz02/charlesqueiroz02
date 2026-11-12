@@ -19,6 +19,8 @@ import { DictationMode } from '../types';
 import { soundEffects, speakText } from '../utils/audio';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { copyToClipboard } from '../utils/clipboard';
+import { openExternal } from '../lib/native';
+import { modeShortLabel } from '../lib/modes';
 
 interface KeyboardSimulatorProps {
   currentText: string;
@@ -32,6 +34,15 @@ interface KeyboardSimulatorProps {
 }
 
 type SimulatedApp = 'whatsapp' | 'gmail' | 'slack' | 'notes';
+
+const SIM_APPS: { id: SimulatedApp; label: string; icon: typeof Mail; mode: DictationMode; activeClass: string }[] = [
+  { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, mode: 'casual', activeClass: 'bg-emerald-600' },
+  { id: 'gmail', label: 'Gmail', icon: Mail, mode: 'email', activeClass: 'bg-rose-600' },
+  { id: 'slack', label: 'Slack', icon: Hash, mode: 'casual', activeClass: 'bg-amber-600' },
+  { id: 'notes', label: 'Notas', icon: FileEdit, mode: 'bullet', activeClass: 'bg-indigo-600' },
+];
+
+const QUICK_MODES: DictationMode[] = ['casual', 'email', 'bullet'];
 
 export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
   currentText,
@@ -98,7 +109,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
     const text = simulatedInput || currentText;
     if (!text) return;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    openExternal(url);
   };
 
   return (
@@ -113,67 +124,25 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
         </div>
 
         {/* Simulated App Switcher */}
-        <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs">
-          <button
-            onClick={() => {
-              setActiveApp('whatsapp');
-              onRefineMode('casual');
-            }}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-              activeApp === 'whatsapp'
-                ? 'bg-emerald-600 text-white font-medium'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Simular WhatsApp"
-          >
-            <MessageSquare className="w-3 h-3" />
-            <span className="hidden sm:inline">WhatsApp</span>
-          </button>
-          <button
-            onClick={() => {
-              setActiveApp('gmail');
-              onRefineMode('email');
-            }}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-              activeApp === 'gmail'
-                ? 'bg-rose-600 text-white font-medium'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Simular Gmail"
-          >
-            <Mail className="w-3 h-3" />
-            <span className="hidden sm:inline">Gmail</span>
-          </button>
-          <button
-            onClick={() => {
-              setActiveApp('slack');
-              onRefineMode('casual');
-            }}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-              activeApp === 'slack'
-                ? 'bg-amber-600 text-white font-medium'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Simular Slack"
-          >
-            <Hash className="w-3 h-3" />
-            <span className="hidden sm:inline">Slack</span>
-          </button>
-          <button
-            onClick={() => {
-              setActiveApp('notes');
-              onRefineMode('bullet');
-            }}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-              activeApp === 'notes'
-                ? 'bg-indigo-600 text-white font-medium'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Simular Notas"
-          >
-            <FileEdit className="w-3 h-3" />
-            <span className="hidden sm:inline">Notas</span>
-          </button>
+        <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs" role="group" aria-label="App simulado">
+          {SIM_APPS.map(({ id, label, icon: Icon, mode, activeClass }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setActiveApp(id);
+                onRefineMode(mode);
+              }}
+              aria-pressed={activeApp === id}
+              aria-label={`Simular ${label}`}
+              className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
+                activeApp === id ? `${activeClass} text-white font-medium` : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title={`Simular ${label}`}
+            >
+              <Icon className="w-3 h-3" aria-hidden="true" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -287,37 +256,20 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
           </div>
 
           {/* Quick Tone Selectors */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onRefineMode('casual')}
-              className={`px-2 py-0.5 rounded-md text-[11px] transition-all ${
-                activeMode === 'casual'
-                  ? 'bg-purple-600 text-white font-medium'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Chat
-            </button>
-            <button
-              onClick={() => onRefineMode('email')}
-              className={`px-2 py-0.5 rounded-md text-[11px] transition-all ${
-                activeMode === 'email'
-                  ? 'bg-purple-600 text-white font-medium'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Email
-            </button>
-            <button
-              onClick={() => onRefineMode('bullet')}
-              className={`px-2 py-0.5 rounded-md text-[11px] transition-all ${
-                activeMode === 'bullet'
-                  ? 'bg-purple-600 text-white font-medium'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Tópicos
-            </button>
+          <div className="flex items-center gap-1" role="group" aria-label="Tom rápido">
+            {QUICK_MODES.map((m) => (
+              <button
+                key={m}
+                onClick={() => onRefineMode(m)}
+                disabled={isLoading}
+                aria-pressed={activeMode === m}
+                className={`px-2 py-0.5 rounded-md text-[11px] transition-all disabled:opacity-50 ${
+                  activeMode === m ? 'bg-purple-600 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {modeShortLabel(m)}
+              </button>
+            ))}
           </div>
         </div>
 
