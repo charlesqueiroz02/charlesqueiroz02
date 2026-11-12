@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
   Settings, X, Volume2, Globe, Sliders, Copy, KeyRound, Eye, EyeOff, CheckCircle2,
-  Loader2, ExternalLink, Cpu, Wand2, Download, Upload, Trash2, AlertTriangle,
+  Loader2, ExternalLink, Cpu, Wand2, Download, Upload, Trash2, AlertTriangle, Vibrate,
 } from 'lucide-react';
 import { ToneSettings } from '../types';
 import { MODEL_OPTIONS, testApiKey } from '../lib/gemini';
@@ -194,7 +194,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="pt-2 border-t border-zinc-800/80 space-y-3">
             {[
               { k: 'autoCopy' as const, icon: Copy, t: 'Copiar automaticamente', d: 'Copia o texto pronto assim que a IA terminar' },
-              { k: 'soundEffects' as const, icon: Volume2, t: 'Sons e vibração', d: 'Feedback ao iniciar e encerrar a fala' },
+              { k: 'soundEffects' as const, icon: Volume2, t: 'Sons', d: 'Bipes ao iniciar e encerrar a fala' },
+              { k: 'hapticFeedback' as const, icon: Vibrate, t: 'Vibração', d: 'Vibra ao gravar e nas teclas do teclado Dicta' },
             ].map(({ k, icon: Icon, t, d }) => (
               <label key={k} className="flex items-center justify-between gap-3 cursor-pointer">
                 <div className="flex items-center gap-2.5">

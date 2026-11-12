@@ -56,6 +56,8 @@ public class DictaKeyboardService extends InputMethodService {
     private String lastInserted = null;
     private String currentPackage = "";
     private ToneGenerator tone;
+    /** Configuração sincronizada pelo app; relida ao abrir o teclado (evita parse de JSON a cada toque) */
+    private JSONObject cfg = new JSONObject();
 
     private int dp(float v) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
@@ -72,6 +74,7 @@ public class DictaKeyboardService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         mode = getSharedPreferences("dicta", MODE_PRIVATE).getString("imeMode", "auto");
+        cfg = Gemini.config(this);
         try { tone = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 35); } catch (Exception ignored) {}
     }
 
@@ -229,6 +232,7 @@ public class DictaKeyboardService extends InputMethodService {
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
         currentPackage = info != null && info.packageName != null ? info.packageName : "";
+        cfg = Gemini.config(this);
         if (!restarting) lastInserted = null;
         refreshMic();
         if (!recording && !processing) setIdleStatus();
@@ -242,7 +246,6 @@ public class DictaKeyboardService extends InputMethodService {
 
     private void setIdleStatus() {
         if (status == null) return;
-        JSONObject cfg = Gemini.config(this);
         if (cfg.optString("apiKey", "").length() == 0) {
             setStatus("Toque aqui para abrir o Dicta e configurar a chave da IA", C_REC, true);
         } else if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -290,7 +293,7 @@ public class DictaKeyboardService extends InputMethodService {
     private void toggleMic() {
         if (processing) return;
         if (recording) { stopAndProcess(); return; }
-        JSONObject cfg = Gemini.config(this);
+        cfg = Gemini.config(this);
         if (cfg.optString("apiKey", "").length() == 0) { openApp(); return; }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) { openApp(); return; }
         startRecording();
@@ -521,7 +524,12 @@ public class DictaKeyboardService extends InputMethodService {
 
     // ---------- Feedback ----------
     private boolean soundsOn() {
-        return Gemini.config(this).optBoolean("sounds", true);
+        return cfg.optBoolean("sounds", true);
+    }
+
+    /** Versões antigas só tinham "sounds" (som + vibração juntos): usa como padrão */
+    private boolean hapticsOn() {
+        return cfg.optBoolean("haptics", soundsOn());
     }
 
     private void beep(boolean start) {
@@ -530,7 +538,7 @@ public class DictaKeyboardService extends InputMethodService {
     }
 
     private void haptic(int ms) {
-        if (!soundsOn()) return;
+        if (!hapticsOn()) return;
         try {
             Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             if (v != null) v.vibrate(ms);
@@ -539,6 +547,8 @@ public class DictaKeyboardService extends InputMethodService {
 
     @Override
     public void onDestroy() {
+        ui.removeCallbacks(levelLoop);
+        recording = false;
         releaseRecorder();
         if (tone != null) tone.release();
         super.onDestroy();

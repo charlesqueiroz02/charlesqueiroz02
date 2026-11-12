@@ -1,118 +1,89 @@
+/**
+ * Feedback sonoro e tátil.
+ * As preferências do usuário (Preferências › Sons / Vibração) são aplicadas aqui,
+ * em um só lugar, para que nenhum componente toque som ou vibre sem permissão.
+ */
+
+const prefs = { sounds: true, haptics: true };
+
+/** Chamado pelo App sempre que as preferências mudam */
+export function setFeedbackPrefs(p: { sounds: boolean; haptics: boolean }) {
+  prefs.sounds = p.sounds;
+  prefs.haptics = p.haptics;
+}
+
 function vibrateSafe(p: number | number[]) {
+  if (!prefs.haptics) return;
   try {
     if (window.DictaNative) window.DictaNative.vibrate(Array.isArray(p) ? p[0] : p);
     else navigator.vibrate?.(p);
   } catch {}
 }
 
-/**
- * Web Audio sound feedback helper
- * Generates pleasant, modern sound cues for start and stop recording
- */
+interface Tone {
+  freq: number;
+  /** frequência final (glissando); omitida = nota fixa */
+  toFreq?: number;
+  /** atraso em segundos a partir de agora */
+  at?: number;
+  peak: number;
+  dur: number;
+}
+
+/** Gera sons curtos com Web Audio (sem arquivos de áudio) */
 class SoundEffects {
   private ctx: AudioContext | null = null;
 
-  private initCtx() {
+  private initCtx(): AudioContext | null {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtxClass) {
-        this.ctx = new AudioCtxClass();
-      }
+      if (AudioCtxClass) this.ctx = new AudioCtxClass();
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  }
+
+  private play(tones: Tone[], vibration: number | number[]) {
+    vibrateSafe(vibration);
+    if (!prefs.sounds) return;
+    try {
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      for (const t of tones) {
+        const start = now + (t.at ?? 0);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(t.freq, start);
+        if (t.toFreq) osc.frequency.exponentialRampToValueAtTime(t.toFreq, start + t.dur * 0.7);
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.linearRampToValueAtTime(t.peak, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + t.dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + t.dur + 0.02);
+      }
+    } catch (e) {
+      console.warn('Falha no efeito sonoro', e);
     }
   }
 
   playStartSound() {
-    try {
-      {
-        vibrateSafe(20);
-      }
-      this.initCtx();
-      if (!this.ctx) return;
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.15, now + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.2);
-    } catch (e) {
-      console.warn('Audio sound effect failed', e);
-    }
+    this.play([{ freq: 440, toFreq: 880, peak: 0.15, dur: 0.18 }], 20);
   }
 
   playStopSound() {
-    try {
-      {
-        vibrateSafe([25, 30, 25]);
-      }
-      this.initCtx();
-      if (!this.ctx) return;
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(740, now);
-      osc.frequency.exponentialRampToValueAtTime(370, now + 0.14);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.12, now + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.2);
-    } catch (e) {
-      console.warn('Audio sound effect failed', e);
-    }
+    this.play([{ freq: 740, toFreq: 370, peak: 0.12, dur: 0.18 }], [25, 30, 25]);
   }
 
   playSuccessSound() {
-    try {
-      {
-        vibrateSafe(15);
-      }
-      this.initCtx();
-      if (!this.ctx) return;
-      const now = this.ctx.currentTime;
-      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-      notes.forEach((freq, idx) => {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        const start = now + idx * 0.06;
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, start);
-
-        gain.gain.setValueAtTime(0.001, start);
-        gain.gain.linearRampToValueAtTime(0.1, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.14);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(start);
-        osc.stop(start + 0.15);
-      });
-    } catch (e) {
-      console.warn('Audio success sound failed', e);
-    }
+    // Acorde Dó-Mi-Sol
+    this.play(
+      [523.25, 659.25, 783.99].map((freq, i) => ({ freq, at: i * 0.06, peak: 0.1, dur: 0.14 })),
+      15
+    );
   }
 }
 

@@ -11,7 +11,7 @@ import {
 import { DictationMode, DictationNote, DictionaryItem, ToneSettings, isDictationMode } from './types';
 import { MAX_HISTORY, parseBackup, sanitizeDictionary, sanitizeNotes, sanitizeSettings } from './utils/backup';
 import { VoiceRecordingManager, MicError, toGeminiAudio } from './utils/speech';
-import { soundEffects } from './utils/audio';
+import { setFeedbackPrefs, soundEffects } from './utils/audio';
 import { WaveformVisualizer } from './components/WaveformVisualizer';
 import { DiffViewer } from './components/DiffViewer';
 import { VoiceCommandBar } from './components/VoiceCommandBar';
@@ -156,8 +156,13 @@ export default function App() {
       mode: selectedMode,
       dictionary: dictionary.map((d) => d.term),
       sounds: settings.soundEffects,
+      haptics: settings.hapticFeedback,
     });
   }, [settings, dictionary, selectedMode]);
+
+  useEffect(() => {
+    setFeedbackPrefs({ sounds: settings.soundEffects, haptics: settings.hapticFeedback });
+  }, [settings.soundEffects, settings.hapticFeedback]);
 
   // Primeira abertura sem chave → abre Preferências
   useEffect(() => {
@@ -234,7 +239,7 @@ export default function App() {
       fail(err, false);
       return;
     }
-    if (settings.soundEffects) soundEffects.playStartSound();
+    soundEffects.playStartSound();
     recorderRef.current = manager;
     setIsRecording(true);
     timerRef.current = setInterval(() => {
@@ -258,7 +263,7 @@ export default function App() {
     if (!manager) return;
     recorderRef.current = null;
     stopTimer();
-    if (settings.soundEffects) soundEffects.playStopSound();
+    soundEffects.playStopSound();
     setIsRecording(false);
     setVolume(0);
 
@@ -347,7 +352,7 @@ export default function App() {
     setFillerWordsRemoved(fillers);
     setDetectedLanguage(lang);
     setCanRetry(false);
-    if (settings.soundEffects) soundEffects.playSuccessSound();
+    soundEffects.playSuccessSound();
     if (settings.autoCopy) copyToClipboard(refined).then(() => showToast('Texto copiado ✓'));
 
     const note: DictationNote = {
@@ -373,7 +378,7 @@ export default function App() {
         fail(new Error('A IA não devolveu um texto editado. Seu texto foi mantido — tente reformular o comando.'), false);
       } else {
         setRefinedText(updated);
-        if (settings.soundEffects) soundEffects.playSuccessSound();
+        soundEffects.playSuccessSound();
       }
     } catch (err: any) {
       fail(err, false);
@@ -394,7 +399,7 @@ export default function App() {
       }
       setRefinedText(res.updatedText);
       if (res.command) showToast(`✓ ${res.command}`);
-      if (settings.soundEffects) soundEffects.playSuccessSound();
+      soundEffects.playSuccessSound();
     } catch (err: any) {
       fail(err, false);
     } finally {
