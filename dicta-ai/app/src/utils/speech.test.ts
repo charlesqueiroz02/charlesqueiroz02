@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { encodeWav } from './speech';
+import { createVolumeThrottle, encodeWav } from './speech';
+
+describe('createVolumeThrottle', () => {
+  it('respeita o intervalo mínimo entre avisos', () => {
+    const t = createVolumeThrottle(66, 0.03);
+    expect(t(0.5, 0)).toBe(true);
+    expect(t(0.9, 30)).toBe(false); // cedo demais
+    expect(t(0.9, 70)).toBe(true);
+  });
+
+  it('ignora variações pequenas, mas sempre avisa a volta ao silêncio', () => {
+    const t = createVolumeThrottle(0, 0.05);
+    expect(t(0.5, 0)).toBe(true);
+    expect(t(0.52, 100)).toBe(false);
+    expect(t(0.6, 200)).toBe(true);
+    expect(t(0.02, 300)).toBe(true);
+    expect(t(0, 400)).toBe(true);
+  });
+});
 
 describe('encodeWav', () => {
   it('gera cabeçalho WAV PCM 16 bits mono válido', async () => {

@@ -11,6 +11,22 @@ export class MicError extends Error {
   }
 }
 
+/**
+ * Decide se um novo volume deve ser repassado à interface: no máximo a cada
+ * `minIntervalMs` e só quando muda mais que `minDelta` (ou volta a zero).
+ */
+export function createVolumeThrottle(minIntervalMs = 66, minDelta = 0.03) {
+  let lastT = -Infinity;
+  let lastV = -1;
+  return (v: number, now: number): boolean => {
+    if (now - lastT < minIntervalMs) return false;
+    if (Math.abs(v - lastV) < minDelta && !(v === 0 && lastV !== 0)) return false;
+    lastT = now;
+    lastV = v;
+    return true;
+  };
+}
+
 export class VoiceRecordingManager {
   private recognition: any = null;
   private mediaRecorder: MediaRecorder | null = null;
@@ -105,12 +121,15 @@ export class VoiceRecordingManager {
   private volumeLoop() {
     if (!this.analyser) return;
     const data = new Uint8Array(this.analyser.frequencyBinCount);
+    const throttle = createVolumeThrottle();
     const tick = () => {
       if (!this.analyser) return;
       this.analyser.getByteFrequencyData(data);
       let sum = 0;
       for (let i = 0; i < data.length; i++) sum += data[i];
-      this.onVolumeChange?.(Math.min(1, sum / data.length / 110));
+      const vol = Math.min(1, sum / data.length / 110);
+      // Cada aviso vira um setState no App: limitamos para não re-renderizar a tela a 60 fps
+      if (throttle(vol, performance.now())) this.onVolumeChange?.(vol);
       this.raf = requestAnimationFrame(tick);
     };
     tick();

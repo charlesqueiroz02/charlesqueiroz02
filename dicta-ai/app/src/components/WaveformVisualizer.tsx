@@ -35,7 +35,7 @@ export const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({
         return (
           <div
             key={index}
-            className={`w-1.5 rounded-full transition-all duration-75 ${
+            className={`w-1.5 rounded-full transition-all duration-100 ${
               isRecording
                 ? 'bg-gradient-to-t from-indigo-500 via-purple-500 to-pink-400 shadow-[0_0_8px_rgba(168,85,247,0.5)]'
                 : 'bg-zinc-800'
