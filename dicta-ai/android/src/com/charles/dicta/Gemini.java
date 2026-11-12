@@ -23,6 +23,10 @@ public class Gemini {
     }
 
     private static final String BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
+    /** Mesmos limites do app web (gemini.ts): no máximo 3 modelos, 45 s cada, 120 s no total */
+    private static final int MAX_ATTEMPTS = 3;
+    private static final int PER_MODEL_TIMEOUT_MS = 45000;
+    private static final long TOTAL_BUDGET_MS = 120000;
     private static final String[] AUTO_MODELS = {
             "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest",
             "gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-3.1-flash-lite"
@@ -120,12 +124,17 @@ public class Gemini {
 
     private static String call(Context ctx, String apiKey, String preferred, String body) throws GeminiException {
         GeminiException last = null;
-        for (String model : modelQueue(ctx, preferred)) {
+        long deadline = System.currentTimeMillis() + TOTAL_BUDGET_MS;
+        List<String> queue = modelQueue(ctx, preferred);
+        if (queue.size() > MAX_ATTEMPTS) queue = queue.subList(0, MAX_ATTEMPTS);
+        for (String model : queue) {
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) break;
             HttpURLConnection c = null;
             try {
                 c = (HttpURLConnection) new URL(BASE + model + ":generateContent").openConnection();
-                c.setConnectTimeout(15000);
-                c.setReadTimeout(90000);
+                c.setConnectTimeout((int) Math.min(15000, remaining));
+                c.setReadTimeout((int) Math.min(PER_MODEL_TIMEOUT_MS, remaining));
                 c.setRequestMethod("POST");
                 c.setDoOutput(true);
                 c.setRequestProperty("Content-Type", "application/json; charset=utf-8");

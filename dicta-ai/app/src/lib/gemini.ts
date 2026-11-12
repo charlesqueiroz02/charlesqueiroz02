@@ -77,13 +77,25 @@ export function modelQueue(preferred?: string): string[] {
   return last ? [last, ...AUTO_MODELS.filter((m) => m !== last)] : AUTO_MODELS;
 }
 
+/**
+ * Limites para o usuário não esperar minutos em caso de falha: antes eram até
+ * 6 modelos x 90 s cada (~9 min). Agora: no máximo 3 modelos, 45 s cada e
+ * 120 s no total.
+ */
+export const MAX_ATTEMPTS = 3;
+export const PER_MODEL_TIMEOUT_MS = 45_000;
+export const TOTAL_BUDGET_MS = 120_000;
+
 async function callGemini({ apiKey, model, parts, json = true }: CallOpts): Promise<string> {
   if (!apiKey) throw new GeminiError('Configure sua chave gratuita do Gemini em Preferências para usar a IA.', true);
   let lastErr: GeminiError | null = null;
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
 
-  for (const m of modelQueue(model)) {
+  for (const m of modelQueue(model).slice(0, MAX_ATTEMPTS)) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 90000);
+    const timer = setTimeout(() => ctrl.abort(), Math.min(PER_MODEL_TIMEOUT_MS, remaining));
     try {
       const resp = await fetch(`${API_BASE}/${m}:generateContent`, {
         method: 'POST',

@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { AUTO_MODELS, getModeGuideline, modelQueue, parseJson } from './gemini';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AUTO_MODELS, MAX_ATTEMPTS, getModeGuideline, modelQueue, parseJson, testApiKey } from './gemini';
 
 // localStorage mínimo para rodar no ambiente Node
 function installLocalStorage() {
@@ -46,6 +46,42 @@ describe('modelQueue', () => {
   it('prioriza o último modelo que funcionou', () => {
     localStorage.setItem('dicta_last_good_model', 'gemini-2.5-flash-lite');
     expect(modelQueue()[0]).toBe('gemini-2.5-flash-lite');
+  });
+});
+
+describe('callGemini (via testApiKey)', () => {
+  beforeEach(installLocalStorage);
+  afterEach(() => {
+    delete (globalThis as any).localStorage;
+    vi.unstubAllGlobals();
+  });
+
+  const reply = (status: number, body: unknown) =>
+    Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }));
+
+  it(`tenta no máximo ${MAX_ATTEMPTS} modelos quando o servidor falha`, async () => {
+    const fetchMock = vi.fn(() => reply(503, { error: { message: 'overloaded' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(testApiKey('k')).rejects.toThrow(/ocupados/);
+    expect(fetchMock).toHaveBeenCalledTimes(MAX_ATTEMPTS);
+  });
+
+  it('para na hora com chave inválida (erro fatal)', async () => {
+    const fetchMock = vi.fn(() => reply(400, { error: { message: 'API key not valid' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(testApiKey('k')).rejects.toMatchObject({ fatal: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('pula modelo inexistente (404) e memoriza o que funcionou', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => reply(404, { error: { message: 'not found' } }))
+      .mockImplementationOnce(() => reply(200, { candidates: [{ content: { parts: [{ text: 'OK' }] } }] }));
+    vi.stubGlobal('fetch', fetchMock);
+    const model = await testApiKey('k');
+    expect(model).toBe(AUTO_MODELS[1]);
+    expect(localStorage.getItem('dicta_last_good_model')).toBe(AUTO_MODELS[1]);
   });
 });
 
