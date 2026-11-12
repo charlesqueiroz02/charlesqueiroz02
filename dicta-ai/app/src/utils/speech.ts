@@ -105,11 +105,18 @@ export class VoiceRecordingManager {
       this.volumeLoop();
     } catch {}
 
-    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
-    const mimeType = types.find((t) => (window as any).MediaRecorder?.isTypeSupported?.(t));
-    this.mediaRecorder = new MediaRecorder(this.stream, mimeType ? { mimeType } : undefined);
-    this.mediaRecorder.ondataavailable = (e) => e.data.size > 0 && this.chunks.push(e.data);
-    this.mediaRecorder.start(250);
+    try {
+      const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+      const mimeType = types.find((t) => (window as any).MediaRecorder?.isTypeSupported?.(t));
+      this.mediaRecorder = new MediaRecorder(this.stream, mimeType ? { mimeType } : undefined);
+      this.mediaRecorder.ondataavailable = (e) => e.data.size > 0 && this.chunks.push(e.data);
+      this.mediaRecorder.start(250);
+    } catch {
+      // Sem isso o microfone (e o indicador de gravação do sistema) ficava ligado
+      this.mediaRecorder = null;
+      this.cleanup();
+      throw new MicError('unavailable', 'Este aparelho não conseguiu iniciar a gravação de áudio.');
+    }
 
     if (this.recognition) {
       try {
