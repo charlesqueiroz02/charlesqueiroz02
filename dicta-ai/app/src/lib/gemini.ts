@@ -71,7 +71,7 @@ interface CallOpts {
   json?: boolean;
 }
 
-function modelQueue(preferred?: string): string[] {
+export function modelQueue(preferred?: string): string[] {
   if (preferred && preferred !== 'auto') return [preferred, ...AUTO_MODELS.filter((m) => m !== preferred)];
   const last = localStorage.getItem(LAST_GOOD_MODEL_KEY);
   return last ? [last, ...AUTO_MODELS.filter((m) => m !== last)] : AUTO_MODELS;
@@ -143,7 +143,7 @@ async function callGemini({ apiKey, model, parts, json = true }: CallOpts): Prom
   throw lastErr || new GeminiError('Nenhum modelo de IA disponível.');
 }
 
-function parseJson<T>(text: string, fallback: T): T {
+export function parseJson<T>(text: string, fallback: T): T {
   try {
     const clean = text.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
     return { ...fallback, ...JSON.parse(clean) };

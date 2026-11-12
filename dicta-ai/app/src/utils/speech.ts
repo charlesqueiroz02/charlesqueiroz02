@@ -194,7 +194,7 @@ export async function toGeminiAudio(blob: Blob): Promise<{ blob: Blob; mime: str
   }
 }
 
-function encodeWav(samples: Float32Array, rate: number): Blob {
+export function encodeWav(samples: Float32Array, rate: number): Blob {
   const buffer = new ArrayBuffer(44 + samples.length * 2);
   const v = new DataView(buffer);
   const w = (o: number, s: string) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
