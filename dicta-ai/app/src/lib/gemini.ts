@@ -6,23 +6,63 @@ import { DictationMode } from '../types';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const LAST_GOOD_MODEL_KEY = 'dicta_last_good_model';
+const UNAVAILABLE_KEY = 'dicta_unavailable_models';
 
-export const AUTO_MODELS = [
-  'gemini-flash-latest',
-  'gemini-2.5-flash',
-  'gemini-flash-lite-latest',
-  'gemini-2.5-flash-lite',
-  'gemini-3.5-flash',
-  'gemini-3.1-flash-lite',
-];
+/**
+ * Fila automática: Flash-Lite primeiro (mais barato e rápido), depois Flash.
+ * Os modelos 2.5 deixaram de ser liberados para chaves novas (erro "no longer
+ * available to new users"), por isso saíram da lista.
+ * Mesma lista em android/.../Gemini.java — mude as duas juntas.
+ */
+export const AUTO_MODELS = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.8-flash', 'gemini-flash-latest'];
 
 export const MODEL_OPTIONS = [
   { id: 'auto', label: 'Automático (recomendado)' },
-  { id: 'gemini-flash-latest', label: 'Gemini Flash (mais recente)' },
-  { id: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite (mais rápido)' },
-  { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (máxima qualidade)' },
+  { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite (rápido e econômico)' },
+  { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash (mais caprichado)' },
+  { id: 'gemini-flash-lite-latest', label: 'Flash-Lite (sempre o mais recente)' },
+  { id: 'gemini-flash-latest', label: 'Flash (sempre o mais recente)' },
 ];
+
+/** Modelos antigos (1.x/2.x) que o Google não libera mais para chaves novas */
+export const isRetiredModel = (id: string) => /^gemini-(1|2)\./.test(id);
+
+/** Modelo salvo nas Preferências que não existe mais vira "auto" */
+export function normalizeModelSetting(id: unknown): string {
+  if (typeof id !== 'string' || !id || isRetiredModel(id)) return 'auto';
+  return id;
+}
+
+/** Identifica a chave sem guardá-la: a lista de modelos indisponíveis vale só para ela */
+function keyTag(apiKey: string): string {
+  let h = 0;
+  for (let i = 0; i < apiKey.length; i++) h = (h * 31 + apiKey.charCodeAt(i)) | 0;
+  return String(h);
+}
+
+function readUnavailable(apiKey: string): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(UNAVAILABLE_KEY) || 'null');
+    return v && v.key === keyTag(apiKey) && Array.isArray(v.models) ? v.models : [];
+  } catch {
+    return [];
+  }
+}
+
+function markUnavailable(apiKey: string, model: string) {
+  try {
+    const models = [...new Set([...readUnavailable(apiKey), model])];
+    localStorage.setItem(UNAVAILABLE_KEY, JSON.stringify({ key: keyTag(apiKey), models }));
+  } catch {}
+}
+
+/** Resposta da API dizendo que o modelo não existe / não está liberado para esta chave */
+export function isModelUnavailable(status: number, msg: string): boolean {
+  if (status === 404) return true;
+  if (status !== 400 && status !== 403) return false;
+  if (/api key/i.test(msg) && !/model/i.test(msg)) return false;
+  return /no longer available|not found|not supported|unsupported|deprecated|is not available|does not exist|retired/i.test(msg);
+}
 
 export const SYSTEM_PROMPT = `You are Dicta AI, an expert speech-to-text editor and voice keyboard.
 Convert spoken speech into flawless, well formatted written text.
@@ -70,88 +110,146 @@ interface CallOpts {
   json?: boolean;
 }
 
-export function modelQueue(preferred?: string): string[] {
-  if (preferred && preferred !== 'auto') return [preferred, ...AUTO_MODELS.filter((m) => m !== preferred)];
-  const last = localStorage.getItem(LAST_GOOD_MODEL_KEY);
-  return last ? [last, ...AUTO_MODELS.filter((m) => m !== last)] : AUTO_MODELS;
+export function modelQueue(preferred?: string, apiKey = ''): string[] {
+  const pref = normalizeModelSetting(preferred);
+  let last: string | null = null;
+  try {
+    last = localStorage.getItem(LAST_GOOD_MODEL_KEY);
+  } catch {}
+  if (last && isRetiredModel(last)) last = null;
+  const first = pref !== 'auto' ? pref : last;
+  const queue = first ? [first, ...AUTO_MODELS.filter((m) => m !== first)] : [...AUTO_MODELS];
+  const skip = apiKey ? readUnavailable(apiKey) : [];
+  const usable = queue.filter((m) => !skip.includes(m));
+  // Se tudo foi marcado indisponível (ex.: Google liberou de novo), tenta a lista inteira
+  return usable.length ? usable : queue;
 }
 
 /**
- * Limites para o usuário não esperar minutos em caso de falha: antes eram até
- * 6 modelos x 90 s cada (~9 min). Agora: no máximo 3 modelos, 45 s cada e
+ * Limites para o usuário não esperar minutos em caso de falha: no máximo 3
+ * modelos que respondam de fato (modelo inexistente não conta), 45 s cada e
  * 120 s no total.
  */
 export const MAX_ATTEMPTS = 3;
 export const PER_MODEL_TIMEOUT_MS = 45_000;
 export const TOTAL_BUDGET_MS = 120_000;
+/** Se o Google pedir para esperar até isso em um 429, esperamos e tentamos de novo */
+const MAX_RETRY_WAIT_MS = 10_000;
+
+/** Quanto maior, mais útil para o usuário: é esse erro que aparece no fim */
+const PRIORITY = { unavailable: 1, empty: 2, busy: 3, timeout: 4, unknown: 4, rateLimit: 5 } as const;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function retryDelayMs(body: any): number | null {
+  const details = Array.isArray(body?.error?.details) ? body.error.details : [];
+  for (const d of details) {
+    const m = typeof d?.retryDelay === 'string' && d.retryDelay.match(/^(\d+(?:\.\d+)?)s$/);
+    if (m) return Math.ceil(parseFloat(m[1]) * 1000);
+  }
+  return null;
+}
 
 async function callGemini({ apiKey, model, parts, json = true }: CallOpts): Promise<string> {
   if (!apiKey) throw new GeminiError('Configure sua chave gratuita do Gemini em Preferências para usar a IA.', true);
-  let lastErr: GeminiError | null = null;
+  let best: { err: GeminiError; rank: number } | null = null;
+  const keep = (err: GeminiError, rank: number) => {
+    if (!best || rank >= best.rank) best = { err, rank };
+  };
   const deadline = Date.now() + TOTAL_BUDGET_MS;
+  let attempts = 0;
 
-  for (const m of modelQueue(model).slice(0, MAX_ATTEMPTS)) {
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) break;
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), Math.min(PER_MODEL_TIMEOUT_MS, remaining));
-    try {
-      const resp = await fetch(`${API_BASE}/${m}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: 'user', parts }],
-          generationConfig: { temperature: 0.3, ...(json ? { responseMimeType: 'application/json' } : {}) },
-        }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(timer);
+  for (const m of modelQueue(model, apiKey)) {
+    if (attempts >= MAX_ATTEMPTS) break;
+    let retried429 = false;
+    // laço curto: só repete o mesmo modelo uma vez, quando o Google pede espera curta
+    for (;;) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) break;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), Math.min(PER_MODEL_TIMEOUT_MS, remaining));
+      try {
+        const resp = await fetch(`${API_BASE}/${m}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{ role: 'user', parts }],
+            generationConfig: { temperature: 0.3, ...(json ? { responseMimeType: 'application/json' } : {}) },
+          }),
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
 
-      if (resp.ok) {
-        const data = await resp.json();
-        const text = (data?.candidates?.[0]?.content?.parts || [])
-          .map((p: any) => p.text || '')
-          .join('')
-          .trim();
-        if (!text) {
-          lastErr = new GeminiError('A IA não retornou texto. Tente falar novamente.');
-          continue;
+        if (resp.ok) {
+          attempts++;
+          const data = await resp.json();
+          const text = (data?.candidates?.[0]?.content?.parts || [])
+            .map((p: any) => p.text || '')
+            .join('')
+            .trim();
+          if (!text) {
+            keep(new GeminiError('A IA não retornou texto. Tente falar novamente.'), PRIORITY.empty);
+            break;
+          }
+          try {
+            localStorage.setItem(LAST_GOOD_MODEL_KEY, m);
+          } catch {}
+          return text;
         }
-        localStorage.setItem(LAST_GOOD_MODEL_KEY, m);
-        return text;
-      }
 
-      const body = await resp.json().catch(() => null);
-      const msg: string = body?.error?.message || `HTTP ${resp.status}`;
-      if (resp.status === 400 && /api key/i.test(msg)) {
-        throw new GeminiError('Chave do Gemini inválida. Confira em Preferências › Chave da IA.', true);
+        const body = await resp.json().catch(() => null);
+        const msg: string = body?.error?.message || `HTTP ${resp.status}`;
+
+        if (isModelUnavailable(resp.status, msg)) {
+          // não gasta tentativa: o modelo simplesmente não existe para esta chave
+          console.warn(`Modelo ${m} indisponível:`, msg);
+          markUnavailable(apiKey, m);
+          keep(new GeminiError('Nenhum modelo de IA disponível para a sua chave. Escolha "Automático" em Preferências › Modelo de IA.'), PRIORITY.unavailable);
+          break;
+        }
+        attempts++;
+        if (resp.status === 400 && /api key/i.test(msg)) {
+          throw new GeminiError('Chave do Gemini inválida. Confira em Preferências › Chave da IA.', true);
+        }
+        if (resp.status === 401 || resp.status === 403) {
+          throw new GeminiError('Chave sem permissão para a API Gemini. Gere uma nova em aistudio.google.com/apikey.', true);
+        }
+        if (resp.status === 429) {
+          const wait = retryDelayMs(body);
+          if (!retried429 && wait !== null && wait <= MAX_RETRY_WAIT_MS && Date.now() + wait < deadline) {
+            retried429 = true;
+            await sleep(wait);
+            continue;
+          }
+          keep(new GeminiError('Limite gratuito do Gemini atingido no momento. Aguarde 1 minuto e tente de novo.'), PRIORITY.rateLimit);
+        } else if (resp.status >= 500) {
+          keep(new GeminiError('Servidores da IA ocupados. Tente novamente em instantes.'), PRIORITY.busy);
+        } else {
+          // Mensagem da API em inglês fica só no console; na tela, texto em português
+          console.warn(`Gemini ${m} HTTP ${resp.status}:`, msg);
+          keep(new GeminiError(`A IA recusou o pedido (código ${resp.status}). Tente de novo ou troque o modelo em Preferências.`), PRIORITY.unknown);
+        }
+        break;
+      } catch (err: any) {
+        clearTimeout(timer);
+        if (err instanceof GeminiError && err.fatal) throw err;
+        if (err?.name === 'AbortError') {
+          attempts++;
+          keep(new GeminiError('A IA demorou demais para responder. Verifique sua internet.'), PRIORITY.timeout);
+          break;
+        }
+        if (err instanceof TypeError) {
+          throw new GeminiError('Sem conexão com a internet. Verifique o Wi-Fi ou dados móveis.');
+        }
+        attempts++;
+        console.warn('Falha ao chamar a IA:', err);
+        keep(new GeminiError('Falha inesperada ao falar com a IA. Tente de novo.'), PRIORITY.unknown);
+        break;
       }
-      if (resp.status === 403) {
-        throw new GeminiError('Chave sem permissão para a API Gemini. Gere uma nova em aistudio.google.com/apikey.', true);
-      }
-      if (resp.status === 429) {
-        lastErr = new GeminiError('Limite gratuito do Gemini atingido no momento. Aguarde 1 minuto e tente de novo.');
-      } else if (resp.status >= 500) {
-        lastErr = new GeminiError('Servidores da IA ocupados. Tente novamente em instantes.');
-      } else {
-        lastErr = new GeminiError(msg);
-      }
-      // 404 (modelo inexistente), 429, 5xx → tenta próximo modelo
-    } catch (err: any) {
-      clearTimeout(timer);
-      if (err instanceof GeminiError && err.fatal) throw err;
-      if (err?.name === 'AbortError') {
-        lastErr = new GeminiError('A IA demorou demais para responder. Verifique sua internet.');
-        continue;
-      }
-      if (err instanceof TypeError) {
-        throw new GeminiError('Sem conexão com a internet. Verifique o Wi-Fi ou dados móveis.');
-      }
-      lastErr = err instanceof GeminiError ? err : new GeminiError(err?.message || 'Falha desconhecida');
     }
   }
-  throw lastErr || new GeminiError('Nenhum modelo de IA disponível.');
+  throw (best as { err: GeminiError } | null)?.err || new GeminiError('Nenhum modelo de IA disponível.');
 }
 
 export function parseJson<T>(text: string, fallback: T): T {

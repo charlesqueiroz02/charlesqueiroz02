@@ -23,14 +23,38 @@ public class Gemini {
     }
 
     private static final String BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
-    /** Mesmos limites do app web (gemini.ts): no máximo 3 modelos, 45 s cada, 120 s no total */
+    /**
+     * Mesmos limites do app web (gemini.ts): no máximo 3 modelos que respondam de fato
+     * (modelo inexistente não conta), 45 s cada, 120 s no total.
+     */
     private static final int MAX_ATTEMPTS = 3;
     private static final int PER_MODEL_TIMEOUT_MS = 45000;
     private static final long TOTAL_BUDGET_MS = 120000;
+    private static final long MAX_RETRY_WAIT_MS = 10000;
+    /**
+     * Flash-Lite primeiro (mais barato). Os modelos 2.5 deixaram de ser liberados para
+     * chaves novas ("no longer available to new users") e saíram da lista.
+     * Mesma lista de app/src/lib/gemini.ts — mude as duas juntas.
+     */
     private static final String[] AUTO_MODELS = {
-            "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest",
-            "gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-3.1-flash-lite"
+            "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-flash-latest"
     };
+    private static final java.util.regex.Pattern UNAVAILABLE = java.util.regex.Pattern.compile(
+            "no longer available|not found|not supported|unsupported|deprecated|is not available|does not exist|retired",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** Modelos antigos (1.x/2.x) que o Google não libera mais para chaves novas */
+    static boolean isRetired(String id) {
+        return id == null || id.startsWith("gemini-1.") || id.startsWith("gemini-2.");
+    }
+
+    static boolean isModelUnavailable(int code, String msg) {
+        if (code == 404) return true;
+        if (code != 400 && code != 403) return false;
+        String m = msg == null ? "" : msg.toLowerCase();
+        if (m.contains("api key") && !m.contains("model")) return false;
+        return UNAVAILABLE.matcher(m).find();
+    }
 
     static final String SYSTEM_PROMPT =
             "You are Dicta AI, an expert speech-to-text editor and voice keyboard.\n" +
@@ -59,14 +83,51 @@ public class Gemini {
         try { return new JSONObject(p.getString("config", "{}")); } catch (Exception e) { return new JSONObject(); }
     }
 
-    private static List<String> modelQueue(Context ctx, String preferred) {
+    private static String keyTag(String apiKey) {
+        return String.valueOf(apiKey.hashCode());
+    }
+
+    private static List<String> unavailable(SharedPreferences p, String apiKey) {
+        List<String> out = new ArrayList<String>();
+        if (!keyTag(apiKey).equals(p.getString("unavailableKey", ""))) return out;
+        for (String m : p.getString("unavailableModels", "").split(",")) if (m.length() > 0) out.add(m);
+        return out;
+    }
+
+    private static void markUnavailable(SharedPreferences p, String apiKey, String model) {
+        List<String> list = unavailable(p, apiKey);
+        if (!list.contains(model)) list.add(model);
+        StringBuilder sb = new StringBuilder();
+        for (String m : list) { if (sb.length() > 0) sb.append(','); sb.append(m); }
+        p.edit().putString("unavailableKey", keyTag(apiKey)).putString("unavailableModels", sb.toString()).apply();
+    }
+
+    private static List<String> modelQueue(Context ctx, String preferred, String apiKey) {
         List<String> q = new ArrayList<String>();
         SharedPreferences p = ctx.getSharedPreferences("dicta", Context.MODE_PRIVATE);
         String last = p.getString("lastGoodModel", null);
-        if (preferred != null && preferred.length() > 0 && !"auto".equals(preferred)) q.add(preferred);
+        if (isRetired(last)) last = null;
+        // Preferência antiga (ex.: gemini-2.5-flash) é tratada como "auto"
+        if (preferred != null && preferred.length() > 0 && !"auto".equals(preferred) && !isRetired(preferred)) q.add(preferred);
         else if (last != null) q.add(last);
         for (String m : AUTO_MODELS) if (!q.contains(m)) q.add(m);
-        return q;
+        List<String> skip = unavailable(p, apiKey);
+        List<String> usable = new ArrayList<String>();
+        for (String m : q) if (!skip.contains(m)) usable.add(m);
+        // Se tudo ficou marcado indisponível, tenta a lista inteira de novo
+        return usable.isEmpty() ? q : usable;
+    }
+
+    private static long retryDelayMs(String resp) {
+        try {
+            JSONArray det = new JSONObject(resp).getJSONObject("error").optJSONArray("details");
+            if (det == null) return -1;
+            for (int i = 0; i < det.length(); i++) {
+                String rd = det.getJSONObject(i).optString("retryDelay", "");
+                if (rd.endsWith("s")) return (long) Math.ceil(Double.parseDouble(rd.substring(0, rd.length() - 1)) * 1000);
+            }
+        } catch (Exception ignored) {}
+        return -1;
     }
 
     /**
@@ -122,60 +183,109 @@ public class Gemini {
         }
     }
 
-    private static String call(Context ctx, String apiKey, String preferred, String body) throws GeminiException {
-        GeminiException last = null;
-        long deadline = System.currentTimeMillis() + TOTAL_BUDGET_MS;
-        List<String> queue = modelQueue(ctx, preferred);
-        if (queue.size() > MAX_ATTEMPTS) queue = queue.subList(0, MAX_ATTEMPTS);
-        for (String model : queue) {
-            long remaining = deadline - System.currentTimeMillis();
-            if (remaining <= 0) break;
-            HttpURLConnection c = null;
-            try {
-                c = (HttpURLConnection) new URL(BASE + model + ":generateContent").openConnection();
-                c.setConnectTimeout((int) Math.min(15000, remaining));
-                c.setReadTimeout((int) Math.min(PER_MODEL_TIMEOUT_MS, remaining));
-                c.setRequestMethod("POST");
-                c.setDoOutput(true);
-                c.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-                c.setRequestProperty("x-goog-api-key", apiKey);
-                OutputStream os = c.getOutputStream();
-                os.write(body.getBytes("UTF-8"));
-                os.close();
+    /** Prioridade do erro mostrado no fim: o mais útil para o usuário vence */
+    private static final int P_UNAVAILABLE = 1, P_EMPTY = 2, P_BUSY = 3, P_TIMEOUT = 4, P_UNKNOWN = 4, P_LIMIT = 5;
 
-                int code = c.getResponseCode();
-                String resp = read(code >= 400 ? c.getErrorStream() : c.getInputStream());
-                if (code == 200) {
-                    JSONObject j = new JSONObject(resp);
-                    JSONArray cands = j.optJSONArray("candidates");
-                    if (cands == null || cands.length() == 0) { last = new GeminiException("A IA não retornou texto", false); continue; }
-                    JSONArray ps = cands.getJSONObject(0).optJSONObject("content") != null
-                            ? cands.getJSONObject(0).getJSONObject("content").optJSONArray("parts") : null;
-                    StringBuilder sb = new StringBuilder();
-                    if (ps != null) for (int i = 0; i < ps.length(); i++) sb.append(ps.getJSONObject(i).optString("text", ""));
-                    ctx.getSharedPreferences("dicta", Context.MODE_PRIVATE).edit().putString("lastGoodModel", model).apply();
-                    return sb.toString();
+    private static String call(Context ctx, String apiKey, String preferred, String body) throws GeminiException {
+        GeminiException best = null;
+        int bestRank = 0;
+        long deadline = System.currentTimeMillis() + TOTAL_BUDGET_MS;
+        SharedPreferences prefs = ctx.getSharedPreferences("dicta", Context.MODE_PRIVATE);
+        int attempts = 0;
+        for (String model : modelQueue(ctx, preferred, apiKey)) {
+            if (attempts >= MAX_ATTEMPTS) break;
+            boolean retried429 = false;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) break;
+                HttpURLConnection c = null;
+                GeminiException err = null;
+                int rank = 0;
+                boolean retrySame = false;
+                try {
+                    c = (HttpURLConnection) new URL(BASE + model + ":generateContent").openConnection();
+                    c.setConnectTimeout((int) Math.min(15000, remaining));
+                    c.setReadTimeout((int) Math.min(PER_MODEL_TIMEOUT_MS, remaining));
+                    c.setRequestMethod("POST");
+                    c.setDoOutput(true);
+                    c.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                    c.setRequestProperty("x-goog-api-key", apiKey);
+                    OutputStream os = c.getOutputStream();
+                    os.write(body.getBytes("UTF-8"));
+                    os.close();
+
+                    int code = c.getResponseCode();
+                    String resp = read(code >= 400 ? c.getErrorStream() : c.getInputStream());
+                    if (code == 200) {
+                        attempts++;
+                        JSONObject j = new JSONObject(resp);
+                        JSONArray cands = j.optJSONArray("candidates");
+                        JSONArray ps = (cands != null && cands.length() > 0 && cands.getJSONObject(0).optJSONObject("content") != null)
+                                ? cands.getJSONObject(0).getJSONObject("content").optJSONArray("parts") : null;
+                        StringBuilder sb = new StringBuilder();
+                        if (ps != null) for (int i = 0; i < ps.length(); i++) sb.append(ps.getJSONObject(i).optString("text", ""));
+                        if (sb.toString().trim().length() == 0) {
+                            err = new GeminiException("A IA não retornou texto. Tente de novo.", false);
+                            rank = P_EMPTY;
+                        } else {
+                            prefs.edit().putString("lastGoodModel", model).apply();
+                            return sb.toString();
+                        }
+                    } else {
+                        String msg = "HTTP " + code;
+                        try { msg = new JSONObject(resp).getJSONObject("error").optString("message", msg); } catch (Exception ignored) {}
+                        if (isModelUnavailable(code, msg)) {
+                            // não conta como tentativa: o modelo não existe para esta chave
+                            android.util.Log.w("Dicta", "Modelo " + model + " indisponível: " + msg);
+                            markUnavailable(prefs, apiKey, model);
+                            err = new GeminiException("Nenhum modelo de IA disponível — abra o Dicta › Preferências › Modelo: Automático", false);
+                            rank = P_UNAVAILABLE;
+                        } else {
+                            attempts++;
+                            if (code == 400 && msg.toLowerCase().contains("api key")) throw new GeminiException("Chave da IA inválida — confira no app Dicta", true);
+                            if (code == 401 || code == 403) throw new GeminiException("Chave sem permissão — gere outra no AI Studio", true);
+                            if (code == 429) {
+                                long wait = retryDelayMs(resp);
+                                if (!retried429 && wait >= 0 && wait <= MAX_RETRY_WAIT_MS && System.currentTimeMillis() + wait < deadline) {
+                                    retried429 = true;
+                                    retrySame = true;
+                                    try { Thread.sleep(wait); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                                } else {
+                                    err = new GeminiException("Limite gratuito atingido — aguarde 1 min", false);
+                                    rank = P_LIMIT;
+                                }
+                            } else if (code >= 500) {
+                                err = new GeminiException("IA ocupada — tente de novo", false);
+                                rank = P_BUSY;
+                            } else {
+                                // texto original da API (em inglês) só no log
+                                android.util.Log.w("Dicta", "Gemini " + model + " HTTP " + code + ": " + msg);
+                                err = new GeminiException("A IA recusou o pedido (código " + code + ") — tente de novo", false);
+                                rank = P_UNKNOWN;
+                            }
+                        }
+                    }
+                } catch (GeminiException e) {
+                    throw e;
+                } catch (java.net.UnknownHostException e) {
+                    throw new GeminiException("Sem internet", false);
+                } catch (java.net.SocketTimeoutException e) {
+                    attempts++;
+                    err = new GeminiException("A IA demorou demais", false);
+                    rank = P_TIMEOUT;
+                } catch (Exception e) {
+                    attempts++;
+                    err = new GeminiException("Falha de conexão", false);
+                    rank = P_UNKNOWN;
+                } finally {
+                    if (c != null) c.disconnect();
                 }
-                String msg = "HTTP " + code;
-                try { msg = new JSONObject(resp).getJSONObject("error").optString("message", msg); } catch (Exception ignored) {}
-                if (code == 400 && msg.toLowerCase().contains("api key")) throw new GeminiException("Chave da IA inválida — confira no app Dicta", true);
-                if (code == 403) throw new GeminiException("Chave sem permissão — gere outra no AI Studio", true);
-                if (code == 429) last = new GeminiException("Limite gratuito atingido — aguarde 1 min", false);
-                else if (code >= 500) last = new GeminiException("IA ocupada — tente de novo", false);
-                else last = new GeminiException(msg, false);
-            } catch (GeminiException e) {
-                throw e;
-            } catch (java.net.UnknownHostException e) {
-                throw new GeminiException("Sem internet", false);
-            } catch (java.net.SocketTimeoutException e) {
-                last = new GeminiException("A IA demorou demais", false);
-            } catch (Exception e) {
-                last = new GeminiException("Falha de conexão", false);
-            } finally {
-                if (c != null) c.disconnect();
+                if (retrySame) continue;
+                if (err != null && rank >= bestRank) { best = err; bestRank = rank; }
+                break;
             }
         }
-        throw last != null ? last : new GeminiException("Nenhum modelo disponível", false);
+        throw best != null ? best : new GeminiException("Nenhum modelo disponível", false);
     }
 
     private static String read(InputStream in) throws java.io.IOException {

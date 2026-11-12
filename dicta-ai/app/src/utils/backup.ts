@@ -5,6 +5,7 @@
  */
 import { DictationNote, DictionaryItem, ToneSettings, isDictationMode } from '../types';
 import { newId } from './id';
+import { normalizeModelSetting } from '../lib/gemini';
 
 export const MAX_HISTORY = 500;
 export const MAX_DICTIONARY = 1000;
@@ -71,7 +72,8 @@ export function sanitizeSettings(raw: unknown): Partial<ToneSettings> {
   const lang = str(raw.language, 20);
   if (lang && /^(auto|[a-z]{2,3}(-[A-Za-z]{2,4})?)$/.test(lang)) out.language = lang;
   const model = str(raw.model, 80);
-  if (model && /^[a-z0-9.\-]+$/i.test(model)) out.model = model;
+  // Modelos antigos (ex.: gemini-2.5-flash) não são mais liberados pelo Google: voltam para 'auto'
+  if (model && /^[a-z0-9.\-]+$/i.test(model)) out.model = normalizeModelSetting(model);
   const ci = str(raw.customInstruction, MAX_INSTRUCTION);
   if (ci !== undefined) out.customInstruction = ci;
   for (const k of ['autoCopy', 'hapticFeedback', 'soundEffects'] as const) {

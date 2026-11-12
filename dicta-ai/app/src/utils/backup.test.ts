@@ -43,7 +43,9 @@ describe('sanitizeSettings', () => {
   });
 
   it('valida idioma e modelo', () => {
-    expect(sanitizeSettings({ language: 'pt-BR', model: 'gemini-2.5-flash' })).toEqual({ language: 'pt-BR', model: 'gemini-2.5-flash' });
+    expect(sanitizeSettings({ language: 'pt-BR', model: 'gemini-3.8-flash' })).toEqual({ language: 'pt-BR', model: 'gemini-3.8-flash' });
+    // modelo aposentado pelo Google volta para Automático
+    expect(sanitizeSettings({ model: 'gemini-2.5-flash' })).toEqual({ model: 'auto' });
     expect(sanitizeSettings({ language: '<script>', model: '../x' })).toEqual({});
   });
 });

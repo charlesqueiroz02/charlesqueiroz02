@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(true);
         s.setTextZoom(100);
-        s.setUserAgentString(s.getUserAgentString() + " DictaAndroid/2.0");
+        s.setUserAgentString(s.getUserAgentString() + " DictaAndroid");
 
         web.addJavascriptInterface(new Bridge(), "DictaNative");
         web.setWebViewClient(new LocalClient());
@@ -414,7 +414,11 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getVersion() {
-            return "2.0.0";
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "";
+            }
         }
     }
 

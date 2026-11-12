@@ -26,6 +26,16 @@ atualização, aumente as duas lá.
 ## Testes
     cd app && npm run lint && npm test && npm run build
 
+## Versão 2.0.1 — correção do erro de modelo
+- O Google deixou de liberar os modelos Gemini 2.5 para chaves novas ("This model
+  models/gemini-2.5-flash is no longer available to new users"). A fila automática agora é
+  3.5 Flash-Lite → Flash-Lite mais recente → 3.8 Flash → Flash mais recente (Flash-Lite
+  primeiro por ser mais barato), no app e no teclado.
+- Modelo indisponível é pulado sem contar como tentativa e fica lembrado para aquela chave.
+- Preferência salva com modelo antigo volta sozinha para "Automático".
+- Erros da IA aparecem sempre em português; o mais útil (ex.: limite atingido) é o mostrado.
+- Limite 429 com espera curta indicada pelo Google é repetido automaticamente.
+
 ## Alterações da revisão de novembro/2026
 
 Segurança
