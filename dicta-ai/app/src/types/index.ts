@@ -1,11 +1,10 @@
-export type DictationMode = 
-  | 'casual' 
-  | 'email' 
-  | 'bullet' 
-  | 'verbatim' 
-  | 'social' 
-  | 'meeting' 
-  | 'summary';
+/** Fonte única dos estilos de ditado (o teclado Java tem a mesma lista em DictaKeyboardService.MODES) */
+export const DICTATION_MODES = ['casual', 'email', 'bullet', 'verbatim', 'social', 'meeting', 'summary'] as const;
+
+export type DictationMode = (typeof DICTATION_MODES)[number];
+
+export const isDictationMode = (v: unknown): v is DictationMode =>
+  typeof v === 'string' && (DICTATION_MODES as readonly string[]).includes(v);
 
 export interface DictationNote {
   id: string;

@@ -8,7 +8,8 @@ import {
   ListOrdered, FileCheck, Flame, Zap, HelpCircle, Play, RotateCcw, AlertCircle, X, KeyRound,
   Users, Clock, Type,
 } from 'lucide-react';
-import { DictationMode, DictationNote, DictionaryItem, ToneSettings } from './types';
+import { DictationMode, DictationNote, DictionaryItem, ToneSettings, isDictationMode } from './types';
+import { MAX_HISTORY, parseBackup, sanitizeDictionary, sanitizeNotes, sanitizeSettings } from './utils/backup';
 import { VoiceRecordingManager, MicError, toGeminiAudio } from './utils/speech';
 import { soundEffects } from './utils/audio';
 import { WaveformVisualizer } from './components/WaveformVisualizer';
@@ -64,6 +65,15 @@ const DEFAULT_SETTINGS: ToneSettings = {
 
 const MAX_RECORDING_SECONDS = 300;
 
+/** setItem pode lançar (cota cheia, modo privado): nunca deixe isso quebrar a tela */
+function saveLocal(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('Falha ao salvar', key, e);
+  }
+}
+
 function loadJSON<T>(key: string, fallback: T): T {
   try {
     const v = localStorage.getItem(key);
@@ -77,7 +87,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'studio' | 'keyboard'>(() =>
     new URLSearchParams(location.search).get('tab') === 'keyboard' ? 'keyboard' : 'studio'
   );
-  const [selectedMode, setSelectedMode] = useState<DictationMode>(() => (localStorage.getItem('dicta_mode') as DictationMode) || 'casual');
+  const [selectedMode, setSelectedMode] = useState<DictationMode>(() => {
+    const saved = localStorage.getItem('dicta_mode');
+    return isDictationMode(saved) ? saved : 'casual';
+  });
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -98,18 +111,25 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMicHelpOpen, setIsMicHelpOpen] = useState(false);
 
-  const [settings, setSettings] = useState<ToneSettings>(() => ({
-    ...DEFAULT_SETTINGS,
-    ...loadJSON<Partial<ToneSettings>>('dicta_settings', {}),
-  }));
+  const [settings, setSettings] = useState<ToneSettings>(() => {
+    // Dados salvos passam pela mesma validação do backup: localStorage corrompido não derruba o app
+    const stored = loadJSON<Record<string, unknown>>('dicta_settings', {});
+    return {
+      ...DEFAULT_SETTINGS,
+      ...sanitizeSettings(stored),
+      apiKey: typeof stored?.apiKey === 'string' ? stored.apiKey.trim() : '',
+    };
+  });
   const [dictionary, setDictionary] = useState<DictionaryItem[]>(() =>
-    loadJSON('dicta_dictionary', [
-      { id: '1', term: 'Komatsu' },
-      { id: '2', term: 'PCP' },
-      { id: '3', term: 'WhatsApp' },
-    ])
+    sanitizeDictionary(
+      loadJSON<unknown>('dicta_dictionary', [
+        { id: '1', term: 'Komatsu' },
+        { id: '2', term: 'PCP' },
+        { id: '3', term: 'WhatsApp' },
+      ])
+    )
   );
-  const [notesHistory, setNotesHistory] = useState<DictationNote[]>(() => loadJSON('dicta_history', []));
+  const [notesHistory, setNotesHistory] = useState<DictationNote[]>(() => sanitizeNotes(loadJSON<unknown>('dicta_history', [])));
 
   const recorderRef = useRef<VoiceRecordingManager | null>(null);
   const timerRef = useRef<any>(null);
@@ -118,14 +138,10 @@ export default function App() {
   const lastTextRef = useRef<string>('');
 
   // ---------- Persistência local + sincronização com o teclado nativo ----------
-  useEffect(() => localStorage.setItem('dicta_settings', JSON.stringify(settings)), [settings]);
-  useEffect(() => localStorage.setItem('dicta_dictionary', JSON.stringify(dictionary)), [dictionary]);
-  useEffect(() => {
-    try {
-      localStorage.setItem('dicta_history', JSON.stringify(notesHistory.slice(0, 500)));
-    } catch {}
-  }, [notesHistory]);
-  useEffect(() => localStorage.setItem('dicta_mode', selectedMode), [selectedMode]);
+  useEffect(() => saveLocal('dicta_settings', JSON.stringify(settings)), [settings]);
+  useEffect(() => saveLocal('dicta_dictionary', JSON.stringify(dictionary)), [dictionary]);
+  useEffect(() => saveLocal('dicta_history', JSON.stringify(notesHistory.slice(0, MAX_HISTORY))), [notesHistory]);
+  useEffect(() => saveLocal('dicta_mode', selectedMode), [selectedMode]);
 
   useEffect(() => {
     syncNativeConfig({
@@ -423,16 +439,18 @@ export default function App() {
 
   const handleImportBackup = async (file: File) => {
     try {
-      const data = JSON.parse(await file.text());
-      if (data.app !== 'dicta-ai') throw new Error();
-      if (Array.isArray(data.dictionary)) setDictionary(data.dictionary);
-      if (Array.isArray(data.history)) {
+      const data = parseBackup(await file.text());
+      if (data.dictionary) setDictionary(data.dictionary);
+      if (data.history) {
+        const incoming = data.history;
         setNotesHistory((prev) => {
           const ids = new Set(prev.map((n) => n.id));
-          return [...prev, ...data.history.filter((n: DictationNote) => !ids.has(n.id))].sort((a, b) => b.timestamp - a.timestamp);
+          return [...prev, ...incoming.filter((n) => !ids.has(n.id))]
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, MAX_HISTORY);
         });
       }
-      if (data.settings) setSettings((prev) => ({ ...prev, ...data.settings, apiKey: prev.apiKey }));
+      setSettings((prev) => ({ ...prev, ...data.settings, apiKey: prev.apiKey }));
       showToast('Backup importado ✓');
     } catch {
       showToast('Arquivo de backup inválido');
