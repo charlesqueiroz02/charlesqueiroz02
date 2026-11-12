@@ -29,6 +29,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   const [copied, setCopied] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const handleCopy = async () => {
     await copyToClipboard(refinedText);
@@ -37,22 +38,24 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleExportPDF = () => {
-    if (!refinedText || !refinedText.trim()) return;
+  const handleExportPDF = async () => {
+    if (!refinedText || !refinedText.trim() || isExportingPDF) return;
     setIsExportingPDF(true);
+    setExportError('');
     try {
-      soundEffects.playSuccessSound();
-      exportDocumentToPDF({
+      await exportDocumentToPDF({
         refinedText,
         rawText,
         mode,
         detectedLanguage,
         fillerWordsRemoved,
       });
+      soundEffects.playSuccessSound();
     } catch (e) {
       console.error('Erro ao exportar PDF:', e);
+      setExportError('Não foi possível gerar o PDF. Verifique a conexão e tente de novo.');
     } finally {
-      setTimeout(() => setIsExportingPDF(false), 800);
+      setIsExportingPDF(false);
     }
   };
 
@@ -247,6 +250,12 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           </div>
         )}
       </div>
+
+      {exportError && (
+        <p role="alert" className="px-5 pb-3 text-xs text-rose-400">
+          {exportError}
+        </p>
+      )}
 
       {/* Footer Metrics Banner */}
       <div className="px-5 py-2.5 bg-zinc-950/40 border-t border-zinc-800/60 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400">

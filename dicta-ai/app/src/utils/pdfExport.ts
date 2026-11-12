@@ -1,5 +1,4 @@
 import { saveOrShareFile } from '../lib/native';
-import { jsPDF } from 'jspdf';
 
 interface PDFExportOptions {
   refinedText: string;
@@ -10,9 +9,11 @@ interface PDFExportOptions {
 }
 
 /**
- * Exports refined speech text as a beautifully structured PDF document.
+ * Exporta o texto refinado como PDF estruturado.
+ * O jsPDF (~350 KB) é carregado só aqui, na primeira exportação, para não
+ * pesar na abertura do app.
  */
-export function exportDocumentToPDF({
+export async function exportDocumentToPDF({
   refinedText,
   rawText = '',
   mode = 'documento',
@@ -21,6 +22,7 @@ export function exportDocumentToPDF({
 }: PDFExportOptions) {
   if (!refinedText || !refinedText.trim()) return;
 
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -170,5 +172,5 @@ export function exportDocumentToPDF({
   // Trigger download
   const cleanMode = mode.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const filename = `dicta-${cleanMode}-${Date.now()}.pdf`;
-  saveOrShareFile(doc.output('blob'), filename);
+  await saveOrShareFile(doc.output('blob'), filename);
 }

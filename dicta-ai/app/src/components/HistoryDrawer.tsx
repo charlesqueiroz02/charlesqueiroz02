@@ -200,7 +200,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                           mode: note.mode,
                           detectedLanguage: note.detectedLanguage,
                           fillerWordsRemoved: note.fillerWordsRemoved,
-                        })
+                        }).catch((e) => console.error('Erro ao exportar PDF:', e))
                       }
                       className="p-1 rounded-md text-zinc-500 hover:text-purple-400 transition-colors"
                       title="Baixar como PDF" aria-label="Baixar como PDF"
