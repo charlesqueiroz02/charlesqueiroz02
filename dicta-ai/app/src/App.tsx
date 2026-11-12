@@ -717,7 +717,7 @@ export default function App() {
               </div>
             )}
 
-            <AudioUploader onAudioUploaded={handleAudioUploaded} isLoading={isProcessingAI} />
+            <AudioUploader onAudioUploaded={handleAudioUploaded} onError={(msg) => fail(new Error(msg), false)} isLoading={isProcessingAI} />
           </div>
         )}
 
