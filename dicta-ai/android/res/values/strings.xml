@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dicta AI</string>
+    <string name="ime_name">Dicta AI – Teclado de Voz</string>
+    <string name="ime_subtype">Ditado por voz com IA</string>
+</resources>

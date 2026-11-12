@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="50%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <!-- Background with smooth rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  
+  <!-- Outer glowing ring -->
+  <circle cx="256" cy="256" r="190" stroke="white" stroke-width="4" stroke-opacity="0.2" fill="none" />
+  
+  <!-- Microphone Icon -->
+  <g filter="url(#shadow)">
+    <!-- Mic capsule -->
+    <rect x="216" y="130" width="80" height="150" rx="40" fill="#FFFFFF" />
+    
+    <!-- Sound Waves / Arc -->
+    <path d="M166 230 C166 290, 346 290, 346 230" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" fill="none" />
+    
+    <!-- Mic stand stem -->
+    <line x1="256" y1="290" x2="256" y2="360" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" />
+    
+    <!-- Mic stand base -->
+    <line x1="196" y1="360" x2="316" y2="360" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" />
+  </g>
+</svg>

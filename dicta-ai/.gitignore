@@ -1,0 +1,6 @@
+# Chave de assinatura do APK: NUNCA versionar (repositório público)
+*.keystore
+*.jks
+# Saídas do build Android
+android/build/
+android/assets/www/
