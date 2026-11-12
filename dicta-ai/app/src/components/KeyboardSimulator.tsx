@@ -150,7 +150,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
       <div className="p-4 bg-zinc-950 min-h-[220px] max-h-[280px] overflow-y-auto space-y-3 flex flex-col justify-end">
         {/* App identity banner */}
         <div className="text-center pb-2">
-          <span className="text-[11px] uppercase tracking-widest text-zinc-600">
+          <span className="text-[11px] uppercase tracking-widest text-zinc-500">
             {activeApp === 'whatsapp' && 'Conversa WhatsApp com Cliente'}
             {activeApp === 'gmail' && 'Novo E-mail Corporativo'}
             {activeApp === 'slack' && '#canal-projetos (Slack)'}
@@ -196,6 +196,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
             type="text"
             value={displayInputValue}
             onChange={(e) => setSimulatedInput(e.target.value)}
+            aria-label="Campo de mensagem simulado"
             placeholder={
               isRecording
                 ? 'Ouvindo sua voz...'
@@ -213,7 +214,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
           onClick={handleSendToApp}
           disabled={!simulatedInput && !currentText}
           className="p-2 bg-purple-600 hover:bg-purple-500 active:scale-95 disabled:opacity-30 text-white rounded-xl transition-all"
-          title="Enviar na conversa simulada"
+          title="Enviar na conversa simulada" aria-label="Enviar na conversa simulada"
         >
           <Send className="w-3.5 h-3.5" />
         </button>
@@ -222,7 +223,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
           <button
             onClick={handleOpenRealWhatsApp}
             className="p-2 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 rounded-xl transition-all"
-            title="Abrir mensagem no seu WhatsApp Real"
+            title="Abrir mensagem no seu WhatsApp Real" aria-label="Abrir mensagem no seu WhatsApp Real"
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
@@ -286,7 +287,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
             onClick={handleCopy}
             disabled={!simulatedInput && !currentText}
             className="p-3 bg-zinc-800/80 hover:bg-zinc-700 disabled:opacity-40 rounded-2xl text-zinc-300 transition-all border border-zinc-700/50"
-            title="Copiar texto refinado"
+            title="Copiar texto refinado" aria-label="Copiar texto refinado"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
           </button>
@@ -323,7 +324,7 @@ export const KeyboardSimulator: React.FC<KeyboardSimulatorProps> = ({
             onClick={() => speakText(simulatedInput || currentText)}
             disabled={!simulatedInput && !currentText}
             className="p-3 bg-zinc-800/80 hover:bg-zinc-700 disabled:opacity-40 rounded-2xl text-zinc-300 transition-all border border-zinc-700/50"
-            title="Ouvir em voz alta"
+            title="Ouvir em voz alta" aria-label="Ouvir em voz alta"
           >
             <Volume2 className="w-4 h-4" />
           </button>

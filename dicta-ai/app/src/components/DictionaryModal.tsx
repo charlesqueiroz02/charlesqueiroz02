@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, Plus, X, Trash2, Check, Sparkles } from 'lucide-react';
+import { useDialog } from '../lib/useDialog';
 import { DictionaryItem } from '../types';
 
 interface DictionaryModalProps {
@@ -35,6 +36,8 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
   const [newTerm, setNewTerm] = useState('');
   const [category, setCategory] = useState('');
 
+  const dialogRef = useDialog(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const handleAdd = (e: React.FormEvent) => {
@@ -52,7 +55,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dlg-dict" tabIndex={-1} className="focus:outline-none w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
           <div className="flex items-center gap-2.5">
@@ -60,7 +63,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-base">
+              <h3 id="dlg-dict" className="font-bold text-zinc-100 text-base">
                 Dicionário & Vocabulário Pessoal
               </h3>
               <p className="text-xs text-zinc-400">
@@ -70,6 +73,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Fechar dicionário"
             className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -86,7 +90,8 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
                 value={newTerm}
                 onChange={(e) => setNewTerm(e.target.value)}
                 placeholder="Adicionar nome, jargão ou termo (ex: Kubernetes, Dr. Carlos)"
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500"
+                aria-label="Novo termo do dicionário"
+                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500"
               />
               <button
                 type="submit"
@@ -157,7 +162,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
                     <button
                       onClick={() => onRemoveItem(item.id)}
                       className="text-zinc-500 hover:text-rose-400 transition-colors"
-                      title="Remover"
+                      title="Remover" aria-label={`Remover ${item.term}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

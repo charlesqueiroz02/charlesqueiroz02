@@ -100,7 +100,7 @@ export const KeyboardSetupCard: React.FC<Props> = ({ hasApiKey, onOpenSettings }
                 s.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-zinc-900 border-zinc-800 active:bg-zinc-800'
               }`}
             >
-              {s.done ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" /> : <Circle className="w-5 h-5 text-zinc-600 shrink-0" />}
+              {s.done ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" /> : <Circle className="w-5 h-5 text-zinc-500 shrink-0" />}
               <Icon className={`w-4 h-4 shrink-0 ${s.done ? 'text-emerald-300' : 'text-purple-400'}`} />
               <div className="flex-1 min-w-0">
                 <div className={`text-sm font-semibold ${s.done ? 'text-emerald-200' : 'text-zinc-100'}`}>{s.title}</div>

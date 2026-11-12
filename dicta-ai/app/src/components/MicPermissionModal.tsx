@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   RotateCcw,
 } from 'lucide-react';
+import { useDialog } from '../lib/useDialog';
 
 interface MicPermissionModalProps {
   isOpen: boolean;
@@ -22,11 +23,13 @@ export const MicPermissionModal: React.FC<MicPermissionModalProps> = ({
   onClose,
   onTryDemo,
 }) => {
+  const dialogRef = useDialog(isOpen, onClose);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dlg-mic" tabIndex={-1} className="focus:outline-none w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-5 bg-zinc-950/90 border-b border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -34,7 +37,7 @@ export const MicPermissionModal: React.FC<MicPermissionModalProps> = ({
               <MicOff className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-base">
+              <h3 id="dlg-mic" className="font-bold text-white text-base">
                 Como Liberar o Microfone
               </h3>
               <p className="text-xs text-zinc-400">
@@ -44,6 +47,7 @@ export const MicPermissionModal: React.FC<MicPermissionModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Fechar ajuda do microfone"
             className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />

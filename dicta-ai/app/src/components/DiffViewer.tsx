@@ -98,6 +98,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         <div className="flex items-center gap-1.5 p-1 bg-zinc-900 rounded-xl border border-zinc-800 text-xs">
           <button
             onClick={() => setViewMode('refined')}
+            aria-pressed={viewMode === 'refined'}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
               viewMode === 'refined'
                 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm'
@@ -109,6 +110,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           </button>
           <button
             onClick={() => setViewMode('diff')}
+            aria-pressed={viewMode === 'diff'}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
               viewMode === 'diff'
                 ? 'bg-zinc-800 text-zinc-100 shadow-sm'
@@ -120,6 +122,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           </button>
           <button
             onClick={() => setViewMode('raw')}
+            aria-pressed={viewMode === 'raw'}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
               viewMode === 'raw'
                 ? 'bg-zinc-800 text-zinc-100 shadow-sm'
@@ -135,7 +138,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           <button
             onClick={handlePlayTTS}
             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800/80 rounded-lg transition-colors text-xs flex items-center gap-1"
-            title="Ouvir leitura em voz alta"
+            title="Ouvir leitura em voz alta" aria-label="Ouvir leitura em voz alta"
           >
             <Volume2 className={`w-4 h-4 ${isPlayingAudio ? 'text-indigo-400 animate-pulse' : ''}`} />
             <span className="hidden sm:inline">Ouvir</span>
@@ -143,7 +146,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           <button
             onClick={() => nativeShareText(refinedText)}
             className="p-2 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800/80 rounded-lg transition-colors"
-            title="Compartilhar (WhatsApp, e-mail...)"
+            title="Compartilhar (WhatsApp, e-mail...)" aria-label="Compartilhar (WhatsApp, e-mail...)"
           >
             <Share2 className="w-4 h-4" />
           </button>
@@ -151,7 +154,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             <button
               onClick={() => { setViewMode('refined'); setIsEditing(!isEditing); }}
               className={`p-2 rounded-lg transition-colors ${isEditing ? 'text-purple-300 bg-purple-500/15' : 'text-zinc-400 hover:text-purple-400 hover:bg-zinc-800/80'}`}
-              title="Editar texto"
+              title="Editar texto" aria-label="Editar texto"
             >
               <Pencil className="w-4 h-4" />
             </button>
@@ -177,7 +180,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             onClick={handleExportPDF}
             disabled={!refinedText || isExportingPDF}
             className="px-3 py-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-40 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-md shadow-purple-900/40 cursor-pointer"
-            title="Baixar texto refinado como documento estruturado em PDF"
+            title="Baixar texto refinado como documento estruturado em PDF" aria-label="Baixar texto refinado como documento estruturado em PDF"
           >
             <FileDown className={`w-3.5 h-3.5 ${isExportingPDF ? 'animate-bounce' : ''}`} />
             <span className="hidden sm:inline">{isExportingPDF ? 'Gerando...' : 'Exportar PDF'}</span>
@@ -193,6 +196,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               <textarea
                 value={refinedText}
                 onChange={(e) => onEditText(e.target.value)}
+                aria-label="Editar texto refinado"
                 rows={Math.min(14, Math.max(4, refinedText.split('\n').length + 2))}
                 className="w-full bg-zinc-950 border border-purple-500/40 rounded-xl p-3 text-base leading-relaxed text-zinc-100 focus:outline-none focus:border-purple-400"
                 autoFocus
@@ -273,7 +277,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             onClick={handleExportPDF}
             disabled={!refinedText || isExportingPDF}
             className="px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Baixar documento PDF estruturado"
+            title="Baixar documento PDF estruturado" aria-label="Baixar documento PDF estruturado"
           >
             <FileText className="w-3 h-3 text-purple-400" />
             <span>PDF</span>

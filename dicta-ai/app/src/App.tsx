@@ -487,10 +487,10 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-1">
-            <button onClick={() => setIsDictionaryOpen(true)} className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-purple-400" title="Dicionário">
+            <button onClick={() => setIsDictionaryOpen(true)} className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-purple-400" title="Dicionário" aria-label="Dicionário">
               <BookOpen className="w-4 h-4" />
             </button>
-            <button onClick={() => setIsHistoryOpen(true)} className="relative p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-purple-400" title="Histórico">
+            <button onClick={() => setIsHistoryOpen(true)} className="relative p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-purple-400" title="Histórico" aria-label={`Histórico (${notesHistory.length} ditados)`}>
               <History className="w-4 h-4" />
               {notesHistory.length > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-purple-600 text-[9px] font-bold text-white flex items-center justify-center">
@@ -498,7 +498,7 @@ export default function App() {
                 </span>
               )}
             </button>
-            <button onClick={() => setIsSettingsOpen(true)} className="relative p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300" title="Preferências">
+            <button onClick={() => setIsSettingsOpen(true)} className="relative p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300" title="Preferências" aria-label={settings.apiKey ? 'Preferências' : 'Preferências (chave da IA não configurada)'}>
               <Settings className="w-4 h-4" />
               {!settings.apiKey && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-[#090A0F]" />}
             </button>
@@ -522,13 +522,13 @@ export default function App() {
         )}
 
         {errorMessage && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs space-y-3">
+          <div role="alert" className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2 text-rose-200 font-medium">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 <span>{errorMessage}</span>
               </div>
-              <button onClick={() => setErrorMessage(null)} className="text-rose-400 p-1">
+              <button onClick={() => setErrorMessage(null)} aria-label="Fechar aviso de erro" className="text-rose-400 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -555,13 +555,15 @@ export default function App() {
           </div>
         )}
 
-        <div className="flex bg-zinc-900/90 p-1 rounded-2xl border border-zinc-800 text-sm">
+        <div role="tablist" aria-label="Seções" className="flex bg-zinc-900/90 p-1 rounded-2xl border border-zinc-800 text-sm">
           {[
             { id: 'studio' as const, label: 'Estúdio', icon: Sparkles },
             { id: 'keyboard' as const, label: 'Teclado', icon: Smartphone },
           ].map((t) => (
             <button
               key={t.id}
+              role="tab"
+              aria-selected={activeTab === t.id}
               onClick={() => setActiveTab(t.id)}
               className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-all ${
                 activeTab === t.id ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow' : 'text-zinc-400'
@@ -585,6 +587,7 @@ export default function App() {
                   key={m.id}
                   onClick={() => handleSwitchMode(m.id)}
                   disabled={isProcessingAI}
+                  aria-pressed={sel}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all border disabled:opacity-50 ${
                     sel
                       ? `bg-gradient-to-r ${m.color} text-white border-transparent shadow-lg shadow-purple-900/30`
@@ -603,7 +606,7 @@ export default function App() {
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-zinc-900/90 to-zinc-950 border border-zinc-800 p-6 sm:p-10 shadow-2xl flex flex-col items-center text-center">
               <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="mb-4 flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-950/80 border border-zinc-800 text-xs relative">
+              <div role="status" aria-live="polite" className="mb-4 flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-950/80 border border-zinc-800 text-xs relative">
                 <span className={`w-2 h-2 rounded-full ${isRecording ? 'bg-rose-500 animate-ping' : isProcessingAI ? 'bg-purple-400 animate-pulse' : 'bg-emerald-400'}`} />
                 <span className="text-zinc-300 font-medium">
                   {isRecording ? `Gravando • ${formatTime(recordingDuration)}` : isProcessingAI ? 'IA refinando o texto…' : 'Pronto para ditar'}
@@ -629,6 +632,7 @@ export default function App() {
                 <button
                   onClick={handleToggleRecording}
                   disabled={isProcessingAI}
+                  aria-label={isRecording ? 'Finalizar gravação e refinar com IA' : isProcessingAI ? 'Aguarde, a IA está processando' : 'Começar a ditar'}
                   className={`relative w-32 h-32 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl transition-all duration-300 active:scale-95 ${
                     isRecording
                       ? 'bg-gradient-to-tr from-rose-600 via-red-500 to-amber-500 text-white ring-8 ring-rose-500/20'
@@ -734,12 +738,16 @@ export default function App() {
         )}
       </main>
 
-      <footer className="py-6 border-t border-zinc-900 text-center text-[11px] text-zinc-600">
+      <footer className="py-6 border-t border-zinc-900 text-center text-[11px] text-zinc-500">
         Dicta AI 2.0 • seus dados ficam no seu aparelho
       </footer>
 
+      {/* Região fixa: leitores de tela anunciam cada novo aviso */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {toast}
+      </div>
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-full bg-zinc-800 border border-zinc-700 text-sm text-white shadow-2xl max-w-[90vw] truncate">
+        <div aria-hidden="true" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-full bg-zinc-800 border border-zinc-700 text-sm text-white shadow-2xl max-w-[90vw] truncate">
           {toast}
         </div>
       )}

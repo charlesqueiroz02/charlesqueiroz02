@@ -3,6 +3,7 @@ import {
   Settings, X, Volume2, Globe, Sliders, Copy, KeyRound, Eye, EyeOff, CheckCircle2,
   Loader2, ExternalLink, Cpu, Wand2, Download, Upload, Trash2, AlertTriangle, Vibrate,
 } from 'lucide-react';
+import { useDialog } from '../lib/useDialog';
 import { ToneSettings } from '../types';
 import { MODEL_OPTIONS, testApiKey } from '../lib/gemini';
 import { openExternal } from '../lib/native';
@@ -52,6 +53,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [confirmClear, setConfirmClear] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const dialogRef = useDialog(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const runTest = async () => {
@@ -71,18 +74,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh]">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dlg-settings" tabIndex={-1} className="focus:outline-none w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh]">
         <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-xl text-purple-400">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-base">Preferências</h3>
+              <h3 id="dlg-settings" className="font-bold text-zinc-100 text-base">Preferências</h3>
               <p className="text-xs text-zinc-400">IA, tom, idioma e backup</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800">
+          <button onClick={onClose} aria-label="Fechar preferências" className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -109,12 +112,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   setTestState('idle');
                 }}
                 placeholder="Cole aqui: AIza..."
+                aria-label="Chave da API do Gemini"
                 autoComplete="off"
                 spellCheck={false}
                 className={`${input} pr-11 font-mono text-xs`}
               />
               <button
                 onClick={() => setShowKey(!showKey)}
+                aria-label={showKey ? 'Ocultar chave' : 'Mostrar chave'}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-zinc-200"
               >
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -146,7 +151,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </Section>
 
           <Section icon={Cpu} title="Modelo de IA">
-            <select value={settings.model} onChange={(e) => onUpdateSettings({ model: e.target.value })} className={input}>
+            <select aria-label="Modelo de IA" value={settings.model} onChange={(e) => onUpdateSettings({ model: e.target.value })} className={input}>
               {MODEL_OPTIONS.map((m) => (
                 <option key={m.id} value={m.id}>{m.label}</option>
               ))}
@@ -154,7 +159,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </Section>
 
           <Section icon={Globe} title="Idioma da fala">
-            <select value={settings.language} onChange={(e) => onUpdateSettings({ language: e.target.value })} className={input}>
+            <select aria-label="Idioma da fala" value={settings.language} onChange={(e) => onUpdateSettings({ language: e.target.value })} className={input}>
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>{l.name}</option>
               ))}
@@ -166,7 +171,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             title="Formalidade"
             right={<span className="text-purple-400 font-medium">{settings.formality <= 2 ? 'Casual' : settings.formality >= 4 ? 'Executivo' : 'Equilibrado'}</span>}
           >
-            <input type="range" min="1" max="5" value={settings.formality}
+            <input type="range" min="1" max="5" aria-label="Formalidade" value={settings.formality}
               onChange={(e) => onUpdateSettings({ formality: +e.target.value })}
               className="w-full accent-purple-500" />
           </Section>
@@ -176,7 +181,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             title="Concisão"
             right={<span className="text-purple-400 font-medium">{settings.brevity <= 2 ? 'Detalhado' : settings.brevity >= 4 ? 'Ultra-direto' : 'Médio'}</span>}
           >
-            <input type="range" min="1" max="5" value={settings.brevity}
+            <input type="range" min="1" max="5" aria-label="Concisão" value={settings.brevity}
               onChange={(e) => onUpdateSettings({ brevity: +e.target.value })}
               className="w-full accent-purple-500" />
           </Section>
@@ -186,6 +191,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={settings.customInstruction}
               onChange={(e) => onUpdateSettings({ customInstruction: e.target.value })}
               rows={2}
+              aria-label="Instrução fixa para a IA"
               placeholder='Ex.: "Assine os e-mails como Charles – PCP Komatsu" ou "use termos de chão de fábrica"'
               className={`${input} text-xs resize-none`}
             />

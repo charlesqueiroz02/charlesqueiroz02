@@ -104,6 +104,7 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
             type="text"
             value={commandInput}
             onChange={(e) => setCommandInput(e.target.value)}
+            aria-label="Comando de edição"
             placeholder={
               isRecordingVoiceCommand
                 ? 'Ouvindo... fale o comando e toque em parar'
@@ -114,7 +115,7 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
               isRecordingVoiceCommand
                 ? 'border-purple-500 ring-2 ring-purple-500/20 text-purple-200'
                 : 'border-zinc-800 text-zinc-200'
-            } rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-zinc-600`}
+            } rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-zinc-500`}
           />
         </div>
 
@@ -128,7 +129,7 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
               ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
               : 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-zinc-300 hover:text-white'
           }`}
-          title={isRecordingVoiceCommand ? 'Parar gravação de comando' : 'Ditar comando de voz'}
+          title={isRecordingVoiceCommand ? 'Parar gravação de comando' : 'Ditar comando de voz'} aria-label={isRecordingVoiceCommand ? 'Parar gravação de comando' : 'Ditar comando de voz'}
         >
           {isRecordingVoiceCommand ? (
             <MicOff className="w-4 h-4" />

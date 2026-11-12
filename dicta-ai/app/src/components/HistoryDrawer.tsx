@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { History, Search, Pin, Trash2, Copy, Check, X, FileDown, Sparkles } from 'lucide-react';
+import { useDialog } from '../lib/useDialog';
 import { DictationNote, DictationMode } from '../types';
 import { soundEffects } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
@@ -27,6 +28,8 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<DictationMode | 'all'>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const dialogRef = useDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -65,14 +68,14 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-zinc-900 border-l border-zinc-800 h-full flex flex-col shadow-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dlg-history" tabIndex={-1} className="focus:outline-none w-full max-w-md bg-zinc-900 border-l border-zinc-800 h-full flex flex-col shadow-2xl">
         {/* Drawer Header */}
         <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/80">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-xl text-purple-400">
               <History className="w-4 h-4" />
             </div>
-            <h3 className="font-bold text-zinc-100 text-sm">
+            <h3 id="dlg-history" className="font-bold text-zinc-100 text-sm">
               Histórico de Voz ({notes.length})
             </h3>
           </div>
@@ -81,13 +84,14 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               <button
                 onClick={handleExportMarkdown}
                 className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors text-xs flex items-center gap-1"
-                title="Exportar Markdown"
+                title="Exportar Markdown" aria-label="Exportar Markdown"
               >
                 <FileDown className="w-4 h-4" />
               </button>
             )}
             <button
               onClick={onClose}
+            aria-label="Fechar histórico"
               className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -104,7 +108,8 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar nas anotações de voz..."
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500"
+              aria-label="Buscar no histórico"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500"
             />
           </div>
 
@@ -136,9 +141,19 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
             sortedNotes.map((note) => (
               <div
                 key={note.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Abrir ditado de ${new Date(note.timestamp).toLocaleString('pt-BR')}`}
                 onClick={() => {
                   onSelectNote(note);
                   onClose();
+                }}
+                onKeyDown={(e) => {
+                  if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    onSelectNote(note);
+                    onClose();
+                  }
                 }}
                 className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative group ${
                   note.isPinned
@@ -160,16 +175,16 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                     <button
                       onClick={() => onTogglePin(note.id)}
                       className={`p-1 rounded-md text-xs transition-colors ${
-                        note.isPinned ? 'text-amber-400' : 'text-zinc-600 hover:text-zinc-300'
+                        note.isPinned ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'
                       }`}
-                      title={note.isPinned ? 'Desafixar' : 'Fixar no topo'}
+                      title={note.isPinned ? 'Desafixar' : 'Fixar no topo'} aria-label={note.isPinned ? 'Desafixar' : 'Fixar no topo'}
                     >
                       <Pin className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleCopy(note.id, note.refinedText)}
-                      className="p-1 rounded-md text-zinc-600 hover:text-zinc-300 transition-colors"
-                      title="Copiar"
+                      className="p-1 rounded-md text-zinc-500 hover:text-zinc-300 transition-colors"
+                      title="Copiar" aria-label="Copiar"
                     >
                       {copiedId === note.id ? (
                         <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -187,15 +202,15 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                           fillerWordsRemoved: note.fillerWordsRemoved,
                         })
                       }
-                      className="p-1 rounded-md text-zinc-600 hover:text-purple-400 transition-colors"
-                      title="Baixar como PDF"
+                      className="p-1 rounded-md text-zinc-500 hover:text-purple-400 transition-colors"
+                      title="Baixar como PDF" aria-label="Baixar como PDF"
                     >
                       <FileDown className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => onDeleteNote(note.id)}
-                      className="p-1 rounded-md text-zinc-600 hover:text-rose-400 transition-colors"
-                      title="Excluir"
+                      className="p-1 rounded-md text-zinc-500 hover:text-rose-400 transition-colors"
+                      title="Excluir" aria-label="Excluir"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
