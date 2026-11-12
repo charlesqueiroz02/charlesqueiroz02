@@ -39,7 +39,6 @@ export function getModeGuideline(mode: string, formality = 3, brevity = 3): stri
     case 'email':
       return `Format as an email with greeting, structured paragraphs and polite sign-off. Tone: ${f}. Length: ${b}.`;
     case 'casual':
-    case 'chat':
       return `Format as a clear, direct chat message (WhatsApp/Telegram). Natural phrasing, emojis only if natural. Tone: ${f}. Length: ${b}.`;
     case 'bullet':
       return `Format as structured bullet points / checklist, grouped logically. Length: ${b}.`;

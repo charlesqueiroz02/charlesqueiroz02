@@ -23,6 +23,8 @@ import { AudioUploader } from './components/AudioUploader';
 import { MicPermissionModal } from './components/MicPermissionModal';
 import { copyToClipboard } from './utils/clipboard';
 import { MODES } from './lib/modes';
+import { newId } from './utils/id';
+import { countWords, timeSavedSeconds } from './utils/stats';
 import { AIContext, transcribeAudio, refineText, applyVoiceCommand, applyVoiceCommandAudio } from './lib/gemini';
 import { blobToBase64, isNativeApp, saveOrShareFile, syncNativeConfig } from './lib/native';
 
@@ -166,9 +168,12 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const showToast = (msg: string) => {
+    // Cancela o timer anterior: senão um toast antigo apagaria o novo antes da hora
+    clearTimeout(toastTimer.current);
     setToast(msg);
-    setTimeout(() => setToast(null), 2200);
+    toastTimer.current = setTimeout(() => setToast(null), 2200);
   };
 
   const aiCtx = (mode: DictationMode = selectedMode): AIContext => ({
@@ -346,7 +351,7 @@ export default function App() {
     if (settings.autoCopy) copyToClipboard(refined).then(() => showToast('Texto copiado ✓'));
 
     const note: DictationNote = {
-      id: Date.now().toString(),
+      id: newId(),
       timestamp: Date.now(),
       rawText: raw,
       refinedText: refined,
@@ -354,7 +359,7 @@ export default function App() {
       detectedLanguage: lang,
       fillerWordsRemoved: fillers,
       durationSeconds: durationRef.current,
-      wordCount: refined.trim().split(/\s+/).length,
+      wordCount: countWords(refined),
     };
     setNotesHistory((prev) => [note, ...prev]);
   };
@@ -435,7 +440,11 @@ export default function App() {
 
   // ---------- Dicionário / histórico / backup ----------
   const handleAddDictionaryItem = (term: string, category?: string) =>
-    setDictionary((prev) => [...prev, { id: Date.now().toString(), term, category, createdAt: Date.now() }]);
+    setDictionary((prev) =>
+      prev.some((d) => d.term.toLowerCase() === term.toLowerCase())
+        ? prev
+        : [...prev, { id: newId(), term, category, createdAt: Date.now() }]
+    );
   const handleRemoveDictionaryItem = (id: string) => setDictionary((prev) => prev.filter((i) => i.id !== id));
 
   const handleExportBackup = () => {
@@ -466,7 +475,7 @@ export default function App() {
   };
 
   const totalWords = notesHistory.reduce((s, n) => s + (n.wordCount || 0), 0);
-  const minutesSaved = Math.max(0, Math.round(totalWords / 38 - totalWords / 140));
+  const minutesSaved = Math.round(timeSavedSeconds(totalWords) / 60);
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 

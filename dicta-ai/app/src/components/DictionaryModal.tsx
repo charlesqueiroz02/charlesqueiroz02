@@ -34,7 +34,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
   onRemoveItem,
 }) => {
   const [newTerm, setNewTerm] = useState('');
-  const [category, setCategory] = useState('');
+  const [duplicate, setDuplicate] = useState('');
 
   const dialogRef = useDialog(isOpen, onClose);
 
@@ -42,9 +42,15 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTerm.trim()) return;
-    onAddItem(newTerm.trim(), category.trim() || undefined);
+    const term = newTerm.trim();
+    if (!term) return;
+    if (items.some((i) => i.term.toLowerCase() === term.toLowerCase())) {
+      setDuplicate(term);
+      return;
+    }
+    onAddItem(term);
     setNewTerm('');
+    setDuplicate('');
   };
 
   const handleAddPreset = (term: string) => {
@@ -102,6 +108,11 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
                 Adicionar
               </button>
             </div>
+            {duplicate && (
+              <p role="status" className="text-xs text-amber-300">
+                "{duplicate}" já está no dicionário.
+              </p>
+            )}
           </form>
 
           {/* Quick preset packs */}

@@ -5,6 +5,7 @@ import { speakText, soundEffects } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 import { exportDocumentToPDF } from '../utils/pdfExport';
 import { splitFillers } from '../utils/fillers';
+import { countWords, timeSavedSeconds } from '../utils/stats';
 
 interface DiffViewerProps {
   rawText: string;
@@ -88,11 +89,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     );
   };
 
-  // Estimate typing time saved (average typing speed is 38 WPM, talking is 150 WPM)
-  const words = refinedText.trim() ? refinedText.trim().split(/\s+/).length : 0;
-  const typingTimeSeconds = Math.round((words / 38) * 60);
-  const speakingTimeSeconds = Math.round((words / 140) * 60);
-  const timeSavedSeconds = Math.max(0, typingTimeSeconds - speakingTimeSeconds);
+  const words = countWords(refinedText);
+  const savedSeconds = timeSavedSeconds(words);
 
   return (
     <div className="w-full bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-800 shadow-xl overflow-hidden transition-all">
@@ -265,7 +263,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           </span>
           <span>•</span>
           <span className="text-emerald-400 font-medium flex items-center gap-1">
-            ⚡ ~{timeSavedSeconds}s economizados vs teclado
+            ⚡ ~{savedSeconds}s economizados vs teclado
           </span>
           {fillerWordsRemoved.length > 0 && (
             <>

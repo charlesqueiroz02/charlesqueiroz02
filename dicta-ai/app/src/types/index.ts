@@ -38,13 +38,3 @@ export interface ToneSettings {
   model: string; // 'auto' ou id do modelo
   customInstruction: string; // instrução fixa extra (ex.: assinatura)
 }
-
-export interface AppPreset {
-  id: DictationMode;
-  name: string;
-  labelPt: string;
-  icon: string;
-  description: string;
-  color: string;
-  sampleInput: string;
-}
