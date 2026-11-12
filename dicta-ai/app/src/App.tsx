@@ -136,6 +136,8 @@ export default function App() {
   const durationRef = useRef(0);
   const lastAudioRef = useRef<{ base64: string; mime: string } | null>(null);
   const lastTextRef = useRef<string>('');
+  // Sempre aponta para a versão mais recente de handleStopRecording (o setInterval guardaria uma cópia antiga)
+  const stopRecordingRef = useRef<() => void>(() => {});
 
   // ---------- Persistência local + sincronização com o teclado nativo ----------
   useEffect(() => saveLocal('dicta_settings', JSON.stringify(settings)), [settings]);
@@ -238,7 +240,7 @@ export default function App() {
     timerRef.current = setInterval(() => {
       durationRef.current += 1;
       setRecordingDuration(durationRef.current);
-      if (durationRef.current >= MAX_RECORDING_SECONDS) handleStopRecording();
+      if (durationRef.current >= MAX_RECORDING_SECONDS) stopRecordingRef.current();
     }, 1000);
   };
 
@@ -280,16 +282,19 @@ export default function App() {
     }
   };
 
+  stopRecordingRef.current = handleStopRecording;
+
   const handleToggleRecording = () => (isRecording ? handleStopRecording() : handleStartRecording());
 
   // ---------- IA ----------
-  const runTranscription = async (base64: string, mime: string, fallbackText = '') => {
+  /** Devolve true se o texto final foi gerado (direto ou pelo fallback da prévia ao vivo) */
+  const runTranscription = async (base64: string, mime: string, fallbackText = ''): Promise<boolean> => {
     setErrorMessage(null);
     try {
       const data = await transcribeAudio(base64, mime, aiCtx());
-      if (!data.refinedText?.trim()) {
+      if (typeof data.refinedText !== 'string' || !data.refinedText.trim()) {
         fail(new Error('Não entendi nenhuma fala nesse áudio. Tente de novo em um lugar mais silencioso.'), false);
-        return;
+        return false;
       }
       handleProcessingSuccess(
         data.rawTranscript || fallbackText,
@@ -297,25 +302,26 @@ export default function App() {
         data.fillerWordsRemoved || [],
         data.detectedLanguage || 'auto'
       );
+      return true;
     } catch (err: any) {
-      if (fallbackText) {
-        await processTextRefine(fallbackText);
-      } else {
-        fail(err, !err?.fatal);
-      }
+      if (fallbackText && !err?.fatal) return processTextRefine(fallbackText);
+      fail(err, !err?.fatal);
+      return false;
     }
   };
 
-  const processTextRefine = async (text: string, mode: DictationMode = selectedMode) => {
+  const processTextRefine = async (text: string, mode: DictationMode = selectedMode): Promise<boolean> => {
     setIsProcessingAI(true);
     setErrorMessage(null);
     lastTextRef.current = text;
     lastAudioRef.current = null;
     try {
       const data = await refineText(text, aiCtx(mode));
-      handleProcessingSuccess(text, data.refinedText || text, data.fillerWordsRemoved || [], data.detectedLanguage || 'auto', mode);
+      handleProcessingSuccess(text, data.refinedText?.trim() ? data.refinedText : text, data.fillerWordsRemoved || [], data.detectedLanguage || 'auto', mode);
+      return true;
     } catch (err: any) {
       fail(err, !err?.fatal);
+      return false;
     } finally {
       setIsProcessingAI(false);
     }
@@ -363,7 +369,9 @@ export default function App() {
     setIsProcessingAI(true);
     try {
       const updated = await applyVoiceCommand(refinedText, command, aiCtx());
-      if (updated) {
+      if (typeof updated !== 'string' || !updated.trim()) {
+        fail(new Error('A IA não devolveu um texto editado. Seu texto foi mantido — tente reformular o comando.'), false);
+      } else {
         setRefinedText(updated);
         if (settings.soundEffects) soundEffects.playSuccessSound();
       }
@@ -380,6 +388,10 @@ export default function App() {
     try {
       const { blob: audio, mime } = await toGeminiAudio(blob);
       const res = await applyVoiceCommandAudio(refinedText, await blobToBase64(audio), mime, aiCtx());
+      if (typeof res.updatedText !== 'string' || !res.updatedText.trim()) {
+        fail(new Error('Não entendi o comando falado. Seu texto foi mantido — tente de novo ou digite o comando.'), false);
+        return;
+      }
       setRefinedText(res.updatedText);
       if (res.command) showToast(`✓ ${res.command}`);
       if (settings.soundEffects) soundEffects.playSuccessSound();
@@ -391,13 +403,15 @@ export default function App() {
   };
 
   const handleSwitchMode = async (newMode: DictationMode) => {
+    // Evita duas reescritas ao mesmo tempo (a resposta mais lenta sobrescreveria a outra)
+    if (isProcessingAI) return;
     setSelectedMode(newMode);
     const source = rawCapturedText || refinedText;
     if (!source || isRecording) return;
     setIsProcessingAI(true);
     try {
       const data = await refineText(source, aiCtx(newMode));
-      setRefinedText(data.refinedText);
+      if (data.refinedText?.trim()) setRefinedText(data.refinedText);
     } catch (err: any) {
       fail(err, false);
     } finally {
@@ -412,8 +426,7 @@ export default function App() {
       const base64 = dataUrl.replace(/^data:[^;]+;base64,/, '');
       const mime = mimeType.split(';')[0] || 'audio/mpeg';
       lastAudioRef.current = { base64, mime };
-      await runTranscription(base64, mime, '');
-      showToast(`Arquivo "${filename}" processado`);
+      if (await runTranscription(base64, mime, '')) showToast(`Arquivo "${filename}" processado`);
     } finally {
       setIsProcessingAI(false);
     }
@@ -576,7 +589,8 @@ export default function App() {
                 <button
                   key={m.id}
                   onClick={() => handleSwitchMode(m.id as DictationMode)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  disabled={isProcessingAI}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all border disabled:opacity-50 ${
                     sel
                       ? `bg-gradient-to-r ${m.color} text-white border-transparent shadow-lg shadow-purple-900/30`
                       : 'bg-zinc-900/80 border-zinc-800 text-zinc-400'
