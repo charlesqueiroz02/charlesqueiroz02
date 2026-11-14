@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserAccount, UserProfile, PortfolioItem, RiskProfile, InvestmentStrategy, ExperienceLevel } from '../types';
+import { hashPassword, verifyPassword, isHashed } from '../lib/password';
+import { readJSON, readText, writeJSON, writeText, removeKey } from '../lib/storage';
 
 interface RegisterInput {
   name: string;
@@ -46,12 +48,12 @@ const DEFAULT_DEMO_USERS: UserAccount[] = [
       { ticker: 'ITUB4', purchasePrice: 31.20, quantity: 100, addedAt: Date.now() - 110 * 86400000 },
       { ticker: 'BBSE3', purchasePrice: 34.00, quantity: 110, addedAt: Date.now() - 120 * 86400000 }
     ],
-    passwordHash: 'demo123',
+    // Perfis de demonstração: entram só pelo botão "demo" (sem senha) e usam nomes genéricos.
+    isDemo: true,
     profile: {
-      name: 'Dr. Roberto Barsi da Silva',
-      email: 'roberto.invest@valorize.com',
-      phone: '(11) 98765-4321',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      name: 'Demo Renda (Bazin)',
+      email: 'demo.bazin@valorize.local',
+      phone: '',
       riskProfile: 'conservador',
       strategy: 'dividendos_bazin',
       experienceLevel: 'avancado',
@@ -72,12 +74,11 @@ const DEFAULT_DEMO_USERS: UserAccount[] = [
       { ticker: 'BBAS3', purchasePrice: 22.00, quantity: 100, addedAt: Date.now() - 40 * 86400000 },
       { ticker: 'CSNA3', purchasePrice: 11.20, quantity: 200, addedAt: Date.now() - 50 * 86400000 }
     ],
-    passwordHash: 'demo123',
+    isDemo: true,
     profile: {
-      name: 'Mariana Duarte',
-      email: 'mariana.valor@valorize.com',
-      phone: '(21) 99123-8899',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      name: 'Demo Valor (Graham)',
+      email: 'demo.graham@valorize.local',
+      phone: '',
       riskProfile: 'moderado',
       strategy: 'valor_graham',
       experienceLevel: 'intermediario',
@@ -97,50 +98,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<UserAccount[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_USERS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Error reading stored users:', e);
+    const parsed = readJSON<UserAccount[]>(STORAGE_USERS_KEY, []);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Migração: troca os perfis demo antigos (pessoas fictícias com fotos reais) pelos novos
+      const withoutOldDemos = parsed.filter(u => u.id !== 'usr_demo_bazin' && u.id !== 'usr_demo_graham');
+      return [...withoutOldDemos, ...DEFAULT_DEMO_USERS];
     }
     return DEFAULT_DEMO_USERS;
   });
 
-  const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(STORAGE_SESSION_KEY) || null;
-    } catch {
-      return null;
-    }
-  });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => readText(STORAGE_SESSION_KEY) || null);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Sync users list to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
-    } catch (e) {
-      console.error('Error saving users to storage:', e);
-    }
+    writeJSON(STORAGE_USERS_KEY, users);
+  }, [users]);
+
+  // Migração de segurança: senhas antigas em texto puro viram hash PBKDF2
+  useEffect(() => {
+    const plain = users.filter(u => u.passwordHash && !isHashed(u.passwordHash));
+    if (!plain.length) return;
+    let alive = true;
+    Promise.all(plain.map(async u => [u.id, await hashPassword(u.passwordHash!)] as const))
+      .then(pairs => {
+        if (!alive) return;
+        const map = new Map(pairs);
+        setUsers(prev => prev.map(u => (map.has(u.id) && u.passwordHash && !isHashed(u.passwordHash) ? { ...u, passwordHash: map.get(u.id) } : u)));
+      })
+      .catch(() => { /* navegador sem WebCrypto: tenta de novo no próximo carregamento */ });
+    return () => { alive = false; };
   }, [users]);
 
   // Sync active user id to localStorage
   useEffect(() => {
-    try {
-      if (currentUserId) {
-        localStorage.setItem(STORAGE_SESSION_KEY, currentUserId);
-      } else {
-        localStorage.removeItem(STORAGE_SESSION_KEY);
-      }
-    } catch (e) {
-      console.error('Error saving session to storage:', e);
-    }
+    if (currentUserId) writeText(STORAGE_SESSION_KEY, currentUserId);
+    else removeKey(STORAGE_SESSION_KEY);
   }, [currentUserId]);
 
   const currentUser = users.find(u => u.id === currentUserId) || null;
@@ -148,8 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (input: RegisterInput): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      // Simulate network latency for authentic feel
-      await new Promise(r => setTimeout(r, 450));
 
       const cleanEmail = input.email.trim().toLowerCase();
       if (!cleanEmail || !cleanEmail.includes('@')) {
@@ -158,6 +150,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!input.name || input.name.trim().length < 3) {
         return { success: false, error: 'O nome completo deve conter no mínimo 3 caracteres.' };
+      }
+
+      // Corrigido: antes, cadastro sem senha recebia "senha123"
+      if (!input.password || input.password.length < 6) {
+        return { success: false, error: 'A senha precisa ter no mínimo 6 caracteres.' };
+      }
+      if (!input.acceptedTerms) {
+        return { success: false, error: 'É preciso aceitar os termos para criar o cadastro.' };
       }
 
       const existingUser = users.find(u => u.profile.email.toLowerCase() === cleanEmail);
@@ -196,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const newUser: UserAccount = {
         id: newId,
-        passwordHash: input.password || 'senha123',
+        passwordHash: await hashPassword(input.password),
         portfolio: initialPortfolio,
         profile: {
           name: input.name.trim(),
@@ -220,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUserId(newId);
 
       // Also sync current portfolio to localStorage so App.tsx picks it up immediately
-      localStorage.setItem('valorize_portfolio', JSON.stringify(initialPortfolio));
+      writeJSON('valorize_portfolio', initialPortfolio);
 
       return { success: true };
     } catch (e: any) {
@@ -233,7 +233,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 400));
       const cleanEmail = email.trim().toLowerCase();
       
       const found = users.find(u => u.profile.email.toLowerCase() === cleanEmail);
@@ -244,16 +243,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      if (password && found.passwordHash && found.passwordHash !== password) {
-        return {
-          success: false,
-          error: 'Senha incorreta. Tente novamente ou use a recuperação de senha.'
-        };
+      // Corrigido: antes, senha VAZIA entrava em qualquer conta
+      if (found.isDemo || !found.passwordHash) {
+        return { success: false, error: 'Este é um perfil de demonstração: use os botões "demo" abaixo.' };
+      }
+      if (!password || !(await verifyPassword(password, found.passwordHash))) {
+        return { success: false, error: 'E-mail ou senha incorretos.' };
       }
 
-      // Update last login
+      // Update last login (e migra senha antiga em texto puro para hash)
       const updatedUser: UserAccount = {
         ...found,
+        passwordHash: isHashed(found.passwordHash) ? found.passwordHash : await hashPassword(password),
         profile: {
           ...found.profile,
           lastLogin: Date.now()
@@ -265,7 +266,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Sync active portfolio into local storage for the dashboard
       if (found.portfolio && found.portfolio.length > 0) {
-        localStorage.setItem('valorize_portfolio', JSON.stringify(found.portfolio));
+        writeJSON('valorize_portfolio', found.portfolio);
       }
 
       return { success: true };
@@ -277,11 +278,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginDemo = (strategy: 'dividendos_bazin' | 'valor_graham' = 'dividendos_bazin') => {
-    const target = users.find(u => u.profile.strategy === strategy) || users[0] || DEFAULT_DEMO_USERS[0];
+    // Corrigido: só perfis demo (antes podia entrar numa conta real da mesma estratégia, sem senha)
+    const target = users.find(u => u.isDemo && u.profile.strategy === strategy)
+      || DEFAULT_DEMO_USERS.find(u => u.profile.strategy === strategy)
+      || DEFAULT_DEMO_USERS[0];
     if (target) {
+      if (!users.some(u => u.id === target.id)) setUsers(prev => [...prev, target]);
       setCurrentUserId(target.id);
       if (target.portfolio) {
-        localStorage.setItem('valorize_portfolio', JSON.stringify(target.portfolio));
+        writeJSON('valorize_portfolio', target.portfolio);
       }
     }
   };
@@ -295,7 +300,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setIsLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 300));
       setUsers(prev => prev.map(u => {
         if (u.id === currentUserId) {
           return {
@@ -330,18 +334,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise(r => setTimeout(r, 600));
+    // Corrigido: antes dizia ter enviado um e-mail que nunca era enviado.
+    // A conta existe só neste aparelho, então não há como enviar recuperação.
     const cleanEmail = email.trim().toLowerCase();
     const found = users.find(u => u.profile.email.toLowerCase() === cleanEmail);
     if (!found) {
-      return {
-        success: false,
-        message: 'E-mail não localizado no sistema. Cadastre-se gratuitamente.'
-      };
+      return { success: false, message: 'Não há cadastro com este e-mail neste aparelho.' };
     }
     return {
       success: true,
-      message: `Enviamos as instruções e o código de redefinição de acesso para ${cleanEmail}. Verifique sua caixa de entrada.`
+      message: 'Sua conta do Valorize fica salva só neste aparelho e não há envio de e-mail. Se esqueceu a senha, crie um novo cadastro com outro e-mail; a carteira atual continua disponível no modo convidado.'
     };
   };
 

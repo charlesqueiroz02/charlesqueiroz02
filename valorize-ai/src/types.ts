@@ -162,7 +162,10 @@ export interface UserAccount {
   id: string;
   profile: UserProfile;
   portfolio: PortfolioItem[];
+  /** Hash PBKDF2 da senha (contas antigas podiam ter texto puro; migradas automaticamente). */
   passwordHash?: string;
+  /** Perfil de demonstração: entra só pelo botão demo. */
+  isDemo?: boolean;
 }
 
 export interface AuthState {

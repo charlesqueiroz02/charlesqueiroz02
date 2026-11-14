@@ -64,7 +64,6 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     logout, 
     updateProfile, 
     resetPassword,
-    registeredUsersCount 
   } = useAuth();
 
   const [mode, setMode] = useState<'register' | 'login' | 'profile' | 'forgot'>(() => {
@@ -82,7 +81,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(true);
+  // LGPD: o aceite não pode vir marcado
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Step 2 Profile
   const [strategy, setStrategy] = useState<InvestmentStrategy>('dividendos_bazin');
@@ -224,6 +224,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       return;
     }
     const res = await resetPassword(forgotEmail);
+    if (!res.success) { setErrorMsg(res.message); return; }
     setForgotFeedback(res.message);
   };
 
@@ -262,7 +263,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   Terminal B3 Institucional
                 </span>
                 <span className="text-[10px] font-mono text-zinc-400">
-                  {registeredUsersCount} investidores registrados
+                  Conta salva neste aparelho
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-0.5">
@@ -985,7 +986,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   }}
                   className="p-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-left transition-colors"
                 >
-                  <div className="text-xs font-bold text-emerald-950">Dr. Roberto (Bazin)</div>
+                  <div className="text-xs font-bold text-emerald-950">Demo Renda (Bazin)</div>
                   <div className="text-[10px] text-emerald-700 font-mono">Foco Renda 6% DY</div>
                 </button>
 
@@ -998,7 +999,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   }}
                   className="p-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl text-left transition-colors"
                 >
-                  <div className="text-xs font-bold text-blue-950">Mariana (Graham)</div>
+                  <div className="text-xs font-bold text-blue-950">Demo Valor (Graham)</div>
                   <div className="text-[10px] text-blue-700 font-mono">Deep Value B3</div>
                 </button>
               </div>
@@ -1027,7 +1028,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               </div>
               <h3 className="text-base font-bold text-zinc-900">Recuperação de Acesso</h3>
               <p className="text-xs text-zinc-500 mt-1">
-                Insira o e-mail cadastrado para receber instruções de recuperação de senha.
+                Informe o e-mail cadastrado para ver como recuperar o acesso.
               </p>
             </div>
 
@@ -1035,7 +1036,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 space-y-3">
                 <div className="flex items-center gap-2 font-bold text-emerald-900">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  E-mail enviado!
+                  Como recuperar o acesso
                 </div>
                 <p className="leading-relaxed">{forgotFeedback}</p>
                 <button
