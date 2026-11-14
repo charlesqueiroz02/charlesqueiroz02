@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import dns from 'node:dns';
 import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DEFAULT_MIN_YIELD } from '../src/lib/valuation';
 import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends';
+import { normalizeTicker, isValidTicker } from '../src/lib/ticker';
+import { rateLimit, securityHeaders, finiteNumber, cleanText } from './security';
 
 // Ensure IPv4 first to prevent IPv6 stalling on external API connections
 dns.setDefaultResultOrder('ipv4first');
@@ -27,7 +28,11 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '16kb' }));
+app.use('/api', securityHeaders);
+// Limites por IP: cotações (cada uma dispara consultas externas) e IA (consome a cota do Gemini)
+app.use('/api/stock', rateLimit({ windowMs: 60_000, max: 120, message: 'Muitas consultas em pouco tempo. Aguarde um minuto e tente de novo.' }));
+app.use('/api/ai', rateLimit({ windowMs: 10 * 60_000, max: 12, message: 'Limite de análises por IA atingido. Tente novamente em alguns minutos.' }));
 
 // Initialize Gemini on server-side
 const apiKey = process.env.GEMINI_API_KEY || '';
@@ -48,6 +53,7 @@ const ai = new GoogleGenAI({
 // Cache for stock data to avoid repeated scrapers (valid for 15 minutes)
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 15 * 60 * 1000;
+const CACHE_MAX = 400; // limite de itens para a memória não crescer sem fim
 
 export interface ReferenceStock {
   ticker: string;
@@ -683,7 +689,13 @@ async function fetchYahooData(ticker: string) {
 }
 
 async function getCompleteStockData(tickerInput: string) {
-  const cleanTicker = tickerInput.trim().toUpperCase().replace(/\.SA$/i, '');
+  const cleanTicker = normalizeTicker(tickerInput);
+  // Só códigos no formato da B3 chegam às fontes externas (evita injeção na URL)
+  if (!isValidTicker(cleanTicker)) {
+    const err: any = new Error('Código inválido. Use o formato da B3, como PETR4 ou TAEE11.');
+    err.status = 400;
+    throw err;
+  }
   const cacheKey = `stock_${cleanTicker}`;
 
   const cached = memoryCache.get(cacheKey);
@@ -806,6 +818,10 @@ async function getCompleteStockData(tickerInput: string) {
     lastUpdated: Date.now()
   };
 
+  if (memoryCache.size >= CACHE_MAX) {
+    const oldest = memoryCache.keys().next().value;
+    if (oldest) memoryCache.delete(oldest);
+  }
   memoryCache.set(cacheKey, { data: fullData, timestamp: Date.now() });
   return fullData;
 }
@@ -904,7 +920,10 @@ app.get('/api/stock/compare', async (req: Request, res: Response) => {
     }
 
     const minYield = Math.min(15, Math.max(3, Number(req.query.minYield) || DEFAULT_MIN_YIELD));
-    const tickers = tickersParam.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+    const tickers = Array.from(new Set(tickersParam.split(',').map(normalizeTicker).filter(isValidTicker)));
+    if (tickers.length === 0) return res.status(400).json({ error: 'Informe códigos válidos da B3, separados por vírgula.' });
+    // Cada ação dispara 2 consultas externas: limitamos para evitar abuso
+    if (tickers.length > 10) return res.status(400).json({ error: 'Compare até 10 ações por vez.' });
     const results = await Promise.all(tickers.map(async (t) => {
       try {
         const d = await getCompleteStockData(t);
@@ -986,7 +1005,7 @@ app.get('/api/stock/search', async (req: Request, res: Response) => {
 app.get('/api/stock/:ticker', async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
-    if (!ticker || ticker.trim().length < 3) {
+    if (!isValidTicker(ticker)) {
       return res.status(400).json({ error: "Ticker inválido. Informe um código como PETR4 ou VALE3." });
     }
 
@@ -995,18 +1014,27 @@ app.get('/api/stock/:ticker', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error fetching stock:", error?.message);
     const status = error?.status || 500;
-    return res.status(status).json({ error: status === 404 ? error.message : "Erro ao consultar dados da ação.", details: error?.message });
+    // Sem detalhes internos na resposta: a mensagem técnica fica só no log do servidor
+    return res.status(status).json({ error: status < 500 ? error.message : "Erro ao consultar dados da ação. Tente novamente em instantes." });
   }
 });
 
 // 5. Server-Side AI Analysis with Gemini 3.8 Flash
 app.post('/api/ai/analyze', async (req: Request, res: Response) => {
   try {
-    const { ticker, currentPrice, lpa, vpa, dividends, avgDividends5y, companyName } = req.body;
-    const minYield = Math.min(15, Math.max(3, Number(req.body?.minYield) || DEFAULT_MIN_YIELD));
-    if (!ticker) {
-      return res.status(400).json({ error: "Ticker é obrigatório." });
+    // Validação da entrada: só números finitos e textos curtos entram no prompt
+    const body = req.body || {};
+    const ticker = normalizeTicker(body.ticker);
+    if (!isValidTicker(ticker)) {
+      return res.status(400).json({ error: "Informe um código válido da B3." });
     }
+    const currentPrice = finiteNumber(body.currentPrice, 0, 1e6);
+    const lpa = finiteNumber(body.lpa, -1e5, 1e5);
+    const vpa = finiteNumber(body.vpa, -1e5, 1e5);
+    const dividends = finiteNumber(body.dividends, 0, 1e5);
+    const avgDividends5y = finiteNumber(body.avgDividends5y, 0, 1e5);
+    const companyName = cleanText(body.companyName);
+    const minYield = Math.min(15, Math.max(3, Number(body.minYield) || DEFAULT_MIN_YIELD));
 
     const prompt = `Você é um analista e educador financeiro especialista em ações da B3 (Brasil).
 Analise a ação ${ticker} (${companyName || ''}) para um investidor pessoa física, considerando estes dados de mercado:

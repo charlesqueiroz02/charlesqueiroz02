@@ -11,6 +11,13 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+// Cabeçalhos básicos de segurança (sem CSP aqui para não quebrar a pré-visualização do AI Studio)
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 // Toda a lógica de dados e IA está em server/api.ts (compartilhada com o Netlify)
 app.use(apiApp);
 
