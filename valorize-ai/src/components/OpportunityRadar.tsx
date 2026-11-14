@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { 
   Radar, 
   Search, 
@@ -19,7 +19,8 @@ import {
   List,
   ScatterChart as ScatterIcon
 } from 'lucide-react';
-import { OpportunityMap } from './OpportunityMap';
+// O mapa usa a biblioteca de gráficos: carregada só quando o usuário abre o modo Mapa
+const OpportunityMap = lazy(() => import('./OpportunityMap').then(m => ({ default: m.OpportunityMap })));
 import { toExcelCsv, downloadText, num } from '../lib/valuation';
 import { RadarStockItem } from '../types';
 import { loadRadar } from '../lib/radarCache';
@@ -279,7 +280,9 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
           {loading ? (
             <div className="py-16 text-center text-xs text-zinc-500"><RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />Carregando…</div>
           ) : (
-            <OpportunityMap stocks={filteredAndSortedStocks} bazinMode={bazinMode} currentTicker={currentTicker} onSelect={onSelectStock} />
+            <Suspense fallback={<div className="py-16 text-center text-xs text-zinc-500">Carregando gráfico…</div>}>
+              <OpportunityMap stocks={filteredAndSortedStocks} bazinMode={bazinMode} currentTicker={currentTicker} onSelect={onSelectStock} />
+            </Suspense>
           )}
         </section>
       )}

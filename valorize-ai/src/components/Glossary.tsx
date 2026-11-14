@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen, Info, HelpCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useEscape } from '../lib/useEscape';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface GlossaryProps {
 }
 
 export const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose }) => {
+  useEscape(isOpen, onClose);
   const tools = [
     {
       title: "Método de Graham",
@@ -34,17 +36,19 @@ export const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/30 backdrop-blur-sm" onClick={onClose}>
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden"
+            role="dialog" aria-modal="true" aria-labelledby="glossary-title"
+            onClick={e => e.stopPropagation()}
           >
             <div className="bg-emerald-50 border-b border-emerald-100 p-6 text-zinc-900 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <BookOpen className="w-6 h-6 text-emerald-600" />
-                <h2 className="text-xl font-bold tracking-tight uppercase">Guia de Ferramentas</h2>
+                <h2 id="glossary-title" className="text-xl font-bold tracking-tight uppercase">Guia de Ferramentas</h2>
               </div>
               <button onClick={onClose} className="hover:bg-emerald-100 p-2 rounded-full transition-colors" aria-label="Fechar">
                 <X className="w-6 h-6" />

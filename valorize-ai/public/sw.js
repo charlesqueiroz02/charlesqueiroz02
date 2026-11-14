@@ -5,7 +5,7 @@
  *  - IA (/api/ai/...): só online
  * Ao publicar uma nova versão, aumente VERSION para forçar a atualização.
  */
-const VERSION = 'valorize-v2.0.0';
+const VERSION = 'valorize-v2.5.0';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const PRECACHE = ['/', '/manifest.webmanifest', '/favicon.svg', '/favicon.ico', '/icons/icon-192.png', '/icons/icon-512.png'];

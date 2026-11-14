@@ -17,9 +17,15 @@ export default defineConfig(({mode}) => {
       chunkSizeWarningLimit: 700,
       rollupOptions: {
         output: {
-          manualChunks: {
-            charts: ['recharts'],
-            icons: ['lucide-react'],
+          // Só o Recharts e as libs d3 vão para o pacote de gráficos. Antes, dependências
+          // compartilhadas (ex.: clsx) caíam nele e o app baixava os gráficos já na abertura.
+          manualChunks(id) {
+            // Ajudantes de CommonJS e o React ficam num pacote comum, usado por todos
+            if (id.includes('commonjsHelpers') || /node_modules\/(react|react-dom|scheduler|clsx|use-sync-external-store)\//.test(id)) return 'vendor';
+            if (!id.includes('node_modules')) return undefined;
+            if (/node_modules\/(recharts|d3-[^/]+|victory-vendor|decimal\.js-light|internmap)\//.test(id)) return 'charts';
+            if (id.includes('node_modules/lucide-react/')) return 'icons';
+            return undefined;
           },
         },
       },

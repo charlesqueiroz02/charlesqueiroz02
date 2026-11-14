@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, X, ChevronRight, Globe, Factory, Landmark, ShoppingCart, Zap, Droplets, HeartPulse, HardHat, Car, Plane, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { POPULAR_TICKERS } from '../constants';
+import { useEscape } from '../lib/useEscape';
 
 interface StockDirectoryProps {
   isOpen: boolean;
@@ -79,7 +80,7 @@ STOCK_SEGMENTS["Outros"].tickers = POPULAR_TICKERS.filter(t => !categorizedTicke
 
 export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSegment, setActiveSegment] = useState<string | null>(null);
+  useEscape(isOpen, onClose);
 
   const filteredSegments = useMemo(() => {
     if (!searchTerm) return STOCK_SEGMENTS;
@@ -112,17 +113,19 @@ export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose,
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           className="bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          role="dialog" aria-modal="true" aria-labelledby="dir-title"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
             <div>
-              <h2 className="text-2xl font-serif italic text-zinc-900">Diretório da Bolsa</h2>
+              <h2 id="dir-title" className="text-2xl font-serif italic text-zinc-900">Diretório da Bolsa</h2>
               <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest mt-1">Explore ativos por segmento</p>
             </div>
             <button 
               onClick={onClose}
               className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+              aria-label="Fechar"
             >
               <X className="w-6 h-6 text-zinc-400" />
             </button>

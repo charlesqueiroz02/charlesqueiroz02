@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
 import { CHART, tooltipStyle } from '../lib/chartTheme';
+import { safeToFixed } from '../lib/utils';
 
 interface UpsideChartProps {
   ticker: string;
@@ -22,13 +23,6 @@ interface UpsideChartProps {
   bazinCeilingPrice: number;
 }
 
-const safeToFixed = (val: any, decimals: number = 2): string => {
-  const num = Number(val);
-  if (val === undefined || val === null || isNaN(num) || !isFinite(num)) {
-    return "0.00";
-  }
-  return num.toFixed(decimals);
-};
 
 export const UpsideChart: React.FC<UpsideChartProps> = ({ 
   ticker, 

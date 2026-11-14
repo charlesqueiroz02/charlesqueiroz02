@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { 
   Calculator, 
   HelpCircle, 
@@ -29,25 +29,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import { StockData, ValuationResult, PortfolioItem } from './types';
-import { ValuationDisplay } from './components/ValuationDisplay';
-import { UpsideChart } from './components/UpsideChart';
-import { FundamentalAnalysis } from './components/FundamentalAnalysis';
-import { PriceHistoryChart } from './components/PriceHistoryChart';
 import { Glossary } from './components/Glossary';
-import { PortfolioDashboard } from './components/PortfolioDashboard';
-import { AIAnalyst } from './components/AIAnalyst';
-import { StockComparator } from './components/StockComparator';
-import { CompoundSimulator } from './components/CompoundSimulator';
 import { OpportunityRadar } from './components/OpportunityRadar';
-import { AssetXRay } from './components/AssetXRay';
-import { AllocationOptimizer } from './components/AllocationOptimizer';
 import { TickerSelect } from './components/TickerSelect';
 import { StockDirectory } from './components/StockDirectory';
 import { useAuth } from './context/AuthContext';
-import { RegistrationFlow } from './components/RegistrationFlow';
-import { AuthModal } from './components/AuthModal';
-import { ValuationLab } from './components/ValuationLab';
-import { IncomeMachine } from './components/IncomeMachine';
 import { PriceRuler } from './components/PriceRuler';
 import { QuickAddModal } from './components/QuickAddModal';
 import { ParamsPopover } from './components/ParamsPopover';
@@ -59,6 +45,25 @@ import { computeValuation } from './lib/valuation';
 import { readJSON, readText, writeJSON, writeText, pruneCache, touchCache } from './lib/storage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { fetchQuotes } from './lib/quotes';
+
+// Telas carregadas sob demanda: o app abre mais rápido (antes tudo vinha num arquivo de 557 KB)
+const ValuationDisplay = lazy(() => import('./components/ValuationDisplay').then(m => ({ default: m.ValuationDisplay })));
+const UpsideChart = lazy(() => import('./components/UpsideChart').then(m => ({ default: m.UpsideChart })));
+const PriceHistoryChart = lazy(() => import('./components/PriceHistoryChart').then(m => ({ default: m.PriceHistoryChart })));
+const PortfolioDashboard = lazy(() => import('./components/PortfolioDashboard').then(m => ({ default: m.PortfolioDashboard })));
+const AIAnalyst = lazy(() => import('./components/AIAnalyst').then(m => ({ default: m.AIAnalyst })));
+const StockComparator = lazy(() => import('./components/StockComparator').then(m => ({ default: m.StockComparator })));
+const CompoundSimulator = lazy(() => import('./components/CompoundSimulator').then(m => ({ default: m.CompoundSimulator })));
+const AssetXRay = lazy(() => import('./components/AssetXRay').then(m => ({ default: m.AssetXRay })));
+const AllocationOptimizer = lazy(() => import('./components/AllocationOptimizer').then(m => ({ default: m.AllocationOptimizer })));
+const RegistrationFlow = lazy(() => import('./components/RegistrationFlow').then(m => ({ default: m.RegistrationFlow })));
+const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const ValuationLab = lazy(() => import('./components/ValuationLab').then(m => ({ default: m.ValuationLab })));
+const IncomeMachine = lazy(() => import('./components/IncomeMachine').then(m => ({ default: m.IncomeMachine })));
+
+const TabLoading = () => (
+  <div role="status" className="py-16 text-center text-sm text-zinc-500">Carregando…</div>
+);
 
 export function App() {
   const { user, isAuthenticated, logout, syncPortfolio } = useAuth();
@@ -425,6 +430,7 @@ export function App() {
                 onClick={() => setIsDirectoryOpen(true)}
                 className="p-2 bg-zinc-100 rounded-lg hover:bg-zinc-200 text-zinc-700"
                 title="Bolsa B3"
+                aria-label="Abrir diretório da Bolsa B3"
               >
                 <Globe className="w-4 h-4" />
               </button>
@@ -473,6 +479,7 @@ export function App() {
               onClick={() => setIsGlossaryOpen(true)}
               className="p-2 bg-zinc-100 rounded-lg hover:bg-zinc-200 text-zinc-600 transition-colors"
               title="Manual e Glossário de Métodos"
+              aria-label="Abrir guia e glossário"
             >
               <HelpCircle className="w-4 h-4" />
             </button>
@@ -618,6 +625,7 @@ export function App() {
         )}
 
         <ErrorBoundary resetKey={activeTab} area={TABS.find(t => t.id === activeTab)?.label}>
+        <Suspense fallback={<TabLoading />}>
         {/* TAB 1: RADAR DE OPORTUNIDADES */}
         {activeTab === 'radar' && (
           <OpportunityRadar 
@@ -937,6 +945,7 @@ export function App() {
             />
           </div>
         )}
+        </Suspense>
         </ErrorBoundary>
       </main>
 
@@ -951,11 +960,15 @@ export function App() {
       <MobileNav active={activeTab} onChange={setActiveTab} />
 
       {/* Global Auth & Registration Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialMode={authModalMode}
-      />
+      {isAuthModalOpen && (
+        <Suspense fallback={null}>
+          <AuthModal
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+            initialMode={authModalMode}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
