@@ -28,7 +28,7 @@ export const ParamsPopover: React.FC<ParamsPopoverProps> = ({ minYield, margin, 
         title="Meus parâmetros de Graham e Bazin"
       >
         <SlidersHorizontal className="w-3.5 h-3.5" />
-        <span className="hidden lg:inline font-mono">{num(minYield, 1)}% · {margin}%</span>
+        <span className="hidden lg:inline font-mono whitespace-nowrap">{num(minYield, 1)}% · {margin}%</span>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-72 bg-white border border-zinc-200 rounded-xl shadow-xl p-4 z-50">

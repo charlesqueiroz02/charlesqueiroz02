@@ -45,7 +45,7 @@ export const InstallApp: React.FC = () => {
     <>
       <button
         onClick={click}
-        className="flex items-center gap-1.5 px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold"
+        className="flex items-center gap-1.5 px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold whitespace-nowrap"
         title="Criar atalho do Valorize na tela inicial"
       >
         <Download className="w-3.5 h-3.5" />
@@ -53,7 +53,7 @@ export const InstallApp: React.FC = () => {
       </button>
 
       {(showIOS || showHelp) && (
-        <div className="fixed inset-0 z-[70] bg-zinc-900/25 flex items-end sm:items-center justify-center" onClick={() => { setShowIOS(false); setShowHelp(false); }}>
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-end sm:items-center justify-center" onClick={() => { setShowIOS(false); setShowHelp(false); }}>
           <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}
             className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl">
             <div className="flex items-start justify-between gap-3 mb-4">

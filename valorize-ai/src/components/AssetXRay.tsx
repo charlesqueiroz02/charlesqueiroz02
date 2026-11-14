@@ -20,6 +20,7 @@ import {
 import { Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { StockData, ValuationResult, DividendYearPoint } from '../types';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
+import { brl, num } from '../lib/valuation';
 
 interface AssetXRayProps {
   stock: StockData;
@@ -77,7 +78,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
       {
         id: 1,
         title: `Dividend Yield ≥ ${minYield}% (Regra de Ouro)`,
-        desc: `O retorno anual em proventos é de ${currentDy.toFixed(1)}%, ${dyAboveMin ? 'atendendo' : 'abaixo do'} patamar de ${minYield}%.`,
+        desc: `O retorno anual em proventos é de ${num(currentDy, 1)}%, ${dyAboveMin ? 'atendendo' : 'abaixo do'} patamar de ${minYield}%.`,
         passed: dyAboveMin
       },
       {
@@ -91,33 +92,33 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
       {
         id: 3,
         title: "Cotação Abaixo do Preço Teto Bazin",
-        desc: `Cotação de R$ ${stock.currentPrice.toFixed(2)} vs Teto Bazin de R$ ${activeCeilingPrice.toFixed(2)}.`,
+        desc: `Cotação de ${brl(stock.currentPrice)} vs Teto Bazin de ${brl(activeCeilingPrice)}.`,
         passed: activeCeilingPrice > 0 && priceBelowCeiling
       },
       {
         id: 4,
         title: "Preço abaixo do justo e P/L ≤ 15 (Graham)",
-        desc: `P/L saudável (${(stock.pl || 0).toFixed(1)}x) e preço com ${grahamUpside >= 0 ? '+' : ''}${grahamUpside.toFixed(1)}% de margem frente ao valor intrínseco.`,
+        desc: `P/L saudável (${num((stock.pl || 0), 1)}x) e preço com ${grahamUpside >= 0 ? '+' : ''}${num(grahamUpside, 1)}% de margem frente ao valor intrínseco.`,
         passed: grahamFair > 0 && isPlHealthy && priceBelowGraham
       },
       // Critérios defensivos de Graham (O Investidor Inteligente)
       {
         id: 5,
         title: 'Graham: lucro positivo',
-        desc: stock.lpa > 0 ? `LPA de R$ ${stock.lpa.toFixed(2)}: a empresa dá lucro.` : 'LPA negativo: a fórmula de Graham não se aplica.',
+        desc: stock.lpa > 0 ? `LPA de ${brl(stock.lpa)}: a empresa dá lucro.` : 'LPA negativo: a fórmula de Graham não se aplica.',
         passed: stock.lpa > 0
       },
       {
         id: 6,
         title: 'Graham: P/L ≤ 15 e P/VP ≤ 1,5',
-        desc: `P/L ${pl > 0 ? pl.toFixed(1) : 'N/D'} e P/VP ${pvp > 0 ? pvp.toFixed(2) : 'N/D'}.`,
+        desc: `P/L ${pl > 0 ? num(pl, 1) : 'N/D'} e P/VP ${pvp > 0 ? num(pvp, 2) : 'N/D'}.`,
         passed: pl > 0 && pl <= 15 && pvp > 0 && pvp <= 1.5
       },
       {
         id: 7,
         title: 'Graham: P/L × P/VP ≤ 22,5',
         desc: pl > 0 && pvp > 0
-          ? `Produto de ${(pl * pvp).toFixed(1)}. Graham aceitava P/L maior se o P/VP fosse menor, desde que o produto não passasse de 22,5.`
+          ? `Produto de ${num((pl * pvp), 1)}. Graham aceitava P/L maior se o P/VP fosse menor, desde que o produto não passasse de 22,5.`
           : 'Sem lucro ou patrimônio positivo para calcular.',
         passed: pl > 0 && pvp > 0 && pl * pvp <= 22.5
       }
@@ -135,8 +136,8 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
   // DY por ano na tabela: mesmo cálculo do gráfico; sem cotação do ano, usa a atual (marcado com *)
   const yearDy = (item: DividendYearPoint) => {
     const dy = dividendChart.find(d => d.year === item.year)?.dy;
-    if (dy != null) return dy.toFixed(1) + '%';
-    return stock.currentPrice > 0 ? ((item.amount / stock.currentPrice) * 100).toFixed(1) + '%*' : '—';
+    if (dy != null) return num(dy, 1) + '%';
+    return stock.currentPrice > 0 ? num(((item.amount / stock.currentPrice) * 100), 1) + '%*' : '—';
   };
 
   return (
@@ -166,13 +167,13 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-zinc-400 block font-mono">Cotação Atual</span>
               <span className="font-mono text-3xl font-bold text-zinc-900">
-                R$ {stock.currentPrice.toFixed(2)}
+                {brl(stock.currentPrice)}
               </span>
             </div>
             <div className="text-right pl-3 border-l border-zinc-200">
               <span className="text-[10px] uppercase font-bold text-zinc-400 block font-mono">DY Atual</span>
               <span className="font-mono text-xl font-bold text-emerald-600">
-                {currentDy.toFixed(2)}%
+                {num(currentDy, 2)}%
               </span>
             </div>
           </div>
@@ -182,27 +183,27 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-4 text-xs font-mono">
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">LPA (Lucro/Ação)</span>
-            <span className="text-sm font-bold text-zinc-900">R$ {stock.lpa.toFixed(2)}</span>
+            <span className="text-sm font-bold text-zinc-900">{brl(stock.lpa)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">VPA (Patr./Ação)</span>
-            <span className="text-sm font-bold text-zinc-900">R$ {stock.vpa.toFixed(2)}</span>
+            <span className="text-sm font-bold text-zinc-900">{brl(stock.vpa)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">P/L</span>
-            <span className="text-sm font-bold text-zinc-900">{stock.pl ? stock.pl.toFixed(1) : (stock.lpa > 0 ? (stock.currentPrice / stock.lpa).toFixed(1) : '-')}</span>
+            <span className="text-sm font-bold text-zinc-900">{stock.pl ? num(stock.pl, 1) : (stock.lpa > 0 ? num((stock.currentPrice / stock.lpa), 1) : '-')}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">P/VP</span>
-            <span className="text-sm font-bold text-zinc-900">{stock.pvp ? stock.pvp.toFixed(2) : (stock.vpa > 0 ? (stock.currentPrice / stock.vpa).toFixed(2) : '-')}</span>
+            <span className="text-sm font-bold text-zinc-900">{stock.pvp ? num(stock.pvp, 2) : (stock.vpa > 0 ? num((stock.currentPrice / stock.vpa), 2) : '-')}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">Proventos 12m</span>
-            <span className="text-sm font-bold text-emerald-700">R$ {stock.dividends.toFixed(2)}</span>
+            <span className="text-sm font-bold text-emerald-700">{brl(stock.dividends)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">Média 5 Anos Bazin</span>
-            <span className="text-sm font-bold text-emerald-700">R$ {(stock.avgDividends5y || stock.dividends).toFixed(2)}</span>
+            <span className="text-sm font-bold text-emerald-700">{brl((stock.avgDividends5y || stock.dividends))}</span>
           </div>
         </div>
       </div>
@@ -254,20 +255,20 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
               <div className="flex items-baseline justify-between mb-1">
                 <span className="text-xs uppercase font-bold text-zinc-500 font-mono">Preço Teto Máximo ({minYield}%)</span>
                 <span className={`text-xs font-mono font-bold ${activeUpsideBazin >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {activeUpsideBazin >= 0 ? '+' : ''}{activeUpsideBazin.toFixed(1)}% Margem
+                  {activeUpsideBazin >= 0 ? '+' : ''}{num(activeUpsideBazin, 1)}% Margem
                 </span>
               </div>
               <div className="font-mono text-3xl font-bold text-zinc-900">
-                R$ {activeCeilingPrice.toFixed(2)}
+                {brl(activeCeilingPrice)}
               </div>
               <div className="mt-2 text-[10px] text-zinc-500 font-mono flex items-center justify-between border-t border-zinc-200 pt-2">
                 <span>Com Margem de Segurança ({marginOfSafety}%):</span>
-                <strong className="text-zinc-900">R$ {activeEntryPriceBazin.toFixed(2)}</strong>
+                <strong className="text-zinc-900">{brl(activeEntryPriceBazin)}</strong>
               </div>
             </div>
 
             <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-              Pelo critério de Décio Bazin, para obter no mínimo <strong>{minYield}%</strong> ao ano de dividendos sem vender suas ações, o preço máximo a pagar é <strong>R$ {activeCeilingPrice.toFixed(2)}</strong> com base na {bazinMode === '5y' ? 'média histórica de 5 anos (R$ ' + activeDividend.toFixed(2) + '/ação)' : 'última distribuição de 12 meses (R$ ' + activeDividend.toFixed(2) + '/ação)'}.
+              Pelo critério de Décio Bazin, para obter no mínimo <strong>{minYield}%</strong> ao ano de dividendos sem vender suas ações, o preço máximo a pagar é <strong>{brl(activeCeilingPrice)}</strong> com base na {bazinMode === '5y' ? 'média histórica de 5 anos (R$ ' + num(activeDividend, 2) + '/ação)' : 'última distribuição de 12 meses (R$ ' + num(activeDividend, 2) + '/ação)'}.
             </p>
           </div>
 
@@ -301,20 +302,20 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
               <div className="flex items-baseline justify-between mb-1">
                 <span className="text-xs uppercase font-bold text-zinc-500 font-mono">Valor Intrínseco Justo</span>
                 <span className={`text-xs font-mono font-bold ${grahamUpside >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {grahamUpside >= 0 ? '+' : ''}{grahamUpside.toFixed(1)}% Desconto
+                  {grahamUpside >= 0 ? '+' : ''}{num(grahamUpside, 1)}% Desconto
                 </span>
               </div>
               <div className="font-mono text-3xl font-bold text-zinc-900">
-                R$ {grahamFair.toFixed(2)}
+                {brl(grahamFair)}
               </div>
               <div className="mt-2 text-[10px] text-zinc-500 font-mono flex items-center justify-between border-t border-zinc-200 pt-2">
                 <span>Preço Teto com Margem ({marginOfSafety}%):</span>
-                <strong className="text-zinc-900">R$ {grahamEntry.toFixed(2)}</strong>
+                <strong className="text-zinc-900">{brl(grahamEntry)}</strong>
               </div>
             </div>
 
             <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-              O método de Graham avalia a empresa como um todo combinando Lucro por Ação (R$ {stock.lpa.toFixed(2)}) e Valor Patrimonial (R$ {stock.vpa.toFixed(2)}). Com margem de segurança de <strong>{marginOfSafety}%</strong>, o preço recomendado para entrada é de até <strong>R$ {grahamEntry.toFixed(2)}</strong>.
+              O método de Graham avalia a empresa como um todo combinando Lucro por Ação ({brl(stock.lpa)}) e Valor Patrimonial ({brl(stock.vpa)}). Com margem de segurança de <strong>{marginOfSafety}%</strong>, o preço recomendado para entrada é de até <strong>{brl(grahamEntry)}</strong>.
             </p>
           </div>
 
@@ -343,14 +344,14 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
           </div>
           <div className="bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-lg text-xs font-mono">
             <span className="text-zinc-500">Média 5 Anos: </span>
-            <strong className="text-emerald-700 font-bold">R$ {(stock.avgDividends5y || stock.dividends).toFixed(2)} / ano</strong>
+            <strong className="text-emerald-700 font-bold">{brl((stock.avgDividends5y || stock.dividends))} / ano</strong>
           </div>
         </div>
 
         {!hasHistory ? (
           <p className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
             Não encontramos o histórico de proventos deste ativo. O Bazin usa os proventos de 12 meses
-            {stock.dividends > 0 ? ` (R$ ${stock.dividends.toFixed(2)})` : ''} até o histórico ficar disponível.
+            {stock.dividends > 0 ? ` (${brl(stock.dividends)})` : ''} até o histórico ficar disponível.
           </p>
         ) : (<>
         {/* Gráfico de proventos: barras por ano, linha da média e DY do ano */}
@@ -363,7 +364,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
               <span className="flex items-center gap-1.5"><i className="w-3 h-0.5" style={{ background: CHART.graham }} />DY %</span>
             </span>
           </div>
-          <div className="h-56" role="img" aria-label={'Proventos por ano: ' + dividendChart.map(d => d.year + ' R$ ' + d.amount.toFixed(2)).join(', ')}>
+          <div className="h-56" role="img" aria-label={'Proventos por ano: ' + dividendChart.map(d => d.year + ' R$ ' + num(d.amount, 2)).join(', ')}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={dividendChart} margin={{ top: 16, right: 4, left: -8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
@@ -371,9 +372,9 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
                 <YAxis yAxisId="r" tick={axisTick} axisLine={false} tickLine={false} width={48} tickFormatter={v => 'R$' + v} />
                 <YAxis yAxisId="dy" orientation="right" tick={axisTick} axisLine={false} tickLine={false} width={36} unit="%" />
                 <Tooltip contentStyle={tooltipStyle}
-                  formatter={(v: number, n: string) => (n === 'dy' ? [v.toFixed(1) + '%', 'DY do ano'] : ['R$ ' + v.toFixed(2), 'Proventos'])} />
-                {avg5y > 0 && <ReferenceLine yAxisId="r" y={avg5y} stroke={CHART.amber} strokeDasharray="5 4" label={{ value: 'média R$ ' + avg5y.toFixed(2), position: 'insideTopLeft', fontSize: 10, fill: CHART.amber }} />}
-                <Bar yAxisId="r" dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={44} label={{ position: 'top', fontSize: 10, fill: CHART.axis, formatter: (v: number) => v.toFixed(2) }}>
+                  formatter={(v: number, n: string) => (n === 'dy' ? [num(v, 1) + '%', 'DY do ano'] : [brl(v), 'Proventos'])} />
+                {avg5y > 0 && <ReferenceLine yAxisId="r" y={avg5y} stroke={CHART.amber} strokeDasharray="5 4" label={{ value: 'média R$ ' + num(avg5y, 2), position: 'insideTopLeft', fontSize: 10, fill: CHART.amber }} />}
+                <Bar yAxisId="r" dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={44} label={{ position: 'top', fontSize: 10, fill: CHART.axis, formatter: (v: number) => num(v, 2) }}>
                   {dividendChart.map((d, i) => (
                     <Cell key={d.year} fill={d.amount <= 0 ? CHART.neutral : CHART.bazin} fillOpacity={i === dividendChart.length - 1 ? 1 : 0.75} />
                   ))}
@@ -403,9 +404,9 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
                 return (
                   <tr key={item.year} className="hover:bg-zinc-50/50">
                     <td className="py-3 px-3 font-bold text-zinc-900">{item.year}</td>
-                    <td className="py-3 px-3 font-bold text-emerald-700">R$ {item.amount.toFixed(2)}</td>
+                    <td className="py-3 px-3 font-bold text-emerald-700">{brl(item.amount)}</td>
                     <td className="py-3 px-3 text-zinc-600">{yearDy(item)}</td>
-                    <td className="py-3 px-3 text-zinc-800">R$ {yearCeiling.toFixed(2)}</td>
+                    <td className="py-3 px-3 text-zinc-800">{brl(yearCeiling)}</td>
                     <td className="py-3 px-3 text-right">
                       {item.amount > 0 ? (
                         <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold uppercase">

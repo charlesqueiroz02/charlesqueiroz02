@@ -23,7 +23,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, ticker, pric
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-zinc-900/25 p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="qa-title"
         className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl p-5 shadow-xl pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={e => e.stopPropagation()}>

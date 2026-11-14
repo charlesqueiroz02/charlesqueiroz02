@@ -16,7 +16,7 @@ import {
 import { StockData } from '../types';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
-import { brl } from '../lib/valuation';
+import { brl, num } from '../lib/valuation';
 
 interface CompoundSimulatorProps {
   currentStock?: StockData;
@@ -25,7 +25,7 @@ interface CompoundSimulatorProps {
 export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentStock }) => {
   const stockPrice = currentStock?.currentPrice || 21.80;
   const stockDivs = currentStock?.dividends || 1.65;
-  const initialStockDy = stockPrice > 0 ? Number(((stockDivs / stockPrice) * 100).toFixed(1)) : 8.0;
+  const initialStockDy = stockPrice > 0 ? Number((((stockDivs / stockPrice) * 100)).toFixed(1)) : 8.0;
 
   const [initialInvestment, setInitialInvestment] = useState<number>(5000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(600);
@@ -386,7 +386,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
                   <XAxis dataKey="year" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={v => v + 'a'} />
                   <YAxis tick={axisTick} axisLine={false} tickLine={false} width={52}
-                    tickFormatter={v => (v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.round(v / 1000) + 'k')} />
+                    tickFormatter={v => (v >= 1e6 ? num((v / 1e6), 1) + 'M' : Math.round(v / 1000) + 'k')} />
                   <Tooltip contentStyle={tooltipStyle}
                     labelFormatter={l => 'Ano ' + l}
                     formatter={(v: number, n: string, item: any) => {
@@ -429,7 +429,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               </div>
               <div className="bg-white p-3 rounded-lg border border-zinc-200">
                 <span className="text-[10px] uppercase text-zinc-400 block">Custo Estimado</span>
-                <span className="text-base font-bold text-emerald-600">R$ {magicNumberCost.toFixed(2)}</span>
+                <span className="text-base font-bold text-emerald-600">{brl(magicNumberCost)}</span>
               </div>
               <div className="bg-white p-3 rounded-lg border border-zinc-200">
                 <span className="text-[10px] uppercase text-zinc-400 block">Momento de Atingimento</span>

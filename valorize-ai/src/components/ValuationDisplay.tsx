@@ -11,6 +11,7 @@ import {
 import { ValuationResult } from '../types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { brl, num } from '../lib/valuation';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -93,7 +94,7 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
         <div className="mb-6 p-3 bg-zinc-50 rounded border border-zinc-100 flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">Seu Preço Médio</span>
-            <span className="font-mono font-bold text-zinc-900">R$ {portfolioInfo.purchasePrice.toFixed(2)}</span>
+            <span className="font-mono font-bold text-zinc-900">{brl(portfolioInfo.purchasePrice)}</span>
           </div>
           <div className="text-right">
             <span className="text-[10px] uppercase font-bold text-zinc-400 block">Performance</span>
@@ -102,7 +103,7 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
               portfolioPerformance >= 0 ? "text-emerald-600" : "text-rose-600"
             )}>
               {portfolioPerformance >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              {portfolioPerformance.toFixed(2)}%
+              {num(portfolioPerformance, 2)}%
             </div>
           </div>
         </div>
@@ -131,7 +132,7 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
             upside > 0 ? "text-emerald-600" : "text-rose-600"
           )}>
             {upside > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-            {upside.toFixed(2)}%
+            {num(upside, 2)}%
           </div>
         </div>
         

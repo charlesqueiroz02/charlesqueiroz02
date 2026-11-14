@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 // O mapa usa a biblioteca de gráficos: carregada só quando o usuário abre o modo Mapa
 const OpportunityMap = lazy(() => import('./OpportunityMap').then(m => ({ default: m.OpportunityMap })));
-import { toExcelCsv, downloadText, num } from '../lib/valuation';
+import { toExcelCsv, downloadText, num, brl } from '../lib/valuation';
 import { RadarStockItem } from '../types';
 import { loadRadar } from '../lib/radarCache';
 
@@ -309,18 +309,18 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
                   <div className="text-[11px] text-zinc-500 truncate">{stk.name}</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-mono font-bold text-zinc-950">R$ {stk.price.toFixed(2)}</div>
-                  <div className={`text-[11px] font-mono ${stk.dy >= minYield ? 'text-emerald-700 font-bold' : 'text-zinc-500'}`}>DY {stk.dy.toFixed(1)}%</div>
+                  <div className="font-mono font-bold text-zinc-950">{brl(stk.price)}</div>
+                  <div className={`text-[11px] font-mono ${stk.dy >= minYield ? 'text-emerald-700 font-bold' : 'text-zinc-500'}`}>DY {num(stk.dy, 1)}%</div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-100 font-mono">
                 <div><div className="text-[10px] text-zinc-400 font-sans">Nota</div><ScorePill score={stk.score} grade={stk.grade} /></div>
                 <div><div className="text-[10px] text-zinc-400 font-sans">Bazin</div>
-                  <div className="text-xs font-bold">R$ {bCeil.toFixed(2)}</div>
-                  <div className={`text-[11px] font-bold ${bUp >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{bUp >= 0 ? '+' : ''}{bUp.toFixed(1)}%</div></div>
+                  <div className="text-xs font-bold">{brl(bCeil)}</div>
+                  <div className={`text-[11px] font-bold ${bUp >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{bUp >= 0 ? '+' : ''}{num(bUp, 1)}%</div></div>
                 <div><div className="text-[10px] text-zinc-400 font-sans">Graham</div>
-                  <div className="text-xs font-bold">R$ {stk.grahamFair.toFixed(2)}</div>
-                  <div className={`text-[11px] font-bold ${stk.grahamUpside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{stk.grahamUpside >= 0 ? '+' : ''}{stk.grahamUpside.toFixed(1)}%</div></div>
+                  <div className="text-xs font-bold">{brl(stk.grahamFair)}</div>
+                  <div className={`text-[11px] font-bold ${stk.grahamUpside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{stk.grahamUpside >= 0 ? '+' : ''}{num(stk.grahamUpside, 1)}%</div></div>
               </div>
             </button>
           );
@@ -421,30 +421,30 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
 
                       {/* Current Price */}
                       <td className="py-3 px-3 font-bold text-zinc-900">
-                        R$ {stk.price.toFixed(2)}
+                        {brl(stk.price)}
                       </td>
 
                       {/* Dividend Yield */}
                       <td className="py-3 px-3">
                         <span className={`font-bold ${stk.dy >= minYield ? 'text-emerald-700' : 'text-zinc-600'}`}>
-                          {stk.dy.toFixed(2)}%
+                          {num(stk.dy, 2)}%
                         </span>
                       </td>
 
                       {/* Proventos Base */}
                       <td className="py-3 px-3 text-zinc-600">
-                        R$ {proventoBase.toFixed(2)}
+                        {brl(proventoBase)}
                         {bazinMode === '5y' && stk.avgDividends5y !== stk.dividends12m && (
-                          <span className="block text-[10px] text-zinc-400">12m: R$ {stk.dividends12m.toFixed(2)}</span>
+                          <span className="block text-[10px] text-zinc-400">12m: {brl(stk.dividends12m)}</span>
                         )}
                       </td>
 
                       {/* Teto Bazin */}
                       <td className="py-3 px-3">
                         <div className="flex flex-col">
-                          <span className="font-bold text-zinc-900">R$ {bazinCeiling.toFixed(2)}</span>
+                          <span className="font-bold text-zinc-900">{brl(bazinCeiling)}</span>
                           <span className={`text-[10px] font-bold ${bazinUpside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {bazinUpside >= 0 ? '+' : ''}{bazinUpside.toFixed(1)}%
+                            {bazinUpside >= 0 ? '+' : ''}{num(bazinUpside, 1)}%
                           </span>
                         </div>
                       </td>
@@ -452,17 +452,17 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
                       {/* Justo Graham */}
                       <td className="py-3 px-3">
                         <div className="flex flex-col">
-                          <span className="font-bold text-zinc-900">R$ {stk.grahamFair.toFixed(2)}</span>
+                          <span className="font-bold text-zinc-900">{brl(stk.grahamFair)}</span>
                           <span className={`text-[10px] font-bold ${stk.grahamUpside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {stk.grahamUpside >= 0 ? '+' : ''}{stk.grahamUpside.toFixed(1)}%
+                            {stk.grahamUpside >= 0 ? '+' : ''}{num(stk.grahamUpside, 1)}%
                           </span>
                         </div>
                       </td>
 
                       {/* Multiples P/L and P/VP */}
                       <td className="py-3 px-3 text-zinc-600 text-[11px]">
-                        <div>P/L: <span className="font-bold text-zinc-800">{stk.pl > 0 ? stk.pl.toFixed(1) : '-'}</span></div>
-                        <div>P/VP: <span className="font-bold text-zinc-800">{stk.pvp > 0 ? stk.pvp.toFixed(2) : '-'}</span></div>
+                        <div>P/L: <span className="font-bold text-zinc-800">{stk.pl > 0 ? num(stk.pl, 1) : '-'}</span></div>
+                        <div>P/VP: <span className="font-bold text-zinc-800">{stk.pvp > 0 ? num(stk.pvp, 2) : '-'}</span></div>
                       </td>
 
                       {/* Status Badge */}

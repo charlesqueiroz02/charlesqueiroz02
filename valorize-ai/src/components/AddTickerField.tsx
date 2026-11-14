@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Search, Loader2 } from 'lucide-react';
+import { brl } from '../lib/valuation';
 
 interface Suggestion { ticker: string; name: string; sector?: string }
 
@@ -67,7 +68,7 @@ export const AddTickerField: React.FC<AddTickerFieldProps> = ({ selected, onAdd 
         price: d?.currentPrice > 0 ? d.currentPrice : undefined,
         sector: d?.sector?.sectorName || sector,
       });
-      setMsg({ type: 'ok', text: d?.currentPrice ? `${ticker} incluído (R$ ${Number(d.currentPrice).toFixed(2)}).` : `${ticker} incluído.` });
+      setMsg({ type: 'ok', text: d?.currentPrice ? `${ticker} incluído (${brl(Number(d.currentPrice))}).` : `${ticker} incluído.` });
     } catch {
       // Sem internet: inclui mesmo assim; a cotação vem depois
       onAdd(ticker, { name: name || ticker, sector });

@@ -85,7 +85,7 @@ export const OpportunityMap: React.FC<OpportunityMapProps> = ({ stocks, bazinMod
               label={{ dataKey: 'ticker', position: 'top', fontSize: 10, fill: CHART.axis }}>
               {data.map(d => (
                 <Cell key={d.ticker} fill={colorOf(d)} fillOpacity={0.8}
-                  stroke={d.ticker === currentTicker ? CHART.price : '#ffffff'} strokeWidth={d.ticker === currentTicker ? 2.5 : 1} />
+                  stroke={d.ticker === currentTicker ? CHART.price : CHART.surface} strokeWidth={d.ticker === currentTicker ? 2.5 : 1} />
               ))}
             </Scatter>
           </ScatterChart>

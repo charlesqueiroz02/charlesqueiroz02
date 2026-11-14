@@ -15,6 +15,7 @@ import {
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
 import { CHART, tooltipStyle } from '../lib/chartTheme';
 import { safeToFixed } from '../lib/utils';
+import { num } from '../lib/valuation';
 
 interface UpsideChartProps {
   ticker: string;
@@ -142,7 +143,7 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
         <p className="text-xs text-zinc-500 leading-relaxed italic">
           Este gráfico mostra como o seu potencial de lucro (Upside) muda conforme o preço da ação oscila. 
           A linha azul representa Graham e a tracejada verde, Bazin. Se o preço cair 10%, seu upside sobe para 
-          <span className="font-bold text-emerald-600"> {currentPrice > 0 ? safeToFixed(((grahamFairPrice / (currentPrice * 0.9)) - 1) * 100, 1) : "0.0"}%</span>.
+          <span className="font-bold text-emerald-600"> {currentPrice > 0 ? num(((grahamFairPrice / (currentPrice * 0.9)) - 1) * 100, 1) : "0.0"}%</span>.
         </p>
       </div>
     </div>

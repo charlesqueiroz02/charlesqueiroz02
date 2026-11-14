@@ -23,6 +23,8 @@ Analisador de ações da B3 pelos métodos clássicos de **Benjamin Graham** e *
 
 **Meus parâmetros** (botão no topo): yield mínimo, margem de segurança e base do Bazin valem para todas as telas.
 
+**Tema claro e escuro** (botão no topo): *Automático* segue o modo do celular ou computador; *Claro* e *Escuro* fixam a escolha, que fica salva no aparelho. Valores aparecem sempre no formato brasileiro (R$ 11,03 · 12,2%).
+
 ## Arquitetura
 
 ```
@@ -52,7 +54,8 @@ netlify/functions/api.ts  # mesma API no Netlify
 | Quero mudar… | Arquivo |
 |---|---|
 | Uma fórmula, a Nota Valorize ou os cenários de estresse | `src/lib/valuation.ts` |
-| As cores do app | `src/index.css` (tema) e `src/lib/chartTheme.ts` (gráficos) |
+| As cores do app | `src/index.css` (tema claro e escuro) e `src/lib/chartTheme.ts` (gráficos, nos dois temas) |
+| Como o tema é escolhido | `src/lib/theme.ts` |
 | Ordem e nomes das telas | `src/lib/tabs.ts` |
 | Lista de ações do Radar | `server/api.ts` → `KNOWN_B3_STOCKS` |
 | Limites de uso da API e da IA | `server/api.ts` (chamadas `rateLimit`) |
@@ -99,6 +102,6 @@ As funções do Netlify têm cerca de 10 segundos de limite; os tempos de espera
 - O site publicado envia cabeçalhos de segurança (CSP, HSTS, nosniff).
 - **A conta é local:** perfil e carteira ficam no `localStorage` deste aparelho, com a senha guardada como hash PBKDF2. Isso protege a senha de leitura casual, mas **não é um login com servidor**: não há sincronização entre aparelhos nem recuperação de senha por e-mail.
 
-## Novidades da versão 2.5
+## Novidades das versões 2.5 e 2.6
 
 Veja o histórico completo em `MELHORIAS.md`.

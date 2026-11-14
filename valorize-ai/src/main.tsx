@@ -4,6 +4,10 @@ import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { applyTheme, readThemeMode } from './lib/theme';
+
+// Aplica o tema salvo antes de desenhar a tela (evita piscar claro→escuro)
+applyTheme(readThemeMode());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

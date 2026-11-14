@@ -199,10 +199,10 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
             <div className="h-56" role="img" aria-label={'Distribuição da carteira: ' + allocation.map(a => `${a.name} ${num((a.value / (totals.value || 1)) * 100, 0)}%`).join(', ')}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={bySector} dataKey="value" nameKey="name" innerRadius="28%" outerRadius="50%" paddingAngle={1} stroke="#fff">
+                  <Pie data={bySector} dataKey="value" nameKey="name" innerRadius="28%" outerRadius="50%" paddingAngle={1} stroke={CHART.surface}>
                     {bySector.map((_, i) => <Cell key={i} fill={CHART.series[(i + 3) % CHART.series.length]} fillOpacity={0.55} />)}
                   </Pie>
-                  <Pie data={allocation} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="82%" paddingAngle={1} stroke="#fff">
+                  <Pie data={allocation} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="82%" paddingAngle={1} stroke={CHART.surface}>
                     {allocation.map((_, i) => <Cell key={i} fill={CHART.series[i % CHART.series.length]} />)}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number, n: string) => [`${brl(v, 0)} · ${num((v / (totals.value || 1)) * 100, 1)}%`, n]} />

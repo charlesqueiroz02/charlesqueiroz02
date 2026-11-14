@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { HistoricalPoint } from '../types';
 import { CHART } from '../lib/chartTheme';
+import { brl } from '../lib/valuation';
 
 interface CandlestickChartProps {
   data: HistoricalPoint[];
@@ -28,20 +29,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">FECHAMENTO:</span>
             <span className={isUp ? 'text-emerald-600 font-bold' : 'text-rose-400 font-bold'}>
-              R$ {data.close?.toFixed(2)}
+              {brl((data.close ?? 0))}
             </span>
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">ABERTURA:</span>
-            <span className="text-zinc-700">R$ {data.open?.toFixed(2)}</span>
+            <span className="text-zinc-700">{brl((data.open ?? 0))}</span>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-800 pt-1 mt-1">
             <span className="text-zinc-500">MÁXIMA:</span>
-            <span className="text-zinc-700">R$ {data.high?.toFixed(2)}</span>
+            <span className="text-zinc-700">{brl((data.high ?? 0))}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">MÍNIMA:</span>
-            <span className="text-zinc-700">R$ {data.low?.toFixed(2)}</span>
+            <span className="text-zinc-700">{brl((data.low ?? 0))}</span>
           </div>
         </div>
       </div>

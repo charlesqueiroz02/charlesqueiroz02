@@ -41,10 +41,12 @@ import { MobileNav } from './components/MobileNav';
 import { InstallApp, OfflineBanner } from './components/InstallApp';
 import { DataQualityNote } from './components/DataQualityNote';
 import { TABS, TabId } from './lib/tabs';
-import { computeValuation } from './lib/valuation';
+import { computeValuation, brl, num } from './lib/valuation';
 import { readJSON, readText, writeJSON, writeText, pruneCache, touchCache } from './lib/storage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { fetchQuotes } from './lib/quotes';
+import { useTheme } from './lib/theme';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // Telas carregadas sob demanda: o app abre mais rápido (antes tudo vinha num arquivo de 557 KB)
 const ValuationDisplay = lazy(() => import('./components/ValuationDisplay').then(m => ({ default: m.ValuationDisplay })));
@@ -67,6 +69,8 @@ const TabLoading = () => (
 
 export function App() {
   const { user, isAuthenticated, logout, syncPortfolio } = useAuth();
+  // Tema no App: ao trocar, todas as telas (e gráficos) são redesenhadas com as cores novas
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     // Atalhos do app instalado abrem direto na tela (?tab=renda, ?tab=radar…)
     const fromUrl = new URLSearchParams(window.location.search).get('tab') as TabId | null;
@@ -185,7 +189,7 @@ export function App() {
       ? {
           ...existing,
           quantity: existing.quantity + quantity,
-          purchasePrice: Number(((existing.purchasePrice * existing.quantity + purchasePrice * quantity) / (existing.quantity + quantity)).toFixed(2)),
+          purchasePrice: Number((((existing.purchasePrice * existing.quantity + purchasePrice * quantity) / (existing.quantity + quantity))).toFixed(2)),
         }
       : { ticker: stock.ticker, purchasePrice, quantity, addedAt: Date.now() };
 
@@ -461,6 +465,8 @@ export function App() {
 
             <InstallApp />
 
+            <ThemeToggle mode={theme.mode} onCycle={theme.cycle} />
+
             <ParamsPopover
               minYield={stock.minYield}
               margin={stock.marginOfSafety}
@@ -624,7 +630,7 @@ export function App() {
           </div>
         )}
 
-        <ErrorBoundary resetKey={activeTab} area={TABS.find(t => t.id === activeTab)?.label}>
+        <ErrorBoundary key={theme.resolved} resetKey={activeTab} area={TABS.find(t => t.id === activeTab)?.label}>
         <Suspense fallback={<TabLoading />}>
         {/* TAB 1: RADAR DE OPORTUNIDADES */}
         {activeTab === 'radar' && (
@@ -710,7 +716,7 @@ export function App() {
                     bazinMode === '5y' ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'
                   }`}
                 >
-                  Média 5 Anos (R$ {(stock.avgDividends5y || stock.dividends).toFixed(2)})
+                  Média 5 Anos ({brl((stock.avgDividends5y || stock.dividends))})
                 </button>
                 <button
                   onClick={() => setBazinMode('12m')}
@@ -718,7 +724,7 @@ export function App() {
                     bazinMode === '12m' ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'
                   }`}
                 >
-                  12 Meses (R$ {stock.dividends.toFixed(2)})
+                  12 Meses ({brl(stock.dividends)})
                 </button>
               </div>
             </div>

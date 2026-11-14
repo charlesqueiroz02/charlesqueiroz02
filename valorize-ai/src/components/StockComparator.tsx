@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, Plus, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { bazinCeilingPrice, grahamFairPrice, upsidePct, num } from '../lib/valuation';
+import { bazinCeilingPrice, grahamFairPrice, upsidePct, num, brl } from '../lib/valuation';
 import { safeToFixed } from '../lib/utils';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
 
@@ -191,16 +191,16 @@ export const StockComparator: React.FC<StockComparatorProps> = ({
                   <div className="font-bold text-zinc-900">{stk.ticker}</div>
                   <div className="text-[10px] text-zinc-500 font-sans font-normal truncate max-w-[130px]">{stk.name}</div>
                 </td>
-                <td className="py-3 pr-3">R$ {safeToFixed(stk.price)}</td>
-                <td className="py-3 pr-3 text-zinc-600">R$ {safeToFixed(stk.lpa)}</td>
-                <td className="py-3 pr-3 text-zinc-600">R$ {safeToFixed(stk.vpa)}</td>
-                <td className="py-3 pr-3">{stk.pl > 0 ? safeToFixed(stk.pl, 1) : 'N/D'}</td>
-                <td className="py-3 pr-3">{stk.pvp > 0 ? safeToFixed(stk.pvp) : 'N/D'}</td>
-                <td className="py-3 pr-3 text-emerald-700 font-bold">{safeToFixed(stk.dy)}%</td>
-                <td className="py-3 pr-3">{stk.grahamFair > 0 ? `R$ ${safeToFixed(stk.grahamFair)}` : 'N/A'}</td>
-                <td className="py-3 pr-3">{(stk.bazinFair5y || stk.bazinFair) > 0 ? `R$ ${safeToFixed(stk.bazinFair5y || stk.bazinFair)}` : 'N/A'}</td>
+                <td className="py-3 pr-3">{brl(stk.price)}</td>
+                <td className="py-3 pr-3 text-zinc-600">{brl(stk.lpa)}</td>
+                <td className="py-3 pr-3 text-zinc-600">{brl(stk.vpa)}</td>
+                <td className="py-3 pr-3">{stk.pl > 0 ? num(stk.pl, 1) : 'N/D'}</td>
+                <td className="py-3 pr-3">{stk.pvp > 0 ? num(stk.pvp, 2) : 'N/D'}</td>
+                <td className="py-3 pr-3 text-emerald-700 font-bold">{num(stk.dy, 2)}%</td>
+                <td className="py-3 pr-3">{stk.grahamFair > 0 ? `${brl(stk.grahamFair)}` : 'N/A'}</td>
+                <td className="py-3 pr-3">{(stk.bazinFair5y || stk.bazinFair) > 0 ? `${brl(stk.bazinFair5y || stk.bazinFair)}` : 'N/A'}</td>
                 <td className={`py-3 pr-3 font-bold ${stk.upside >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {stk.grahamFair > 0 ? `${stk.upside >= 0 ? '+' : ''}${safeToFixed(stk.upside, 1)}%` : '—'}
+                  {stk.grahamFair > 0 ? `${stk.upside >= 0 ? '+' : ''}${num(stk.upside, 1)}%` : '—'}
                 </td>
                 <td className="py-3 text-right">
                   {stk.ticker !== currentTicker ? (

@@ -30,7 +30,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     // Corrigido: antes o conteúdo era centralizado com flex e o topo ficava fora da tela no celular.
     // Agora a camada externa rola e o conteúdo começa no topo; no desktop continua centralizado.
-    <div className="fixed inset-0 z-[70] bg-zinc-900/40 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in">
+    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in">
       <div className="min-h-full flex items-start sm:items-center justify-center px-3 sm:p-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <div className="relative w-full max-w-3xl sm:my-8">
         {/* Close Button */}

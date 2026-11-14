@@ -16,7 +16,7 @@ import {
 import { OptimizerAsset, OptimizerResult, PortfolioItem } from '../types';
 import { fetchQuotes } from '../lib/quotes';
 import { isValidTicker, normalizeTicker } from '../lib/ticker';
-import { num } from '../lib/valuation';
+import { num, brl } from '../lib/valuation';
 
 interface AllocationOptimizerProps {
   portfolio: PortfolioItem[];
@@ -206,7 +206,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
       return buyItem ? { ...a, currentShares: a.currentShares + buyItem.shares } : a;
     }));
 
-    setAppliedMessage(`Aporte de R$ ${optimization.allocatedAmount.toFixed(2)} efetivado com sucesso no seu portfólio!`);
+    setAppliedMessage(`Aporte de ${brl(optimization.allocatedAmount)} efetivado com sucesso no seu portfólio!`);
     setTimeout(() => setAppliedMessage(null), 5000);
   };
 
@@ -407,7 +407,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                     </td>
 
                     <td className="py-3 px-3 font-bold text-zinc-800">
-                      R$ {rec.currentPrice.toFixed(2)}
+                      {brl(rec.currentPrice)}
                     </td>
 
                     <td className="py-3 px-3">
@@ -435,14 +435,14 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                     </td>
 
                     <td className="py-3 px-3 text-zinc-600">
-                      {rec.currentWeight.toFixed(1)}%
+                      {num(rec.currentWeight, 1)}%
                     </td>
 
                     <td className="py-3 px-3">
                       <div className="flex flex-col">
-                        <span>{rec.bazinCeiling > 0 ? `R$ ${rec.bazinCeiling.toFixed(2)}` : 'sem proventos'}</span>
+                        <span>{rec.bazinCeiling > 0 ? `${brl(rec.bazinCeiling)}` : 'sem proventos'}</span>
                         <span className={`text-[10px] font-bold ${rec.upside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {rec.upside >= 0 ? '+' : ''}{rec.upside.toFixed(1)}%
+                          {rec.upside >= 0 ? '+' : ''}{num(rec.upside, 1)}%
                         </span>
                       </div>
                     </td>
@@ -461,11 +461,11 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                     </td>
 
                     <td className="py-3 px-3 bg-emerald-50/40 font-bold text-zinc-900">
-                      {rec.investmentAmount > 0 ? `R$ ${rec.investmentAmount.toFixed(2)}` : '-'}
+                      {rec.investmentAmount > 0 ? `${brl(rec.investmentAmount)}` : '-'}
                     </td>
 
                     <td className="py-3 px-3 font-bold text-zinc-800">
-                      {rec.newWeight.toFixed(1)}%
+                      {num(rec.newWeight, 1)}%
                     </td>
 
                     <td className="py-3 px-4 text-right">
@@ -491,15 +491,15 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs font-mono">
             <div>
               <span className="text-[10px] uppercase font-bold text-zinc-500 block">Total do Aporte</span>
-              <span className="text-lg font-bold">R$ {optimization.totalContribution.toFixed(2)}</span>
+              <span className="text-lg font-bold">{brl(optimization.totalContribution)}</span>
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-emerald-700 block">Total Efetivamente Alocado</span>
-              <span className="text-lg font-bold text-emerald-700">R$ {optimization.allocatedAmount.toFixed(2)}</span>
+              <span className="text-lg font-bold text-emerald-700">{brl(optimization.allocatedAmount)}</span>
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-zinc-500 block">Sobra em Caixa</span>
-              <span className="text-lg font-bold text-zinc-700">R$ {optimization.residualCash.toFixed(2)}</span>
+              <span className="text-lg font-bold text-zinc-700">{brl(optimization.residualCash)}</span>
             </div>
           </div>
 

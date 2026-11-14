@@ -221,7 +221,7 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
                 <XAxis dataKey="year" tick={axisTick} tickFormatter={v => `${v}a`} />
-                <YAxis yAxisId="p" tick={axisTick} width={52} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${Math.round(v / 1000)}k`} />
+                <YAxis yAxisId="p" tick={axisTick} width={52} tickFormatter={v => v >= 1e6 ? `${num((v / 1e6), 1)}M` : `${Math.round(v / 1000)}k`} />
                 <Tooltip
                   content={({ active, payload }: any) => {
                     if (!active || !payload?.length) return null;

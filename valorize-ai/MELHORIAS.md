@@ -135,3 +135,13 @@ Arquivos: `src/components/AddTickerField.tsx` (novo), `RegistrationFlow.tsx`, `A
 **Desempenho:** telas carregadas sob demanda; os gráficos não são baixados na abertura (download inicial cerca de 50% menor).
 
 **Testes:** 29 testes automatizados (`npm test`).
+
+## Versão 2.6: tema escuro e formato brasileiro
+
+- **Tema escuro próprio**, com botão no topo: Automático (segue o celular), Claro ou Escuro. A escolha fica salva no aparelho.
+- O app declara que tem tema escuro (`color-scheme`), então o modo noturno do navegador (Brave/Chrome) não inverte mais as cores por conta própria.
+- **Gráficos com cores próprias para o escuro** (`src/lib/chartTheme.ts`), legíveis nos dois temas.
+- **Números no formato brasileiro em todas as telas**: R$ 11,03 e 12,2% (antes alguns cartões mostravam R$ 11.03).
+- Fundo das janelas (modais) escurecido de forma consistente nos dois temas.
+- Topo não quebra mais "Instalar app" e "6,0% · 20%" em duas linhas.
+- 5 testes novos (formato brasileiro e escolha de tema): 34 no total.

@@ -31,6 +31,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { AddTickerField } from './AddTickerField';
 import { RiskProfile, InvestmentStrategy, ExperienceLevel } from '../types';
+import { num } from '../lib/valuation';
 
 interface RegistrationFlowProps {
   initialMode?: 'register' | 'login' | 'profile';
@@ -724,7 +725,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                                 : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-100'
                             }`}
                           >
-                            {yd.toFixed(1)}%
+                            {num(yd, 1)}%
                           </button>
                         ))}
                       </div>

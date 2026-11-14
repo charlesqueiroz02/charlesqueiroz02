@@ -1,5 +1,7 @@
 import React from 'react';
 import type { ScorePart } from '../lib/valuation';
+import { CHART } from '../lib/chartTheme';
+import { num } from '../lib/valuation';
 
 interface ScoreCardProps {
   total: number;
@@ -26,9 +28,9 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({ total, grade, parts }) => 
       <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
         <div className="relative w-36 h-36 mx-auto sm:mx-0 shrink-0">
           <svg viewBox="0 0 120 120" className="w-full h-full rotate-[135deg]">
-            <circle cx="60" cy="60" r={r} fill="none" stroke="#f4f4f5" strokeWidth="10" strokeDasharray={`${arc} ${c}`} strokeLinecap="round" />
+            <circle cx="60" cy="60" r={r} fill="none" stroke={CHART.track} strokeWidth="10" strokeDasharray={`${arc} ${c}`} strokeLinecap="round" />
             <circle
-              cx="60" cy="60" r={r} fill="none" stroke={total >= 65 ? '#3f8f78' : total >= 50 ? '#c9973a' : '#c46a5e'}
+              cx="60" cy="60" r={r} fill="none" stroke={total >= 65 ? CHART.positive : total >= 50 ? CHART.amber : CHART.negative}
               strokeWidth="10" strokeDasharray={`${filled} ${c}`} strokeLinecap="round"
               style={{ transition: 'stroke-dasharray .6s ease' }}
             />
@@ -53,7 +55,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({ total, grade, parts }) => 
                     <span className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden">
                       <span className="block h-full bg-emerald-500 rounded-full" style={{ width: `${(p.points / p.max) * 100}%` }} />
                     </span>
-                    <span className="text-[11px] font-mono text-zinc-500 w-12 text-right">{p.points.toFixed(0)}/{p.max}</span>
+                    <span className="text-[11px] font-mono text-zinc-500 w-12 text-right">{num(p.points, 0)}/{p.max}</span>
                   </summary>
                   <p className="text-[11px] text-zinc-500 mt-1 pl-1">{p.hint}</p>
                 </details>

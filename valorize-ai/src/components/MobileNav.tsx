@@ -19,7 +19,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ active, onChange }) => {
   return (
     <>
       {more && (
-        <div className="md:hidden fixed inset-0 z-40 bg-zinc-900/25" onClick={() => setMore(false)}>
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setMore(false)}>
           <div className="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold">Mais ferramentas</span>
