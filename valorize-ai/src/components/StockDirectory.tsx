@@ -104,7 +104,7 @@ export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose,
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 bg-zinc-900/30 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div 
@@ -137,7 +137,7 @@ export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose,
                 placeholder="Buscar por ticker ou segmento..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-zinc-100 border-none rounded-xl focus:ring-2 focus:ring-black outline-none transition-all text-zinc-900"
+                className="w-full pl-12 pr-4 py-3 bg-zinc-100 border-none rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-zinc-900"
                 autoFocus
               />
             </div>
@@ -153,7 +153,7 @@ export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose,
                 return (
                   <div key={name} className="space-y-3">
                     <div className="flex items-center gap-2 pb-2 border-b border-zinc-100">
-                      <div className="p-1.5 bg-zinc-900 rounded-lg">
+                      <div className="p-1.5 bg-emerald-50 rounded-lg">
                         <Icon className="w-4 h-4 text-white" />
                       </div>
                       <h3 className="font-bold text-sm text-zinc-900 uppercase tracking-tight">{name}</h3>
@@ -167,7 +167,7 @@ export const StockDirectory: React.FC<StockDirectoryProps> = ({ isOpen, onClose,
                             onSelect(ticker);
                             onClose();
                           }}
-                          className="px-3 py-1.5 bg-zinc-50 hover:bg-zinc-900 hover:text-white border border-zinc-200 rounded-lg text-xs font-bold transition-all"
+                          className="px-3 py-1.5 bg-zinc-50 hover:bg-emerald-600 hover:text-white border border-zinc-200 rounded-lg text-xs font-bold transition-all"
                         >
                           {ticker}
                         </button>

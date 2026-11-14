@@ -10,6 +10,7 @@ import {
   Cell,
 } from 'recharts';
 import { HistoricalPoint } from '../types';
+import { CHART } from '../lib/chartTheme';
 
 interface CandlestickChartProps {
   data: HistoricalPoint[];
@@ -21,26 +22,26 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const isUp = (data.close || 0) >= (data.open || 0);
     
     return (
-      <div className="bg-[#18181b] p-3 rounded-lg border border-zinc-800 shadow-xl font-mono text-[10px]">
+      <div className="bg-white p-3 rounded-lg border border-zinc-200 shadow-lg font-mono text-[11px]">
         <p className="text-zinc-400 mb-2 uppercase tracking-widest font-bold">Ano {label}</p>
         <div className="space-y-1">
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">FECHAMENTO:</span>
-            <span className={isUp ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+            <span className={isUp ? 'text-emerald-600 font-bold' : 'text-rose-400 font-bold'}>
               R$ {data.close?.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">ABERTURA:</span>
-            <span className="text-zinc-300">R$ {data.open?.toFixed(2)}</span>
+            <span className="text-zinc-700">R$ {data.open?.toFixed(2)}</span>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-800 pt-1 mt-1">
             <span className="text-zinc-500">MÁXIMA:</span>
-            <span className="text-zinc-300">R$ {data.high?.toFixed(2)}</span>
+            <span className="text-zinc-700">R$ {data.high?.toFixed(2)}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-zinc-500">MÍNIMA:</span>
-            <span className="text-zinc-300">R$ {data.low?.toFixed(2)}</span>
+            <span className="text-zinc-700">R$ {data.low?.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -61,7 +62,7 @@ const CandlestickShape = (props: any) => {
 
   const { open, close, high, low } = payload;
   const isUp = close >= open;
-  const color = isUp ? '#10b981' : '#f43f5e';
+  const color = isUp ? CHART.positive : CHART.negative;
 
   // Calculate coordinates
   // y and height provided by Recharts are for the 'body' [open, close]
@@ -137,22 +138,22 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({ data }) => {
           data={chartData}
           margin={{ top: 30, right: 10, left: 10, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
           <XAxis 
             dataKey="year" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 10, fill: '#a1a1aa', fontWeight: 600 }}
+            tick={{ fontSize: 10, fill: CHART.axis, fontWeight: 600 }}
             dy={10}
           />
           <YAxis 
             domain={['auto', 'auto']}
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 9, fill: '#a1a1aa' }}
+            tick={{ fontSize: 10, fill: CHART.axis }}
             tickFormatter={(value) => `R$${value}`}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f4f4f5' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART.grid }} />
           <Bar
             dataKey="range"
             shape={<CandlestickShape />}

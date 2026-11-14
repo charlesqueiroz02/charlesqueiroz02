@@ -34,19 +34,19 @@ export const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/30 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="bg-zinc-900 p-6 text-white flex justify-between items-center">
+            <div className="bg-emerald-50 border-b border-emerald-100 p-6 text-zinc-900 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6 text-emerald-400" />
+                <BookOpen className="w-6 h-6 text-emerald-600" />
                 <h2 className="text-xl font-bold tracking-tight uppercase">Guia de Ferramentas</h2>
               </div>
-              <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+              <button onClick={onClose} className="hover:bg-emerald-100 p-2 rounded-full transition-colors" aria-label="Fechar">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -67,7 +67,7 @@ export const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose }) => {
             <div className="bg-zinc-50 p-6 border-t border-zinc-100 flex justify-end">
               <button 
                 onClick={onClose}
-                className="bg-black text-white px-8 py-2 rounded-lg font-bold hover:bg-zinc-800 transition-colors"
+                className="bg-emerald-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-emerald-700 transition-colors"
               >
                 Entendi
               </button>

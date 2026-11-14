@@ -93,7 +93,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-zinc-900 text-white rounded flex items-center justify-center font-bold tracking-tighter">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded flex items-center justify-center font-bold tracking-tighter">
                     {item.ticker}
                   </div>
                   <div>
@@ -136,7 +136,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
                         placeholder="R$ 0,00"
                         value={item.alertPrice || ''}
                         onChange={(e) => onUpdateAlert(item.ticker, parseFloat(e.target.value) || 0, item.alertCondition || 'above')}
-                        className="w-16 text-[10px] font-mono bg-zinc-50 border border-zinc-200 rounded px-1 py-0.5 outline-none focus:border-black"
+                        className="w-16 text-[10px] font-mono bg-zinc-50 border border-zinc-200 rounded px-1 py-0.5 outline-none focus:border-emerald-500"
                       />
                     </div>
                   </div>

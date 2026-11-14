@@ -23,7 +23,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, ticker, pric
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-zinc-950/40 p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-zinc-900/25 p-0 sm:p-4" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="qa-title"
         className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl p-5 shadow-xl pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={e => e.stopPropagation()}>
@@ -37,19 +37,19 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, ticker, pric
           <label className="block">
             <span className="text-xs text-zinc-600 block mb-1">Quantidade</span>
             <input autoFocus type="number" inputMode="numeric" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 0)}
-              className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold focus:ring-2 focus:ring-zinc-900 outline-none" />
+              className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
           </label>
           <label className="block">
             <span className="text-xs text-zinc-600 block mb-1">Preço médio (R$)</span>
             <input type="number" inputMode="decimal" step="0.01" value={p} onChange={e => setP(Number(e.target.value) || 0)}
-              className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold focus:ring-2 focus:ring-zinc-900 outline-none" />
+              className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
           </label>
         </div>
         <div className="text-xs text-zinc-500 mt-3">Total: <b className="font-mono text-zinc-900">{brl(qty * p)}</b></div>
         <button
           disabled={qty <= 0 || p <= 0}
           onClick={() => { onConfirm(qty, p); onClose(); }}
-          className="w-full mt-4 py-3 bg-zinc-950 text-white rounded-xl font-bold text-sm disabled:opacity-40 hover:bg-zinc-800">
+          className="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm disabled:opacity-40 hover:bg-emerald-700">
           Adicionar à carteira
         </button>
       </div>

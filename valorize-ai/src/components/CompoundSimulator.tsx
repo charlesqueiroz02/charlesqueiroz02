@@ -155,8 +155,8 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
       <div className="bg-white data-grid-border p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-zinc-900 text-white rounded">
-              <Coins className="w-4 h-4 text-emerald-400" />
+            <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded">
+              <Coins className="w-4 h-4 text-emerald-600" />
             </div>
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
               Planejamento Previdenciário com IPCA Real
@@ -176,18 +176,18 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
             onClick={() => setViewRealPurchasingPower(true)}
             className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
               viewRealPurchasingPower 
-                ? 'bg-zinc-900 text-white shadow-sm' 
+                ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' 
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             Poder de Compra Real (Descontado IPCA)
           </button>
           <button
             onClick={() => setViewRealPurchasingPower(false)}
             className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
               !viewRealPurchasingPower 
-                ? 'bg-zinc-900 text-white shadow-sm' 
+                ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' 
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -219,7 +219,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               step="1000"
               value={initialInvestment}
               onChange={(e) => setInitialInvestment(Number(e.target.value))}
-              className="w-full accent-zinc-900 h-1"
+              className="w-full accent-emerald-600 h-1"
             />
           </div>
 
@@ -235,7 +235,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               step="100"
               value={monthlyContribution}
               onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-              className="w-full accent-zinc-900 h-1"
+              className="w-full accent-emerald-600 h-1"
             />
           </div>
 
@@ -258,7 +258,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-[9px] uppercase font-bold text-zinc-500 font-mono" title="Valorização anual esperada das cotações e dos proventos">Crescimento</span>
+                <span className="text-[10px] uppercase font-bold text-zinc-500 font-mono" title="Valorização anual esperada das cotações e dos proventos">Crescimento</span>
                 <span className="text-xs font-mono font-bold text-zinc-900">{dividendGrowthRate}% a.a.</span>
               </div>
               <input 
@@ -268,13 +268,13 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
                 step="0.5"
                 value={dividendGrowthRate}
                 onChange={(e) => setDividendGrowthRate(Number(e.target.value))}
-                className="w-full accent-zinc-900 h-1"
+                className="w-full accent-emerald-600 h-1"
               />
             </div>
 
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-[9px] uppercase font-bold text-zinc-500 font-mono">Inflação IPCA</span>
+                <span className="text-[10px] uppercase font-bold text-zinc-500 font-mono">Inflação IPCA</span>
                 <span className="text-xs font-mono font-bold text-amber-700">{ipcaRate}% a.a.</span>
               </div>
               <input 
@@ -301,7 +301,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               step="1"
               value={years}
               onChange={(e) => setYears(Number(e.target.value))}
-              className="w-full accent-zinc-900 h-1"
+              className="w-full accent-emerald-600 h-1"
             />
           </div>
 
@@ -328,70 +328,70 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
           {/* Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white data-grid-border p-4 rounded-xl shadow-sm">
-              <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
                 {viewRealPurchasingPower ? 'Patrimônio Real (IPCA)' : 'Patrimônio Nominal'}
               </span>
               <span className="font-mono text-2xl font-bold text-zinc-900 block">
                 R$ {displayedBalance.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
               </span>
-              <span className="text-[9px] font-mono text-emerald-700 font-bold block mt-1">
+              <span className="text-[10px] font-mono text-emerald-700 font-bold block mt-1">
                 {viewRealPurchasingPower ? `Descontada inflação de ${ipcaRate}% a.a.` : 'Valor bruto futuro'}
               </span>
             </div>
 
             <div className="bg-white data-grid-border p-4 rounded-xl shadow-sm">
-              <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
                 {viewRealPurchasingPower ? 'Renda Real / Mês' : 'Renda Nominal / Mês'}
               </span>
               <span className="font-mono text-2xl font-bold text-emerald-700 block">
                 R$ {displayedMonthlyDiv.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
               </span>
-              <span className="text-[9px] font-mono text-zinc-400 block mt-1">
+              <span className="text-[10px] font-mono text-zinc-400 block mt-1">
                 Paga mensalmente sem vender ativos
               </span>
             </div>
 
             <div className="bg-white data-grid-border p-4 rounded-xl shadow-sm">
-              <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold font-mono block mb-1">
                 Total Aportado do Bolso
               </span>
               <span className="font-mono text-2xl font-bold text-zinc-500 block">
                 R$ {simulation.totalInvested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
               </span>
-              <span className="text-[9px] font-mono text-zinc-400 block mt-1">
+              <span className="text-[10px] font-mono text-zinc-400 block mt-1">
                 Seu esforço direto de poupança
               </span>
             </div>
           </div>
 
           {/* Magic Number Card */}
-          <div className="bg-zinc-900 text-white p-5 rounded-xl shadow-md border border-zinc-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800 mb-3">
+          <div className="bg-gradient-to-br from-amber-50/70 to-white text-zinc-900 p-5 rounded-xl shadow-sm border border-amber-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-amber-100 mb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
+                <Sparkles className="w-4 h-4 text-amber-600" />
                 <h4 className="font-serif italic text-base">O Número Mágico dos Dividendos ({currentStock?.ticker || "Ativo"})</h4>
               </div>
-              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-widest bg-amber-100 px-2 py-0.5 rounded">
                 Efeito Bola de Neve
               </span>
             </div>
 
-            <p className="text-xs text-zinc-300 leading-relaxed mb-4">
+            <p className="text-xs text-zinc-600 leading-relaxed mb-4">
               O <strong>Número Mágico</strong> ocorre quando os dividendos mensais pagos por uma ação são suficientes para comprar <strong>1 nova ação todo mês</strong> automaticamente sem tirar dinheiro do seu bolso.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-              <div className="bg-zinc-800/80 p-3 rounded-lg border border-zinc-700">
-                <span className="text-[9px] uppercase text-zinc-400 block">Cotas Necessárias</span>
-                <span className="text-base font-bold text-white">{magicNumberShares} ações</span>
+              <div className="bg-white p-3 rounded-lg border border-zinc-200">
+                <span className="text-[10px] uppercase text-zinc-400 block">Cotas Necessárias</span>
+                <span className="text-base font-bold text-zinc-900">{magicNumberShares} ações</span>
               </div>
-              <div className="bg-zinc-800/80 p-3 rounded-lg border border-zinc-700">
-                <span className="text-[9px] uppercase text-zinc-400 block">Custo Estimado</span>
-                <span className="text-base font-bold text-emerald-400">R$ {magicNumberCost.toFixed(2)}</span>
+              <div className="bg-white p-3 rounded-lg border border-zinc-200">
+                <span className="text-[10px] uppercase text-zinc-400 block">Custo Estimado</span>
+                <span className="text-base font-bold text-emerald-600">R$ {magicNumberCost.toFixed(2)}</span>
               </div>
-              <div className="bg-zinc-800/80 p-3 rounded-lg border border-zinc-700">
-                <span className="text-[9px] uppercase text-zinc-400 block">Momento de Atingimento</span>
-                <span className="text-base font-bold text-amber-400">
+              <div className="bg-white p-3 rounded-lg border border-zinc-200">
+                <span className="text-[10px] uppercase text-zinc-400 block">Momento de Atingimento</span>
+                <span className="text-base font-bold text-amber-600">
                   {simulation.monthMagicNumberReached 
                     ? `Mês ${simulation.monthMagicNumberReached} (~${Math.ceil(simulation.monthMagicNumberReached / 12)} anos)`
                     : 'Aumente o prazo ou aporte'}
@@ -411,7 +411,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
               <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg">
-                <span className="text-[9px] uppercase text-zinc-500 font-bold block">1 Salário Mínimo</span>
+                <span className="text-[10px] uppercase text-zinc-500 font-bold block">1 Salário Mínimo</span>
                 <span className="text-sm font-bold text-zinc-900 block mt-0.5">R$ 1.518/mês</span>
                 <span className="text-[10px] text-emerald-700 font-bold block mt-1">
                   {simulation.milestoneSalaryMonth ? `${Math.ceil(simulation.milestoneSalaryMonth / 12)}º ano` : 'Em mais anos'}
@@ -419,7 +419,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg">
-                <span className="text-[9px] uppercase text-zinc-500 font-bold block">R$ 3.000 / mês</span>
+                <span className="text-[10px] uppercase text-zinc-500 font-bold block">R$ 3.000 / mês</span>
                 <span className="text-sm font-bold text-zinc-900 block mt-0.5">Básico Sólido</span>
                 <span className="text-[10px] text-emerald-700 font-bold block mt-1">
                   {simulation.milestone3kMonth ? `${Math.ceil(simulation.milestone3kMonth / 12)}º ano` : 'Em mais anos'}
@@ -427,7 +427,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg">
-                <span className="text-[9px] uppercase text-zinc-500 font-bold block">R$ 5.000 / mês</span>
+                <span className="text-[10px] uppercase text-zinc-500 font-bold block">R$ 5.000 / mês</span>
                 <span className="text-sm font-bold text-zinc-900 block mt-0.5">Independência</span>
                 <span className="text-[10px] text-emerald-700 font-bold block mt-1">
                   {simulation.milestone5kMonth ? `${Math.ceil(simulation.milestone5kMonth / 12)}º ano` : 'Em mais anos'}
@@ -435,7 +435,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg">
-                <span className="text-[9px] uppercase text-zinc-500 font-bold block">R$ 10.000 / mês</span>
+                <span className="text-[10px] uppercase text-zinc-500 font-bold block">R$ 10.000 / mês</span>
                 <span className="text-sm font-bold text-zinc-900 block mt-0.5">Liberdade Plena</span>
                 <span className="text-[10px] text-emerald-700 font-bold block mt-1">
                   {simulation.milestone10kMonth ? `${Math.ceil(simulation.milestone10kMonth / 12)}º ano` : 'Em mais anos'}

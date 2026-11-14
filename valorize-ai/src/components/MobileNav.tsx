@@ -19,7 +19,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ active, onChange }) => {
   return (
     <>
       {more && (
-        <div className="md:hidden fixed inset-0 z-40 bg-zinc-950/40" onClick={() => setMore(false)}>
+        <div className="md:hidden fixed inset-0 z-40 bg-zinc-900/25" onClick={() => setMore(false)}>
           <div className="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold">Mais ferramentas</span>
@@ -28,7 +28,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ active, onChange }) => {
             <div className="grid grid-cols-3 gap-2">
               {rest.map(t => (
                 <button key={t.id} onClick={() => go(t.id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs ${active === t.id ? 'bg-zinc-950 text-white border-zinc-950' : 'border-zinc-200 text-zinc-700'}`}>
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs ${active === t.id ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'border-zinc-200 text-zinc-700'}`}>
                   <t.icon className="w-5 h-5" />{t.label}
                 </button>
               ))}

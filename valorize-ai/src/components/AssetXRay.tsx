@@ -142,27 +142,27 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
         {/* Quick Fundamental Multiples Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-4 text-xs font-mono">
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">LPA (Lucro/Ação)</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">LPA (Lucro/Ação)</span>
             <span className="text-sm font-bold text-zinc-900">R$ {stock.lpa.toFixed(2)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">VPA (Patr./Ação)</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">VPA (Patr./Ação)</span>
             <span className="text-sm font-bold text-zinc-900">R$ {stock.vpa.toFixed(2)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">P/L</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">P/L</span>
             <span className="text-sm font-bold text-zinc-900">{stock.pl ? stock.pl.toFixed(1) : (stock.lpa > 0 ? (stock.currentPrice / stock.lpa).toFixed(1) : '-')}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">P/VP</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">P/VP</span>
             <span className="text-sm font-bold text-zinc-900">{stock.pvp ? stock.pvp.toFixed(2) : (stock.vpa > 0 ? (stock.currentPrice / stock.vpa).toFixed(2) : '-')}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">Proventos 12m</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">Proventos 12m</span>
             <span className="text-sm font-bold text-emerald-700">R$ {stock.dividends.toFixed(2)}</span>
           </div>
           <div className="bg-zinc-50 p-2.5 rounded-lg border border-zinc-100">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block">Média 5 Anos Bazin</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">Média 5 Anos Bazin</span>
             <span className="text-sm font-bold text-emerald-700">R$ {(stock.avgDividends5y || stock.dividends).toFixed(2)}</span>
           </div>
         </div>
@@ -190,7 +190,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
                   onClick={() => onToggleBazinMode('5y')}
                   className={`px-2 py-1 rounded text-[10px] font-mono font-bold transition-all ${
                     bazinMode === '5y'
-                      ? 'bg-zinc-900 text-white shadow-sm'
+                      ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
                       : 'text-zinc-600 hover:text-zinc-900'
                   }`}
                   title="Média dos últimos 5 anos de dividendos (Recomendado por Bazin)"
@@ -201,7 +201,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
                   onClick={() => onToggleBazinMode('12m')}
                   className={`px-2 py-1 rounded text-[10px] font-mono font-bold transition-all ${
                     bazinMode === '12m'
-                      ? 'bg-zinc-900 text-white shadow-sm'
+                      ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
                       : 'text-zinc-600 hover:text-zinc-900'
                   }`}
                   title="Últimos 12 meses acumulados"
@@ -292,8 +292,8 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
       <div className="bg-white data-grid-border p-6 rounded-xl shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100 mb-6">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-zinc-900 text-white rounded-lg">
-              <Calendar className="w-5 h-5 text-emerald-400" />
+            <div className="p-2 bg-emerald-50 text-emerald-700 rounded-lg">
+              <Calendar className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <h3 className="font-serif italic text-xl text-zinc-900">Histórico de Proventos dos Últimos 5 Anos</h3>

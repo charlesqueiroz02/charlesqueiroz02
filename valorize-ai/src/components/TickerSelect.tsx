@@ -214,7 +214,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
           onFocus={() => !isFetching && setIsOpen(true)}
           onKeyDown={handleInternalKeyDown}
           disabled={isFetching}
-          className="w-full pl-10 pr-10 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm focus:ring-2 focus:ring-black outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full pl-10 pr-10 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder={isFetching ? "Buscando dados na B3..." : "Ticker ou Empresa (ex: PETR4, Itaú, Vale)"}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -273,7 +273,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
                     
                     <div className="flex items-center gap-1.5 shrink-0">
                       {item.sector && (
-                        <span className="text-[9px] uppercase font-bold tracking-tighter bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">
+                        <span className="text-[10px] uppercase font-bold tracking-tighter bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">
                           {item.sector}
                         </span>
                       )}
@@ -296,7 +296,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
               <Sparkles className="w-3 h-3 text-emerald-500" />
               Busca Inteligente por Código ou Nome
             </span>
-            <span className="font-mono text-[9px]">Use ↑↓ e Enter</span>
+            <span className="font-mono text-[10px]">Use ↑↓ e Enter</span>
           </div>
         </div>
       )}
@@ -325,7 +325,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all border",
               value === item.ticker
-                ? "bg-zinc-900 text-white border-zinc-900"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                 : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900"
             )}
           >

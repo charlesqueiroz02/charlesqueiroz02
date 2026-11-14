@@ -69,7 +69,7 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
   return (
     <div className="bg-white data-grid-border p-6 rounded-lg shadow-sm flex flex-col h-full relative overflow-hidden">
       {portfolioInfo && (
-        <div className="absolute top-0 right-0 bg-zinc-900 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-bl-lg flex items-center gap-2">
+        <div className="absolute top-0 right-0 bg-emerald-50 text-emerald-800 border-b border-l border-emerald-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-lg flex items-center gap-2">
           <Briefcase className="w-2.5 h-2.5" />
           No Portfólio
         </div>
@@ -92,11 +92,11 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
       {portfolioInfo && (
         <div className="mb-6 p-3 bg-zinc-50 rounded border border-zinc-100 flex items-center justify-between">
           <div>
-            <span className="text-[8px] uppercase font-bold text-zinc-400 block">Seu Preço Médio</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">Seu Preço Médio</span>
             <span className="font-mono font-bold text-zinc-900">R$ {portfolioInfo.purchasePrice.toFixed(2)}</span>
           </div>
           <div className="text-right">
-            <span className="text-[8px] uppercase font-bold text-zinc-400 block">Performance</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-400 block">Performance</span>
             <div className={cn(
               "flex items-center gap-1 font-mono font-bold text-xs",
               portfolioPerformance >= 0 ? "text-emerald-600" : "text-rose-600"
@@ -142,7 +142,7 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
             style={{ width: `${ratio(entryPrice)}%` }}
           />
           <div 
-            className="absolute w-1 h-4 bg-black top-1/2 -translate-y-1/2 z-10"
+            className="absolute w-1 h-4 bg-zinc-700 top-1/2 -translate-y-1/2 z-10"
             style={{ left: `${ratio(currentPrice)}%` }}
             title="Preço Atual"
           />

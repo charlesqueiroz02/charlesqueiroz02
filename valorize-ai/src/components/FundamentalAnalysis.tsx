@@ -169,7 +169,7 @@ export const FundamentalAnalysis: React.FC<FundamentalAnalysisProps> = ({ stockD
               <div className="data-value text-2xl font-bold">{item.value}</div>
               {item.sectorValue && (
                 <div className="flex flex-col">
-                  <span className="text-[8px] uppercase text-zinc-400 font-bold">Média Setor</span>
+                  <span className="text-[10px] uppercase text-zinc-400 font-bold">Média Setor</span>
                   <div className={`text-[11px] font-mono font-bold ${
                     item.isBetter === true ? 'text-emerald-600' : 
                     item.isBetter === false ? 'text-amber-600' : 'text-zinc-500'
@@ -277,7 +277,7 @@ export const FundamentalAnalysis: React.FC<FundamentalAnalysisProps> = ({ stockD
           <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100 h-80">
             <CandlestickChart data={stockData.historicalData} />
           </div>
-          <p className="mt-3 text-[9px] text-zinc-400 italic text-center uppercase tracking-tighter">
+          <p className="mt-3 text-[10px] text-zinc-400 italic text-center uppercase tracking-tighter">
             * Cada vela (candle) representa a variação de preço entre Janeiro (Abertura) e Dezembro (Fechamento) de cada ano.
           </p>
         </div>
@@ -322,7 +322,7 @@ export const FundamentalAnalysis: React.FC<FundamentalAnalysisProps> = ({ stockD
           {basics.map((item, idx) => (
             <div key={idx} className="space-y-2">
               <div className="flex justify-between items-end border-b border-white/10 pb-2">
-                <span className="font-serif italic text-lg text-emerald-400">{item.label}</span>
+                <span className="font-serif italic text-lg text-emerald-600">{item.label}</span>
                 <span className="font-mono font-bold text-xl">{item.value}</span>
               </div>
               <p className="text-[11px] text-zinc-400 leading-relaxed">

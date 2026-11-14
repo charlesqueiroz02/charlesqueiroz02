@@ -179,7 +179,7 @@ export const ValuationLab: React.FC<ValuationLabProps> = ({ stock, minYield, mar
             <button
               key={p.id}
               onClick={() => { setPresetId(p.id); setShock(p.id === 'selic' ? p.shock : { ...p.shock, minYield }); }}
-              className={`shrink-0 text-left px-3 py-2 rounded-lg border transition-colors ${presetId === p.id ? 'bg-zinc-950 border-zinc-950 text-white' : 'border-zinc-200 hover:border-zinc-400'}`}
+              className={`shrink-0 text-left px-3 py-2 rounded-lg border transition-colors ${presetId === p.id ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'border-zinc-200 hover:border-zinc-400'}`}
             >
               <div className="text-xs font-bold">{p.label}</div>
               <div className={`text-[10px] ${presetId === p.id ? 'text-zinc-300' : 'text-zinc-500'}`}>{p.desc}</div>
@@ -205,7 +205,7 @@ export const ValuationLab: React.FC<ValuationLabProps> = ({ stock, minYield, mar
                 <input
                   type="range" min={min} max={max} step={step} value={shock[k]}
                   onChange={e => setSlider(k, Number(e.target.value))}
-                  className="w-full accent-zinc-900 h-2"
+                  className="w-full accent-emerald-600 h-2"
                 />
               </label>
             ))}
@@ -256,7 +256,7 @@ export const ValuationLab: React.FC<ValuationLabProps> = ({ stock, minYield, mar
           <div className="flex bg-zinc-100 p-1 rounded-lg border border-zinc-200 self-start">
             {(['bazin', 'graham'] as const).map(h => (
               <button key={h} onClick={() => setHeat(h)}
-                className={`px-3 py-1.5 rounded text-xs font-bold ${heat === h ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>
+                className={`px-3 py-1.5 rounded text-xs font-bold ${heat === h ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'}`}>
                 {h === 'bazin' ? 'Bazin' : 'Graham'}
               </button>
             ))}

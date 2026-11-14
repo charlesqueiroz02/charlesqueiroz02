@@ -13,6 +13,7 @@ import {
   Label
 } from 'recharts';
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { CHART, tooltipStyle } from '../lib/chartTheme';
 
 interface UpsideChartProps {
   ticker: string;
@@ -64,11 +65,11 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full" />
+            <div className="w-3 h-3 rounded-full" style={{ background: CHART.graham }} />
             <span className="text-[10px] font-mono uppercase">Graham</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-zinc-400 rounded-full" />
+            <div className="w-3 h-3 rounded-full" style={{ background: CHART.bazin }} />
             <span className="text-[10px] font-mono uppercase">Bazin</span>
           </div>
         </div>
@@ -79,30 +80,30 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
           <AreaChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
             <defs>
               <linearGradient id="colorGraham" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                <stop offset="5%" stopColor={CHART.graham} stopOpacity={0.1}/>
+                <stop offset="95%" stopColor={CHART.graham} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
             <XAxis 
               dataKey="label" 
               fontSize={10} 
               tickLine={false} 
               axisLine={false}
-              tick={{ fill: '#a1a1aa' }}
+              tick={{ fill: CHART.axis }}
             >
               <Label 
                 value="Variação de Preço do Ativo (%)" 
                 offset={-20} 
                 position="insideBottom" 
-                style={{ fill: '#71717a', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                style={{ fill: CHART.axis, fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}
               />
             </XAxis>
             <YAxis 
               fontSize={10} 
               tickLine={false} 
               axisLine={false}
-              tick={{ fill: '#a1a1aa' }}
+              tick={{ fill: CHART.axis }}
               unit="%"
             >
               <Label 
@@ -110,26 +111,19 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
                 angle={-90} 
                 position="insideLeft" 
                 offset={10}
-                style={{ fill: '#71717a', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                style={{ fill: CHART.axis, fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}
               />
             </YAxis>
             <Tooltip 
-              contentStyle={{ 
-                backgroundColor: '#18181b', 
-                border: 'none', 
-                borderRadius: '8px',
-                color: '#fff',
-                fontSize: '12px'
-              }}
-              itemStyle={{ color: '#fff' }}
-              labelStyle={{ color: '#71717a', marginBottom: '4px' }}
-              formatter={(value: any) => [`${value}%`, 'Upside']}
+              contentStyle={tooltipStyle}
+              labelStyle={{ color: CHART.axis, marginBottom: '4px' }}
+              formatter={(value: any, name: any) => [`${value}%`, name === 'graham' ? 'Até o preço justo (Graham)' : 'Até o preço teto (Bazin)']}
               labelFormatter={(label) => `Variação de Preço: ${label}`}
             />
             <Area 
               type="monotone" 
               dataKey="graham" 
-              stroke="#10b981" 
+              stroke={CHART.graham} 
               strokeWidth={3}
               fillOpacity={1} 
               fill="url(#colorGraham)" 
@@ -139,12 +133,12 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
             <Line 
               type="monotone" 
               dataKey="bazin" 
-              stroke="#71717a" 
+              stroke={CHART.bazin} 
               strokeWidth={2} 
               strokeDasharray="5 5"
               dot={false}
             />
-            <ReferenceLine x="0%" stroke="#000" strokeWidth={1} label={{ value: 'PREÇO ATUAL', position: 'top', fontSize: 9, fill: '#000', fontWeight: 'bold' }} />
+            <ReferenceLine x="0%" stroke={CHART.price} strokeWidth={1} label={{ value: 'PREÇO ATUAL', position: 'top', fontSize: 10, fill: CHART.price, fontWeight: 'bold' }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -153,7 +147,7 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
         <Info className="w-5 h-5 text-zinc-400 mt-0.5" />
         <p className="text-xs text-zinc-500 leading-relaxed italic">
           Este gráfico mostra como o seu potencial de lucro (Upside) muda conforme o preço da ação oscila. 
-          A linha verde representa o método de Graham. Se o preço cair 10%, seu upside sobe para 
+          A linha azul representa Graham e a tracejada verde, Bazin. Se o preço cair 10%, seu upside sobe para 
           <span className="font-bold text-emerald-600"> {currentPrice > 0 ? safeToFixed(((grahamFairPrice / (currentPrice * 0.9)) - 1) * 100, 1) : "0.0"}%</span>.
         </p>
       </div>

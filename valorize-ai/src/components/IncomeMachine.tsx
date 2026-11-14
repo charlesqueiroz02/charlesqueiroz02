@@ -3,6 +3,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { Coins, Plus, X, Download, Target } from 'lucide-react';
 import type { PortfolioItem, RadarStockItem, StockData } from '../types';
 import { incomePlan, snowball, brl, num, toExcelCsv, downloadText } from '../lib/valuation';
+import { CHART, axisTick } from '../lib/chartTheme';
 
 interface IncomeMachineProps {
   minYield: number;
@@ -23,7 +24,7 @@ const NumberField: React.FC<{ label: string; value: number; onChange: (v: number
         <input
           type="number" inputMode="decimal" step={step} value={value}
           onChange={e => onChange(Number(e.target.value) || 0)}
-          className={`w-full ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'} py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm font-bold focus:ring-2 focus:ring-zinc-900 outline-none`}
+          className={`w-full ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'} py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none`}
         />
         {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 font-mono">{suffix}</span>}
       </span>
@@ -113,7 +114,7 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
           <NumberField label="Já investido" value={initial} onChange={setInitial} prefix="R$" step={1000} />
           <NumberField label="Crescimento ao ano" value={growth} onChange={setGrowth} suffix="%" step={0.5} />
           <label className="col-span-2 lg:col-span-1 flex items-center gap-2.5 self-end py-2.5 px-3 rounded-lg border border-zinc-200 cursor-pointer">
-            <input type="checkbox" checked={reinvest} onChange={e => setReinvest(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
+            <input type="checkbox" checked={reinvest} onChange={e => setReinvest(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
             <span className="text-xs text-zinc-700">Reinvestir dividendos</span>
           </label>
         </div>
@@ -190,7 +191,7 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
               </select>
               <button disabled={!adding}
                 onClick={() => { setPicks(p => [...p, { ticker: adding, weight: 20 }]); setAdding(''); }}
-                className="px-3 py-2 bg-zinc-950 text-white rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-40">
+                className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-40">
                 <Plus className="w-3.5 h-3.5" /> Incluir
               </button>
             </div>
@@ -214,13 +215,13 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
               <AreaChart data={ball.series} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gPat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#059669" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#059669" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor={CHART.bazin} stopOpacity={0.35} />
+                    <stop offset="100%" stopColor={CHART.bazin} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
-                <XAxis dataKey="year" tick={{ fontSize: 10 }} tickFormatter={v => `${v}a`} />
-                <YAxis yAxisId="p" tick={{ fontSize: 10 }} width={52} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${Math.round(v / 1000)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
+                <XAxis dataKey="year" tick={axisTick} tickFormatter={v => `${v}a`} />
+                <YAxis yAxisId="p" tick={axisTick} width={52} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${Math.round(v / 1000)}k`} />
                 <Tooltip
                   content={({ active, payload }: any) => {
                     if (!active || !payload?.length) return null;
@@ -235,10 +236,10 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
                     );
                   }}
                 />
-                <Area yAxisId="p" type="monotone" dataKey="patrimonio" stroke="#059669" strokeWidth={2} fill="url(#gPat)" />
-                <Area yAxisId="p" type="monotone" dataKey="investido" stroke="#a1a1aa" strokeDasharray="4 3" fill="none" />
+                <Area yAxisId="p" type="monotone" dataKey="patrimonio" stroke={CHART.bazin} strokeWidth={2} fill="url(#gPat)" />
+                <Area yAxisId="p" type="monotone" dataKey="investido" stroke={CHART.neutral} strokeDasharray="4 3" fill="none" />
                 {ball.reachedAt !== null && (
-                  <ReferenceLine yAxisId="p" x={ball.series.find(s => s.month >= ball.reachedAt!)?.year} stroke="#18181b" strokeDasharray="3 3"
+                  <ReferenceLine yAxisId="p" x={ball.series.find(s => s.month >= ball.reachedAt!)?.year} stroke={CHART.price} strokeDasharray="3 3"
                     label={{ value: 'meta', position: 'top', fontSize: 10 }} />
                 )}
               </AreaChart>

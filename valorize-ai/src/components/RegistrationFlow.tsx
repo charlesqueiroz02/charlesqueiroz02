@@ -251,25 +251,25 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   return (
     <div className="bg-white border border-zinc-200 rounded-2xl shadow-xl overflow-hidden transition-all">
       {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white p-6 sm:p-8 border-b border-zinc-800">
+      <div className="bg-gradient-to-r from-emerald-50 via-white to-zinc-50 text-zinc-900 p-6 sm:p-8 border-b border-zinc-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Terminal B3 Institucional
                 </span>
-                <span className="text-[10px] font-mono text-zinc-400">
+                <span className="text-[10px] font-mono text-zinc-500">
                   Conta salva neste aparelho
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 mt-0.5">
                 {isAuthenticated ? 'Portal do Investidor Cadastrado' : 'Cadastro de Acesso ao Valorize AI'}
               </h2>
-              <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+              <p className="text-xs text-zinc-600 mt-1 max-w-xl">
                 {isAuthenticated
                   ? 'Gerencie seus dados de investidor, metas de dividendos, margem de segurança e parâmetros de valuation.'
                   : 'Crie seu cadastro gratuito para salvar sua carteira, receber alertas de preço teto de Décio Bazin e Graham, e simular aportes.'}
@@ -278,7 +278,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           </div>
 
           {/* Quick Tab Switcher */}
-          <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-xl border border-zinc-200 self-start sm:self-auto">
             {!isAuthenticated ? (
               <>
                 <button
@@ -286,8 +286,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   onClick={() => { setMode('register'); setErrorMsg(null); }}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all ${
                     mode === 'register' 
-                      ? 'bg-emerald-500 text-zinc-950 shadow-sm' 
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
+                      : 'text-zinc-600 hover:text-zinc-900'
                   }`}
                 >
                   Criar Conta
@@ -297,8 +297,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   onClick={() => { setMode('login'); setErrorMsg(null); }}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all ${
                     mode === 'login' 
-                      ? 'bg-zinc-800 text-white shadow-sm' 
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
+                      : 'text-zinc-600 hover:text-zinc-900'
                   }`}
                 >
                   Entrar
@@ -308,7 +308,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               <button
                 type="button"
                 onClick={() => logout()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono text-rose-400 hover:bg-rose-950/40 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono text-rose-600 hover:bg-rose-50 transition-colors"
                 title="Desconectar sessão atual"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -345,7 +345,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-zinc-100">
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-bold ${
-                  step === 1 ? 'bg-zinc-950 text-white' : step > 1 ? 'bg-emerald-500 text-white' : 'bg-zinc-100 text-zinc-500'
+                  step === 1 ? 'bg-emerald-600 text-white' : step > 1 ? 'bg-emerald-200 text-emerald-900' : 'bg-zinc-100 text-zinc-500'
                 }`}>
                   {step > 1 ? <Check className="w-4 h-4" /> : '1'}
                 </div>
@@ -359,7 +359,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-bold ${
-                  step === 2 ? 'bg-zinc-950 text-white' : step > 2 ? 'bg-emerald-500 text-white' : 'bg-zinc-100 text-zinc-500'
+                  step === 2 ? 'bg-emerald-600 text-white' : step > 2 ? 'bg-emerald-200 text-emerald-900' : 'bg-zinc-100 text-zinc-500'
                 }`}>
                   {step > 2 ? <Check className="w-4 h-4" /> : '2'}
                 </div>
@@ -373,7 +373,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-bold ${
-                  step === 3 ? 'bg-zinc-950 text-white' : 'bg-zinc-100 text-zinc-500'
+                  step === 3 ? 'bg-emerald-600 text-white' : 'bg-zinc-100 text-zinc-500'
                 }`}>
                   3
                 </div>
@@ -399,7 +399,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Ex: Carlos Eduardo de Oliveira"
-                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all font-sans"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-sans"
                         required
                       />
                     </div>
@@ -416,7 +416,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="investidor@exemplo.com.br"
-                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all font-sans"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-sans"
                         required
                       />
                     </div>
@@ -435,7 +435,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="(11) 98765-4321"
-                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all font-mono"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-mono"
                       />
                     </div>
                     <span className="text-[10px] text-zinc-400">Usado para receber alertas de preço teto via mensagem</span>
@@ -452,7 +452,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        className="w-full pl-9 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all font-mono"
+                        className="w-full pl-9 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-mono"
                         required
                       />
                       <button
@@ -493,7 +493,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repita sua senha exatamente"
-                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all font-mono"
+                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-mono"
                       required
                     />
                   </div>
@@ -525,7 +525,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm"
                   >
                     Avançar para Perfil
                     <ArrowRight className="w-4 h-4" />
@@ -612,7 +612,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     <select
                       value={riskProfile}
                       onChange={(e) => setRiskProfile(e.target.value as RiskProfile)}
-                      className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-sans"
+                      className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
                     >
                       <option value="conservador">Conservador (Prioridade total para preservação e dividendos)</option>
                       <option value="moderado">Moderado (Ações sólidas + ligeira busca por upside)</option>
@@ -627,7 +627,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     <select
                       value={experienceLevel}
                       onChange={(e) => setExperienceLevel(e.target.value as ExperienceLevel)}
-                      className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-sans"
+                      className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
                     >
                       <option value="iniciante">Iniciante (Primeiros aportes na Bolsa de Valores)</option>
                       <option value="intermediario">Intermediário (Já recebo proventos e conheço balanços)</option>
@@ -698,7 +698,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                             onClick={() => setDefaultMarginOfSafety(pct)}
                             className={`flex-1 py-1 text-xs font-mono font-bold rounded-lg border ${
                               defaultMarginOfSafety === pct 
-                                ? 'bg-zinc-950 text-white border-zinc-950' 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
                                 : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-100'
                             }`}
                           >
@@ -745,7 +745,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm"
                   >
                     Avançar para Ativos Iniciais
                     <ArrowRight className="w-4 h-4" />
@@ -849,12 +849,12 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   </div>
                 </div>
 
-                <div className="bg-zinc-950 text-white p-4 rounded-xl flex items-center justify-between">
+                <div className="bg-emerald-50 border border-emerald-100 text-zinc-900 p-4 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
                     <div className="text-xs">
-                      <div className="font-bold text-white">Pronto para ativar seu Terminal</div>
-                      <div className="text-zinc-400 text-[11px]">
+                      <div className="font-bold text-zinc-900">Pronto para ativar seu Terminal</div>
+                      <div className="text-zinc-600 text-[11px]">
                         Ao finalizar, você terá acesso irrestrito aos cálculos de Graham, Bazin e IA.
                       </div>
                     </div>
@@ -912,7 +912,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="seu.email@exemplo.com"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-sans"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
                     required
                   />
                 </div>
@@ -938,7 +938,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Sua senha"
-                    className="w-full pl-9 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-mono"
+                    className="w-full pl-9 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                   <button
                     type="button"
@@ -965,9 +965,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isLoading ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> : 'Entrar no Terminal'}
+                {isLoading ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" /> : 'Entrar no Terminal'}
               </button>
             </form>
 
@@ -1058,7 +1058,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="investidor@exemplo.com.br"
-                    className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-sans"
+                    className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
                     required
                   />
                 </div>
@@ -1073,7 +1073,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider"
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider"
                   >
                     Enviar Link
                   </button>
@@ -1092,7 +1092,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             <div className="bg-gradient-to-br from-zinc-50 to-zinc-100 p-6 rounded-2xl border border-zinc-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-950 text-emerald-400 flex items-center justify-center font-bold text-xl font-mono shadow-md">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xl font-mono shadow-md">
                     {user.profile.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div>

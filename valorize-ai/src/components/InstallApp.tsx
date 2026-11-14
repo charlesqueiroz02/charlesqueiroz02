@@ -53,7 +53,7 @@ export const InstallApp: React.FC = () => {
       </button>
 
       {(showIOS || showHelp) && (
-        <div className="fixed inset-0 z-[70] bg-zinc-950/40 flex items-end sm:items-center justify-center" onClick={() => { setShowIOS(false); setShowHelp(false); }}>
+        <div className="fixed inset-0 z-[70] bg-zinc-900/25 flex items-end sm:items-center justify-center" onClick={() => { setShowIOS(false); setShowHelp(false); }}>
           <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}
             className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl">
             <div className="flex items-start justify-between gap-3 mb-4">
@@ -69,18 +69,18 @@ export const InstallApp: React.FC = () => {
 
             {showIOS ? (
               <ol className="space-y-3 text-sm text-zinc-700">
-                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-zinc-950 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center shrink-0">1</span>
                   Toque em <Share className="w-4 h-4 inline text-blue-600" /> <b>Compartilhar</b> na barra do Safari.</li>
-                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-zinc-950 text-white text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center shrink-0">2</span>
                   Escolha <PlusSquare className="w-4 h-4 inline" /> <b>Adicionar à Tela de Início</b>.</li>
-                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-zinc-950 text-white text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                <li className="flex items-center gap-3"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center shrink-0">3</span>
                   Confirme em <b>Adicionar</b>. O ícone aparece junto dos seus apps.</li>
               </ol>
             ) : (
               <ol className="space-y-3 text-sm text-zinc-700">
-                <li className="flex gap-3"><span className="w-6 h-6 rounded-full bg-zinc-950 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                <li className="flex gap-3"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center shrink-0">1</span>
                   No Chrome ou Edge, clique no ícone de instalar na barra de endereço (ou menu ⋮ → <b>Instalar Valorize</b>).</li>
-                <li className="flex gap-3"><span className="w-6 h-6 rounded-full bg-zinc-950 text-white text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                <li className="flex gap-3"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center shrink-0">2</span>
                   No Android: menu ⋮ → <b>Adicionar à tela inicial</b>.</li>
               </ol>
             )}
@@ -104,8 +104,8 @@ export const OfflineBanner: React.FC = () => {
   }, []);
   if (online) return null;
   return (
-    <div role="status" className="mb-6 p-3 bg-zinc-900 text-zinc-100 rounded-xl text-xs flex items-center gap-2.5">
-      <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
+    <div role="status" className="mb-6 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-center gap-2.5">
+      <WifiOff className="w-4 h-4 text-amber-700 shrink-0" />
       Você está sem internet. Mostrando os dados da última conexão; a análise por IA volta quando reconectar.
     </div>
   );

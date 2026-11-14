@@ -363,7 +363,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/60 pb-28 md:pb-20 font-sans text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-[var(--color-bg)] pb-28 md:pb-20 font-sans text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
       <Glossary isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
       <StockDirectory 
         isOpen={isDirectoryOpen} 
@@ -375,12 +375,12 @@ export function App() {
       />
 
       {triggeredAlerts.length > 0 && (
-        <div className="bg-rose-600 text-white py-2 px-4 text-center text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-4">
+        <div role="alert" className="bg-amber-50 border-b border-amber-200 text-amber-900 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-4">
           <AlertTriangle className="w-4 h-4" />
           <span>Alerta de Preço Atingido: {triggeredAlerts.join(', ')}</span>
           <button 
             onClick={() => setTriggeredAlerts([])}
-            className="ml-4 bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded transition-colors"
+            className="ml-4 bg-white border border-amber-200 hover:bg-amber-100 px-2 py-0.5 rounded transition-colors"
           >
             Dispensar
           </button>
@@ -392,7 +392,7 @@ export function App() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="bg-zinc-950 p-2 rounded-lg text-emerald-400">
+              <div className="bg-emerald-50 border border-emerald-100 p-2 rounded-lg text-emerald-700">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div>
@@ -470,14 +470,14 @@ export function App() {
                   className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg transition-colors border border-zinc-200"
                   title="Acessar Perfil do Investidor e Metas"
                 >
-                  <div className="w-6 h-6 rounded-full bg-zinc-950 text-emerald-400 font-mono font-bold text-xs flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold text-xs flex items-center justify-center">
                     {user.profile.name.substring(0, 1).toUpperCase()}
                   </div>
                   <div className="text-left hidden sm:block">
                     <div className="text-xs font-bold leading-tight truncate max-w-[100px]">
                       {user.profile.name.split(' ')[0]}
                     </div>
-                    <div className="text-[9px] text-zinc-500 font-mono">
+                    <div className="text-[10px] text-zinc-500 font-mono">
                       {user.profile.strategy === 'dividendos_bazin' ? 'Bazin 6%' : user.profile.strategy === 'valor_graham' ? 'Graham' : 'Híbrido'}
                     </div>
                   </div>
@@ -518,12 +518,12 @@ export function App() {
                 onClick={() => setActiveTab(t.id)}
                 aria-current={activeTab === t.id ? 'page' : undefined}
                 className={`relative px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 ${
-                  activeTab === t.id ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  activeTab === t.id ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
                 }`}
               >
-                <t.icon className={`w-3.5 h-3.5 ${activeTab === t.id ? 'text-emerald-400' : ''}`} />
+                <t.icon className={`w-3.5 h-3.5 ${activeTab === t.id ? 'text-emerald-600' : 'text-zinc-400'}`} />
                 {t.id === 'raio-x' ? `Raio-X (${stock.ticker})` : t.id === 'cadastro' && !isAuthenticated ? 'Cadastro' : t.label}
-                {t.isNew && <span className="text-[9px] px-1.5 py-px rounded bg-emerald-500 text-white">novo</span>}
+                {t.isNew && <span className="text-[10px] px-1.5 py-px rounded bg-emerald-500 text-white">novo</span>}
               </button>
             ))}
           </nav>
@@ -534,19 +534,19 @@ export function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         {/* Guest Onboarding Banner */}
         {!isAuthenticated && !hasDismissedGuestBanner && (
-          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-2xl shadow-lg border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-emerald-50 via-white to-emerald-50/40 text-zinc-900 rounded-2xl shadow-sm border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-xs font-bold text-white flex items-center gap-2">
+                <div className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
                   Crie seu Cadastro para Usar Todos os Recursos do App
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-2 py-0.5 rounded border border-emerald-500/30">
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 font-mono px-2 py-0.5 rounded border border-emerald-200">
                     Gratuito
                   </span>
                 </div>
-                <div className="text-xs text-zinc-400 mt-0.5 max-w-2xl">
+                <div className="text-xs text-zinc-600 mt-0.5 max-w-2xl">
                   Salve sua carteira de ações na B3, receba alertas de Preço Teto de Décio Bazin e Graham, defina metas de renda passiva e personalize sua margem de segurança.
                 </div>
               </div>
@@ -558,7 +558,7 @@ export function App() {
                   setAuthModalMode('register');
                   setIsAuthModalOpen(true);
                 }}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm"
               >
                 Cadastrar Agora
               </button>
@@ -567,13 +567,13 @@ export function App() {
                   setAuthModalMode('login');
                   setIsAuthModalOpen(true);
                 }}
-                className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-colors"
+                className="px-3.5 py-2 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-colors"
               >
                 Já Tenho Conta
               </button>
               <button
                 onClick={() => setHasDismissedGuestBanner(true)}
-                className="text-zinc-500 hover:text-zinc-300 text-xs px-2 py-1"
+                className="text-zinc-500 hover:text-zinc-800 text-xs px-2 py-1"
                 title="Dispensar aviso"
               >
                 Dispensar
@@ -584,12 +584,12 @@ export function App() {
 
         {/* Loading Overlay / Progress Notification */}
         {isFetching && (
-          <div className="mb-6 p-4 bg-zinc-900 text-white rounded-xl shadow-lg flex items-center justify-between font-mono text-xs animate-in fade-in">
+          <div role="status" className="mb-6 p-4 bg-white border border-zinc-200 text-zinc-700 rounded-xl shadow-sm flex items-center justify-between font-mono text-xs animate-in fade-in">
             <div className="flex items-center gap-3">
-              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
               <span>{loadingMessage || "Atualizando dados da B3..."}</span>
             </div>
-            <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Tempo Real</span>
+            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Consultando fontes</span>
           </div>
         )}
 
@@ -676,7 +676,7 @@ export function App() {
                 <button
                   onClick={() => setBazinMode('5y')}
                   className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all ${
-                    bazinMode === '5y' ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-600'
+                    bazinMode === '5y' ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'
                   }`}
                 >
                   Média 5 Anos (R$ {(stock.avgDividends5y || stock.dividends).toFixed(2)})
@@ -684,7 +684,7 @@ export function App() {
                 <button
                   onClick={() => setBazinMode('12m')}
                   className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all ${
-                    bazinMode === '12m' ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-600'
+                    bazinMode === '12m' ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'
                   }`}
                 >
                   12 Meses (R$ {stock.dividends.toFixed(2)})
@@ -709,7 +709,7 @@ export function App() {
                       name="currentPrice"
                       value={stock.currentPrice}
                       onChange={handleInputChange}
-                      className="w-full pl-8 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm focus:ring-1 focus:ring-zinc-900 outline-none font-bold"
+                      className="w-full pl-8 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-bold"
                     />
                   </div>
                 </div>
@@ -723,7 +723,7 @@ export function App() {
                       name="lpa"
                       value={stock.lpa}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-zinc-900 outline-none"
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
                   <div>
@@ -734,7 +734,7 @@ export function App() {
                       name="vpa"
                       value={stock.vpa}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-zinc-900 outline-none"
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
                 </div>
@@ -748,7 +748,7 @@ export function App() {
                       name="dividends"
                       value={stock.dividends}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-zinc-900 outline-none"
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
                   <div>
@@ -759,7 +759,7 @@ export function App() {
                       name="avgDividends5y"
                       value={stock.avgDividends5y || stock.dividends}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-zinc-900 outline-none font-bold text-emerald-800"
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-emerald-500 outline-none font-bold text-emerald-800"
                     />
                   </div>
                 </div>
@@ -778,7 +778,7 @@ export function App() {
                       name="marginOfSafety"
                       value={stock.marginOfSafety}
                       onChange={handleInputChange}
-                      className="w-full accent-zinc-900 h-1.5"
+                      className="w-full accent-emerald-600 h-1.5"
                     />
                   </div>
 

@@ -104,7 +104,7 @@ export const AddTickerField: React.FC<AddTickerFieldProps> = ({ selected, onAdd 
         <button
           type="submit"
           disabled={!q.trim() || busy}
-          className="shrink-0 px-4 py-3 bg-zinc-950 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-40"
+          className="shrink-0 px-4 py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-40"
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Incluir

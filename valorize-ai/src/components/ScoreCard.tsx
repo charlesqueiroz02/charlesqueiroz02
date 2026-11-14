@@ -28,7 +28,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({ total, grade, parts }) => 
           <svg viewBox="0 0 120 120" className="w-full h-full rotate-[135deg]">
             <circle cx="60" cy="60" r={r} fill="none" stroke="#f4f4f5" strokeWidth="10" strokeDasharray={`${arc} ${c}`} strokeLinecap="round" />
             <circle
-              cx="60" cy="60" r={r} fill="none" stroke={total >= 65 ? '#059669' : total >= 50 ? '#d97706' : '#e11d48'}
+              cx="60" cy="60" r={r} fill="none" stroke={total >= 65 ? '#3f8f78' : total >= 50 ? '#c9973a' : '#c46a5e'}
               strokeWidth="10" strokeDasharray={`${filled} ${c}`} strokeLinecap="round"
               style={{ transition: 'stroke-dasharray .6s ease' }}
             />
@@ -51,7 +51,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({ total, grade, parts }) => 
                   <summary className="flex items-center gap-3 cursor-pointer list-none">
                     <span className="text-xs text-zinc-700 w-40 shrink-0 truncate">{p.label}</span>
                     <span className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden">
-                      <span className="block h-full bg-zinc-900 rounded-full" style={{ width: `${(p.points / p.max) * 100}%` }} />
+                      <span className="block h-full bg-emerald-500 rounded-full" style={{ width: `${(p.points / p.max) * 100}%` }} />
                     </span>
                     <span className="text-[11px] font-mono text-zinc-500 w-12 text-right">{p.points.toFixed(0)}/{p.max}</span>
                   </summary>

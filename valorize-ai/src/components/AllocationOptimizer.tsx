@@ -276,8 +276,8 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
       <div className="bg-white data-grid-border p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-zinc-900 text-white rounded">
-              <Calculator className="w-4 h-4 text-emerald-400" />
+            <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded">
+              <Calculator className="w-4 h-4 text-emerald-600" />
             </div>
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
               Rebalanceamento de Carteira
@@ -302,7 +302,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                 step="100"
                 value={contributionAmount}
                 onChange={(e) => setContributionAmount(Math.max(0, Number(e.target.value)))}
-                className="pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold text-zinc-900 text-sm focus:ring-1 focus:ring-zinc-900 outline-none w-44"
+                className="pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg font-mono font-bold text-zinc-900 text-sm focus:ring-1 focus:ring-emerald-500 outline-none w-44"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
               onClick={() => setContributionAmount(val)}
               className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-colors ${
                 contributionAmount === val 
-                  ? 'bg-zinc-900 text-white' 
+                  ? 'bg-emerald-600 text-white' 
                   : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
               }`}
             >
@@ -334,7 +334,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
               type="checkbox"
               checked={prioritizeDiscount}
               onChange={(e) => setPrioritizeDiscount(e.target.checked)}
-              className="accent-zinc-900 rounded"
+              className="accent-emerald-600 rounded"
             />
             <span className="text-xs text-zinc-700 font-medium">
               Priorizar ativos abaixo do <strong>Preço Teto</strong>
@@ -367,12 +367,12 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
               value={newTickerInput}
               onChange={(e) => setNewTickerInput(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTicker()}
-              className="px-3 py-1.5 bg-white border border-zinc-200 rounded-lg font-mono text-xs uppercase w-44 outline-none focus:ring-1 focus:ring-zinc-900"
+              className="px-3 py-1.5 bg-white border border-zinc-200 rounded-lg font-mono text-xs uppercase w-44 outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <button
               onClick={handleAddTicker}
               disabled={isAdding || !newTickerInput.trim()}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
               title="Adicionar à carteira de otimização"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -423,7 +423,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                         min="0"
                         value={asset?.currentShares || 0}
                         onChange={(e) => asset && updateAssetShares(asset.id, parseInt(e.target.value) || 0)}
-                        className="w-16 px-1.5 py-0.5 bg-zinc-50 border border-zinc-200 rounded font-mono text-xs outline-none focus:ring-1 focus:ring-zinc-900"
+                        className="w-16 px-1.5 py-0.5 bg-zinc-50 border border-zinc-200 rounded font-mono text-xs outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                     </td>
 
@@ -435,7 +435,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                           max="100"
                           value={asset?.targetWeight || 0}
                           onChange={(e) => asset && updateAssetWeight(asset.id, parseFloat(e.target.value) || 0)}
-                          className="w-14 px-1.5 py-0.5 bg-zinc-50 border border-zinc-200 rounded font-mono text-xs outline-none focus:ring-1 focus:ring-zinc-900 font-bold"
+                          className="w-14 px-1.5 py-0.5 bg-zinc-50 border border-zinc-200 rounded font-mono text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold"
                         />
                         <span className="text-zinc-400">%</span>
                       </div>
@@ -448,7 +448,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                     <td className="py-3 px-3">
                       <div className="flex flex-col">
                         <span>R$ {rec.bazinCeiling.toFixed(2)}</span>
-                        <span className={`text-[9px] font-bold ${rec.upside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <span className={`text-[10px] font-bold ${rec.upside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {rec.upside >= 0 ? '+' : ''}{rec.upside.toFixed(1)}%
                         </span>
                       </div>
@@ -501,8 +501,8 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
               <span className="text-lg font-bold">R$ {optimization.totalContribution.toFixed(2)}</span>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Total Efetivamente Alocado</span>
-              <span className="text-lg font-bold text-emerald-400">R$ {optimization.allocatedAmount.toFixed(2)}</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-600 block">Total Efetivamente Alocado</span>
+              <span className="text-lg font-bold text-emerald-600">R$ {optimization.allocatedAmount.toFixed(2)}</span>
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-zinc-400 block">Sobra em Caixa</span>
@@ -513,7 +513,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
           <button
             onClick={handleApply}
             disabled={optimization.allocatedAmount <= 0}
-            className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-30 shadow-md"
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-30 shadow-md"
           >
             <CheckCircle2 className="w-4 h-4" />
             Efetivar Compras no Portfólio

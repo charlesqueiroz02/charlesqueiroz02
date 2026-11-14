@@ -33,7 +33,7 @@ export const PriceRuler: React.FC<PriceRulerProps> = ({ price, tracks, compact }
       {/* marcador do preço atual */}
       <div className="relative h-7 mb-1">
         <div
-          className="absolute -translate-x-1/2 top-0 bg-zinc-950 text-white text-[11px] font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap shadow-sm"
+          className="absolute -translate-x-1/2 top-0 bg-emerald-600 text-white text-[11px] font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap shadow-sm"
           style={{ left: `clamp(48px, ${pricePos}, calc(100% - 48px))` }}
         >
           Hoje {brl(price)}
@@ -41,7 +41,7 @@ export const PriceRuler: React.FC<PriceRulerProps> = ({ price, tracks, compact }
       </div>
 
       <div className="relative space-y-4">
-        <div className="absolute top-[-6px] bottom-[-6px] w-0.5 bg-zinc-950 z-10 rounded" style={{ left: pricePos }} />
+        <div className="absolute top-[-6px] bottom-[-6px] w-0.5 bg-zinc-700 z-10 rounded" style={{ left: pricePos }} />
 
         {valid.map(t => {
           const up = upsidePct(t.target, price);

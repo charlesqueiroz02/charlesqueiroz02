@@ -93,7 +93,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
         <button
           onClick={analyzeStock}
           disabled={loading || !stockData.ticker}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-800 transition-all shadow-lg hover:shadow-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-all shadow-lg hover:shadow-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -155,7 +155,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
               <Sparkles className="w-3 h-3 text-emerald-600" />
               <span className="text-[10px] font-bold uppercase text-emerald-700 tracking-wider">Resumo Instantâneo</span>
             </div>
-            {isLoading && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
+            {isLoading && <Loader2 className="w-3 h-3 text-emerald-600 animate-spin" />}
           </div>
           {stockData.quickSummary ? (
             <p className="text-sm text-emerald-900 italic font-medium leading-relaxed">"{stockData.quickSummary}"</p>
@@ -183,13 +183,13 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
       <div className="mt-6 flex items-center gap-4 p-3 bg-zinc-50 rounded-lg border border-zinc-100">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          <span className="text-[9px] font-bold uppercase text-zinc-500">Qualidade</span>
+          <span className="text-[10px] font-bold uppercase text-zinc-500">Qualidade</span>
         </div>
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <span className="text-[9px] font-bold uppercase text-zinc-500">Riscos</span>
+          <span className="text-[10px] font-bold uppercase text-zinc-500">Riscos</span>
         </div>
-        <div className="ml-auto text-[9px] text-zinc-400 italic">
+        <div className="ml-auto text-[10px] text-zinc-400 italic">
           Gerado por IA a partir dos dados acima · não é recomendação
         </div>
       </div>

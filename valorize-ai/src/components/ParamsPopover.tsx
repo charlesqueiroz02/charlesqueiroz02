@@ -40,13 +40,13 @@ export const ParamsPopover: React.FC<ParamsPopoverProps> = ({ minYield, margin, 
           </label>
           <label className="block mb-3">
             <span className="flex justify-between text-xs mb-1"><span>Margem de segurança</span><b className="font-mono">{margin}%</b></span>
-            <input type="range" min={0} max={40} step={5} value={margin} onChange={e => onChange({ margin: Number(e.target.value) })} className="w-full accent-zinc-900" />
+            <input type="range" min={0} max={40} step={5} value={margin} onChange={e => onChange({ margin: Number(e.target.value) })} className="w-full accent-emerald-600" />
           </label>
           <div className="text-xs mb-1">Base de proventos do Bazin</div>
           <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-lg">
             {(['5y', '12m'] as const).map(m => (
               <button key={m} onClick={() => onChange({ bazinMode: m })}
-                className={`py-1.5 rounded text-xs font-bold ${bazinMode === m ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>
+                className={`py-1.5 rounded text-xs font-bold ${bazinMode === m ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600'}`}>
                 {m === '5y' ? 'Média 5 anos' : '12 meses'}
               </button>
             ))}

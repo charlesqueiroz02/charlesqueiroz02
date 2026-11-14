@@ -136,8 +136,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
       <div className="bg-white data-grid-border p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-zinc-900 text-white rounded">
-              <Radar className="w-4 h-4 text-emerald-400" />
+            <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded">
+              <Radar className="w-4 h-4 text-emerald-600" />
             </div>
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
               Screener Fundamentalista B3
@@ -158,7 +158,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
               onClick={() => setBazinMode('5y')}
               className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
                 bazinMode === '5y'
-                  ? 'bg-zinc-900 text-white shadow-sm'
+                  ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
                   : 'text-zinc-600 hover:text-zinc-900'
               }`}
               title="Bazin Clássico: Média dos proventos dos últimos 5 anos (mais conservador e seguro)"
@@ -169,7 +169,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
               onClick={() => setBazinMode('12m')}
               className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
                 bazinMode === '12m'
-                  ? 'bg-zinc-900 text-white shadow-sm'
+                  ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200'
                   : 'text-zinc-600 hover:text-zinc-900'
               }`}
               title="Bazin Recente: Dividendos pagos nos últimos 12 meses"
@@ -208,7 +208,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por código ou nome (ex: BBAS3, Taesa, PETR4)..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-zinc-900 outline-none"
+            className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-emerald-500 outline-none"
           />
         </div>
 
@@ -369,13 +369,13 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-zinc-900 text-sm">{stk.ticker}</span>
                             {isCurrent && (
-                              <span className="text-[9px] uppercase px-1.5 py-0.2 bg-emerald-600 text-white rounded font-bold">
+                              <span className="text-[10px] uppercase px-1.5 py-0.2 bg-emerald-600 text-white rounded font-bold">
                                 Ativo Atual
                               </span>
                             )}
                           </div>
                           <span className="text-[10px] text-zinc-400 font-sans truncate max-w-[150px]">{stk.name}</span>
-                          <span className="text-[9px] text-zinc-400 uppercase tracking-tighter">{stk.sector.split('/')[0]}</span>
+                          <span className="text-[10px] text-zinc-400 uppercase tracking-tighter">{stk.sector.split('/')[0]}</span>
                         </div>
                       </td>
 
@@ -400,7 +400,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
                       <td className="py-3 px-3 text-zinc-600">
                         R$ {proventoBase.toFixed(2)}
                         {bazinMode === '5y' && stk.avgDividends5y !== stk.dividends12m && (
-                          <span className="block text-[9px] text-zinc-400">12m: R$ {stk.dividends12m.toFixed(2)}</span>
+                          <span className="block text-[10px] text-zinc-400">12m: R$ {stk.dividends12m.toFixed(2)}</span>
                         )}
                       </td>
 
