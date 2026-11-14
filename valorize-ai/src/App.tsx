@@ -56,6 +56,8 @@ import { InstallApp, OfflineBanner } from './components/InstallApp';
 import { DataQualityNote } from './components/DataQualityNote';
 import { TABS, TabId } from './lib/tabs';
 import { computeValuation } from './lib/valuation';
+import { readJSON, readText, writeJSON, writeText, pruneCache, touchCache } from './lib/storage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export function App() {
   const { user, isAuthenticated, logout, syncPortfolio } = useAuth();
@@ -63,14 +65,14 @@ export function App() {
     // Atalhos do app instalado abrem direto na tela (?tab=renda, ?tab=radar…)
     const fromUrl = new URLSearchParams(window.location.search).get('tab') as TabId | null;
     if (fromUrl && TABS.some(t => t.id === fromUrl)) return fromUrl;
-    const saved = localStorage.getItem('valorize_tab') as TabId | null;
+    const saved = readText('valorize_tab') as TabId | null;
     return saved && TABS.some(t => t.id === saved) ? saved : 'radar';
   });
-  const [bazinMode, setBazinMode] = useState<'5y' | '12m'>(() => (localStorage.getItem('valorize_bazin_mode') === '12m' ? '12m' : '5y'));
+  const [bazinMode, setBazinMode] = useState<'5y' | '12m'>(() => (readText('valorize_bazin_mode') === '12m' ? '12m' : '5y'));
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
-  useEffect(() => { localStorage.setItem('valorize_tab', activeTab); }, [activeTab]);
-  useEffect(() => { localStorage.setItem('valorize_bazin_mode', bazinMode); }, [bazinMode]);
+  useEffect(() => { writeText('valorize_tab', activeTab); }, [activeTab]);
+  useEffect(() => { writeText('valorize_bazin_mode', bazinMode); }, [bazinMode]);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -82,8 +84,9 @@ export function App() {
   const [triggeredAlerts, setTriggeredAlerts] = useState<string[]>([]);
   
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(() => {
-    const saved = localStorage.getItem('valorize_portfolio');
-    return saved ? JSON.parse(saved) : [
+    // Leitura segura: dado corrompido não derruba mais o app
+    const saved = readJSON<PortfolioItem[] | null>('valorize_portfolio', null);
+    return Array.isArray(saved) ? saved : [
       { ticker: 'BBAS3', purchasePrice: 21.50, quantity: 150, addedAt: Date.now() - 30 * 86400000 },
       { ticker: 'TAEE11', purchasePrice: 35.20, quantity: 80, addedAt: Date.now() - 60 * 86400000 },
       { ticker: 'PETR4', purchasePrice: 42.10, quantity: 60, addedAt: Date.now() - 90 * 86400000 }
@@ -92,30 +95,21 @@ export function App() {
 
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    const saved = localStorage.getItem('valorize_recent_searches');
-    try {
-      const parsed = saved ? JSON.parse(saved) : [];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return Array.from(new Set(parsed.map((t: any) => String(t || '').trim().toUpperCase()).filter((t: string) => t !== '')));
-      }
-    } catch (e) {
-      console.error(e);
+    const parsed = readJSON<unknown>('valorize_recent_searches', []);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return Array.from(new Set(parsed.map((t: any) => String(t || '').trim().toUpperCase()).filter((t: string) => t !== '')));
     }
     return ['BBAS3', 'PETR4', 'VALE3', 'TAEE11', 'ITUB4'];
   });
 
   useEffect(() => {
-    localStorage.setItem('valorize_recent_searches', JSON.stringify(recentSearches));
+    writeJSON('valorize_recent_searches', recentSearches);
   }, [recentSearches]);
 
   const [stock, setStock] = useState<StockData>(() => {
-    const saved = localStorage.getItem('valorize_current_stock');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to parse saved stock", e);
-      }
+    const saved = readJSON<StockData | null>('valorize_current_stock', null);
+    if (saved && typeof saved === 'object' && typeof saved.ticker === 'string' && typeof saved.currentPrice === 'number') {
+      return saved;
     }
     return {
       ticker: 'BBAS3',
@@ -145,14 +139,14 @@ export function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem('valorize_current_stock', JSON.stringify(stock));
+    writeJSON('valorize_current_stock', stock);
   }, [stock]);
 
   // Synchronize user-specific portfolio and risk preferences when logged in
   useEffect(() => {
     if (user && user.portfolio) {
       setPortfolio(user.portfolio);
-      localStorage.setItem('valorize_portfolio', JSON.stringify(user.portfolio));
+      writeJSON('valorize_portfolio', user.portfolio);
       if (user.profile.defaultMarginOfSafety) {
         setStock(prev => ({
           ...prev,
@@ -177,14 +171,14 @@ export function App() {
 
     const newPortfolio = [...portfolio.filter(p => p.ticker !== stock.ticker), newItem];
     setPortfolio(newPortfolio);
-    localStorage.setItem('valorize_portfolio', JSON.stringify(newPortfolio));
+    writeJSON('valorize_portfolio', newPortfolio);
     syncPortfolio(newPortfolio);
   };
 
   const removeFromPortfolio = (ticker: string) => {
     const newPortfolio = portfolio.filter(p => p.ticker !== ticker);
     setPortfolio(newPortfolio);
-    localStorage.setItem('valorize_portfolio', JSON.stringify(newPortfolio));
+    writeJSON('valorize_portfolio', newPortfolio);
     syncPortfolio(newPortfolio);
     setTriggeredAlerts(prev => prev.filter(t => t !== ticker));
   };
@@ -194,7 +188,7 @@ export function App() {
       item.ticker === ticker ? { ...item, alertPrice: price, alertCondition: condition } : item
     );
     setPortfolio(newPortfolio);
-    localStorage.setItem('valorize_portfolio', JSON.stringify(newPortfolio));
+    writeJSON('valorize_portfolio', newPortfolio);
     syncPortfolio(newPortfolio);
   };
 
@@ -222,7 +216,7 @@ export function App() {
           });
         }
       });
-      localStorage.setItem('valorize_portfolio', JSON.stringify(updated));
+      writeJSON('valorize_portfolio', updated);
       syncPortfolio(updated);
       return updated;
     });
@@ -243,18 +237,14 @@ export function App() {
 
     // Check cache (30 min validity)
     if (!forceRefresh) {
-      const cachedData = localStorage.getItem(`stock_cache_${tickerToFetch}`);
-      if (cachedData) {
-        try {
-          const { data, timestamp } = JSON.parse(cachedData);
-          const isExpired = Date.now() - timestamp > 1000 * 60 * 30;
-          if (!isExpired && data.currentPrice > 0) {
-            setStock(prev => ({ ...prev, ...data, ticker: tickerToFetch }));
-            setRecentSearches(prev => [tickerToFetch, ...prev.filter(t => t !== tickerToFetch)].slice(0, 10));
-            return;
-          }
-        } catch (e) {
-          console.error(e);
+      const cached = readJSON<{ data: StockData; timestamp: number } | null>(`stock_cache_${tickerToFetch}`, null);
+      if (cached?.data && typeof cached.timestamp === 'number') {
+        const isExpired = Date.now() - cached.timestamp > 1000 * 60 * 30;
+        if (!isExpired && cached.data.currentPrice > 0) {
+          // Mantém os parâmetros do usuário (yield/margem) ao reaproveitar o cache
+          setStock(prev => ({ ...prev, ...cached.data, ticker: tickerToFetch, minYield: prev.minYield, marginOfSafety: prev.marginOfSafety }));
+          setRecentSearches(prev => [tickerToFetch, ...prev.filter(t => t !== tickerToFetch)].slice(0, 10));
+          return;
         }
       }
     }
@@ -313,10 +303,9 @@ export function App() {
         }
 
         // Cache result
-        localStorage.setItem(`stock_cache_${tickerToFetch}`, JSON.stringify({
-          data: updated,
-          timestamp: Date.now()
-        }));
+        writeJSON(`stock_cache_${tickerToFetch}`, { data: updated, timestamp: Date.now() });
+        touchCache(`stock_cache_${tickerToFetch}`);
+        pruneCache();
 
         return updated;
       });
@@ -431,7 +420,6 @@ export function App() {
             <div className="order-last md:order-none basis-full md:basis-auto md:w-72 min-w-0">
               <TickerSelect 
                 value={stock.ticker}
-                onChange={(ticker) => setStock(prev => ({ ...prev, ticker }))}
                 onSelect={(ticker) => {
                   fetchStockData(ticker);
                   if (activeTab === 'radar') setActiveTab('raio-x');
@@ -613,6 +601,7 @@ export function App() {
           </div>
         )}
 
+        <ErrorBoundary resetKey={activeTab} area={TABS.find(t => t.id === activeTab)?.label}>
         {/* TAB 1: RADAR DE OPORTUNIDADES */}
         {activeTab === 'radar' && (
           <OpportunityRadar 
@@ -662,10 +651,7 @@ export function App() {
 
             {/* Price Candlestick Chart (só quando há histórico real) */}
             {(stock.historicalData?.length ?? 0) > 0 && <div className="mt-8">
-              <CandlestickChart 
-                ticker={stock.ticker} 
-                data={stock.historicalData || []} 
-              />
+              <CandlestickChart data={stock.historicalData || []} />
             </div>}
           </div>
         )}
@@ -919,6 +905,7 @@ export function App() {
             />
           </div>
         )}
+        </ErrorBoundary>
       </main>
 
       <QuickAddModal

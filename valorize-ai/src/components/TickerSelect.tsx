@@ -1,16 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, X, TrendingUp, Sparkles } from 'lucide-react';
 import { POPULAR_TICKERS, TOP_RECOMMENDED_STOCKS } from '../constants';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn, escapeRegExp } from '../lib/utils';
 
 interface TickerSelectProps {
   value: string;
-  onChange: (value: string) => void;
+  /** Opcional: avisa o texto digitado (não deve trocar a ação analisada). */
+  onChange?: (value: string) => void;
   onSelect: (value: string) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   isFetching?: boolean;
@@ -187,7 +183,8 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    // Corrigido: o texto digitado era usado cru na RegExp e "(" ou "[" derrubava o app.
+    const parts = text.split(new RegExp(`(${escapeRegExp(query)})`, 'gi'));
     return (
       <span>
         {parts.map((part, i) => 
@@ -211,7 +208,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
           onChange={(e) => {
             const val = e.target.value.toUpperCase();
             setSearchTerm(val);
-            onChange(val);
+            onChange?.(val);
             setIsOpen(true);
           }}
           onFocus={() => !isFetching && setIsOpen(true)}
@@ -226,7 +223,7 @@ export const TickerSelect: React.FC<TickerSelectProps> = ({
               type="button"
               onClick={() => {
                 setSearchTerm('');
-                onChange('');
+                onChange?.('');
                 setIsOpen(true);
               }}
               className="p-1 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-zinc-100"

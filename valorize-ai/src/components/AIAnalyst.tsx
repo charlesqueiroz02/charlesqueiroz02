@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Loader2, Sparkles, Newspaper, ShieldCheck, AlertTriangle, ExternalLink } from 'lucide-react';
 import { StockData } from '../types';
+import { readJSON, readText, writeJSON, writeText, touchCache, pruneCache } from '../lib/storage';
 
 interface AIAnalystProps {
   stockData: StockData;
@@ -15,29 +16,25 @@ interface GroundingChunk {
 }
 
 export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) => {
-  const [analysis, setAnalysis] = useState<string | null>(() => {
-    const saved = localStorage.getItem(`ai_analysis_${stockData.ticker}`);
-    return saved || null;
-  });
-  const [sources, setSources] = useState<GroundingChunk[]>(() => {
-    const saved = localStorage.getItem(`ai_sources_${stockData.ticker}`);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [analysis, setAnalysis] = useState<string | null>(() => readText(`ai_analysis_${stockData.ticker}`));
+  const [sources, setSources] = useState<GroundingChunk[]>(() => readJSON<GroundingChunk[]>(`ai_sources_${stockData.ticker}`, []));
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(`ai_analysis_${stockData.ticker}`);
-    setAnalysis(saved || null);
-    const savedSources = localStorage.getItem(`ai_sources_${stockData.ticker}`);
-    setSources(savedSources ? JSON.parse(savedSources) : []);
+    setAnalysis(readText(`ai_analysis_${stockData.ticker}`));
+    const savedSources = readJSON<GroundingChunk[]>(`ai_sources_${stockData.ticker}`, []);
+    setSources(Array.isArray(savedSources) ? savedSources : []);
   }, [stockData.ticker]);
 
   useEffect(() => {
     if (analysis) {
-      localStorage.setItem(`ai_analysis_${stockData.ticker}`, analysis);
+      writeText(`ai_analysis_${stockData.ticker}`, analysis);
+      touchCache(`ai_analysis_${stockData.ticker}`);
+      pruneCache();
     }
     if (sources.length > 0) {
-      localStorage.setItem(`ai_sources_${stockData.ticker}`, JSON.stringify(sources));
+      writeJSON(`ai_sources_${stockData.ticker}`, sources);
+      touchCache(`ai_sources_${stockData.ticker}`);
     }
   }, [analysis, sources, stockData.ticker]);
 
