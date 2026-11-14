@@ -97,3 +97,41 @@ O APK foi gerado pelo PWABuilder e é um app "TWA" (`app.netlify.valorizza.twa`)
 - **Sugestões em 2 colunas no celular:** menos rolagem.
 
 Arquivos: `src/components/AddTickerField.tsx` (novo), `RegistrationFlow.tsx`, `AuthModal.tsx` e `context/AuthContext.tsx`.
+
+## Versão 2.5: revisão completa (correções, segurança, paleta, gráficos e ferramentas)
+
+**Correções críticas**
+- Digitar `(` ou `[` na busca derrubava o app inteiro (tela branca). Corrigido, e agora há proteção contra erros em cada tela.
+- Enquanto se digitava na busca, o Raio-X trocava o código da ação mas mantinha os dados da anterior.
+- **A média de 5 anos do Bazin ignorava os anos sem provento**, inflando o preço teto. Agora os anos zerados contam.
+- **Os "proventos 12 meses" eram contados a partir do último pagamento**, não de hoje: uma empresa que parou de pagar continuava com DY alto.
+- O Raio-X inventava um histórico de proventos quando não havia dados; o Otimizador inventava preço, proventos e teto. Agora o app mostra que o dado falta.
+- O yield de 6% estava fixo no Raio-X, no comparador, no otimizador, na IA e no Radar; agora segue "Meus parâmetros".
+- O simulador de juros compostos fazia o yield crescer sobre o patrimônio, superestimando o resultado.
+- O projeto não tinha `@types/react`: a checagem de tipos não validava nenhum componente.
+
+**Segurança**
+- O login aceitava senha vazia; as senhas estavam em texto puro. Agora há hash PBKDF2, migrado automaticamente.
+- O botão demo podia abrir uma conta real sem senha.
+- A API ganhou validação de ticker, limite de uso por IP, limite na comparação, erros sem detalhes internos e cabeçalhos de segurança.
+- O aceite dos termos começa desmarcado (LGPD); a recuperação de senha não finge mais enviar e-mail; os perfis demo não usam pessoas reais.
+
+**Visual:** nova paleta clara e suave (sálvia, ardósia, coral), sem blocos pretos e com contraste melhor nos textos pequenos.
+
+**Gráficos novos:**
+- Preço mensal com as linhas de Graham e Bazin e a zona de compra.
+- Proventos por ano com média e DY.
+- Mapa de oportunidades no Radar.
+- Evolução do patrimônio no simulador.
+- Distribuição e resultado da carteira.
+- Comparador em barras.
+
+**Ferramentas:**
+- Carteira com resultado, renda e *yield on cost*.
+- Otimizador a partir da carteira real.
+- Filtros defensivos de Graham no checklist.
+- Alertas de preço conferidos para toda a carteira.
+
+**Desempenho:** telas carregadas sob demanda; os gráficos não são baixados na abertura (download inicial cerca de 50% menor).
+
+**Testes:** 29 testes automatizados (`npm test`).
