@@ -63,6 +63,9 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
     ? (stock.dividends / stock.currentPrice) * 100 
     : 0;
 
+  const pl = stock.lpa > 0 ? stock.currentPrice / stock.lpa : 0;
+  const pvp = stock.vpa > 0 ? stock.currentPrice / stock.vpa : 0;
+
   const criteria = useMemo(() => {
     const hasConsistentDividends = hasHistory && dividendHistory.filter(d => d.amount > 0).length >= 4;
     const dyAboveMin = currentDy >= minYield;
@@ -93,12 +96,33 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
       },
       {
         id: 4,
-        title: "Margem de Lucro e Múltiplos (Graham)",
+        title: "Preço abaixo do justo e P/L ≤ 15 (Graham)",
         desc: `P/L saudável (${(stock.pl || 0).toFixed(1)}x) e preço com ${grahamUpside >= 0 ? '+' : ''}${grahamUpside.toFixed(1)}% de margem frente ao valor intrínseco.`,
         passed: grahamFair > 0 && isPlHealthy && priceBelowGraham
+      },
+      // Critérios defensivos de Graham (O Investidor Inteligente)
+      {
+        id: 5,
+        title: 'Graham: lucro positivo',
+        desc: stock.lpa > 0 ? `LPA de R$ ${stock.lpa.toFixed(2)}: a empresa dá lucro.` : 'LPA negativo: a fórmula de Graham não se aplica.',
+        passed: stock.lpa > 0
+      },
+      {
+        id: 6,
+        title: 'Graham: P/L ≤ 15 e P/VP ≤ 1,5',
+        desc: `P/L ${pl > 0 ? pl.toFixed(1) : 'N/D'} e P/VP ${pvp > 0 ? pvp.toFixed(2) : 'N/D'}.`,
+        passed: pl > 0 && pl <= 15 && pvp > 0 && pvp <= 1.5
+      },
+      {
+        id: 7,
+        title: 'Graham: P/L × P/VP ≤ 22,5',
+        desc: pl > 0 && pvp > 0
+          ? `Produto de ${(pl * pvp).toFixed(1)}. Graham aceitava P/L maior se o P/VP fosse menor, desde que o produto não passasse de 22,5.`
+          : 'Sem lucro ou patrimônio positivo para calcular.',
+        passed: pl > 0 && pvp > 0 && pl * pvp <= 22.5
       }
     ];
-  }, [currentDy, minYield, dividendHistory, stock.currentPrice, activeCeilingPrice, stock.pl, stock.lpa, grahamFair, grahamUpside]);
+  }, [currentDy, minYield, dividendHistory, stock.currentPrice, activeCeilingPrice, stock.pl, stock.lpa, grahamFair, grahamUpside, pl, pvp]);
 
   const avg5y = stock.avgDividends5y || 0;
   // DY de cada ano = proventos do ano ÷ fechamento do ano (quando há cotação histórica)
@@ -413,9 +437,12 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
           <div>
             <h3 className="font-serif italic text-xl text-zinc-900">Checklist de Aprovação (Bazin & Graham)</h3>
             <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-mono">
-              Critérios rigorosos para aprovar a compra para carteiras de renda e valor
+              Critérios clássicos de Décio Bazin e os filtros defensivos de Benjamin Graham
             </p>
           </div>
+          <span className="ml-auto text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
+            {criteria.filter(c => c.passed).length} de {criteria.length} atendidos
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

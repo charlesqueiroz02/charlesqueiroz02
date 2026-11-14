@@ -58,6 +58,7 @@ import { TABS, TabId } from './lib/tabs';
 import { computeValuation } from './lib/valuation';
 import { readJSON, readText, writeJSON, writeText, pruneCache, touchCache } from './lib/storage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { fetchQuotes } from './lib/quotes';
 
 export function App() {
   const { user, isAuthenticated, logout, syncPortfolio } = useAuth();
@@ -156,6 +157,20 @@ export function App() {
       }
     }
   }, [user?.id]);
+
+  // Ao abrir o app: confere os alertas de preço de toda a carteira (antes só ao abrir cada ação)
+  useEffect(() => {
+    const withAlert = portfolio.filter(p => p.alertPrice && p.alertCondition);
+    if (!withAlert.length) return;
+    fetchQuotes(withAlert.map(p => p.ticker), stock.minYield)
+      .then(q => setTriggeredAlerts(withAlert
+        .filter(p => q[p.ticker]?.price > 0 && (p.alertCondition === 'above' ? q[p.ticker].price >= p.alertPrice! : q[p.ticker].price <= p.alertPrice!))
+        .map(p => p.ticker)))
+      .catch(() => { /* sem conexão: tenta na próxima abertura */ });
+    // Ao abrir: se a ação salva estiver com dados de mais de 30 min, atualiza em segundo plano
+    if (!stock.lastUpdated || Date.now() - stock.lastUpdated > 30 * 60 * 1000) fetchStockData(stock.ticker, true);
+    // Executa só uma vez, na abertura do app
+  }, []);
 
   // Corrigido: antes dependia de um formulário que nunca era preenchido (botão não fazia nada).
   const addToPortfolio = (quantity: number, purchasePrice: number) => {
@@ -884,6 +899,7 @@ export function App() {
             portfolio={portfolio}
             onApplyPurchases={handleApplyPurchasesFromOptimizer}
             onSelectStock={handleSelectFromRadar}
+            minYield={stock.minYield}
           />
         )}
 
@@ -895,7 +911,7 @@ export function App() {
         {/* TAB 6: MEU PORTFÓLIO */}
         {activeTab === 'portfolio' && (
           <div className="space-y-6">
-            <PortfolioDashboard 
+            <PortfolioDashboard
               portfolio={portfolio}
               onRemove={removeFromPortfolio}
               onSelect={(ticker) => {
@@ -903,7 +919,11 @@ export function App() {
                 setActiveTab('raio-x');
               }}
               onUpdateAlert={updatePortfolioAlert}
+              onAlertsChecked={setTriggeredAlerts}
               isFetching={isFetching}
+              minYield={stock.minYield}
+              margin={stock.marginOfSafety}
+              bazinMode={bazinMode}
             />
           </div>
         )}

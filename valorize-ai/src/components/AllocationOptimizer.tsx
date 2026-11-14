@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Calculator, 
   DollarSign, 
@@ -14,75 +14,67 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { OptimizerAsset, OptimizerResult, PortfolioItem } from '../types';
+import { fetchQuotes } from '../lib/quotes';
+import { isValidTicker, normalizeTicker } from '../lib/ticker';
+import { num } from '../lib/valuation';
 
 interface AllocationOptimizerProps {
   portfolio: PortfolioItem[];
   onApplyPurchases: (purchases: { ticker: string; shares: number; price: number }[]) => void;
   onSelectStock: (ticker: string) => void;
+  minYield: number;
 }
 
 export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
   portfolio,
   onApplyPurchases,
-  onSelectStock
+  onSelectStock,
+  minYield
 }) => {
   const [contributionAmount, setContributionAmount] = useState<number>(3000);
   const [prioritizeDiscount, setPrioritizeDiscount] = useState<boolean>(true);
   const [appliedMessage, setAppliedMessage] = useState<string | null>(null);
 
-  // Initial asset targets
-  const [assets, setAssets] = useState<OptimizerAsset[]>([
-    {
-      id: '1',
-      ticker: 'BBAS3',
-      name: 'Banco do Brasil S.A.',
-      currentPrice: 21.80,
-      currentShares: 150,
-      targetWeight: 25,
-      bazinCeiling: 27.00,
-      grahamFair: 42.45
-    },
-    {
-      id: '2',
-      ticker: 'TAEE11',
-      name: 'Taesa S.A.',
-      currentPrice: 35.80,
-      currentShares: 80,
-      targetWeight: 25,
-      bazinCeiling: 53.50,
-      grahamFair: 41.13
-    },
-    {
-      id: '3',
-      ticker: 'PETR4',
-      name: 'Petrobras PN',
-      currentPrice: 49.90,
-      currentShares: 50,
-      targetWeight: 20,
-      bazinCeiling: 61.00,
-      grahamFair: 93.19
-    },
-    {
-      id: '4',
-      ticker: 'ITUB4',
-      name: 'Itaú Unibanco',
-      currentPrice: 34.50,
-      currentShares: 70,
-      targetWeight: 15,
-      bazinCeiling: 38.30,
-      grahamFair: 43.00
-    },
-    {
-      id: '5',
-      ticker: 'CXSE3',
-      name: 'Caixa Seguridade',
-      currentPrice: 14.80,
-      currentShares: 100,
-      targetWeight: 15,
-      bazinCeiling: 18.30,
-      grahamFair: 11.95
-    }
-  ]);
+  // Corrigido: antes começava com 5 ações fixas e preços antigos, ignorando a sua carteira.
+  // Agora parte da carteira real, com cotações e tetos de Bazin atuais (yield do usuário).
+  const [assets, setAssets] = useState<OptimizerAsset[]>([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const portfolioKey = portfolio.map(p => `${p.ticker}:${p.quantity}`).join('|');
+
+  useEffect(() => {
+    if (!portfolio.length) return;
+    let alive = true;
+    setLoadingQuotes(true);
+    setQuoteError(null);
+    fetchQuotes(portfolio.map(p => p.ticker), minYield)
+      .then(q => {
+        if (!alive) return;
+        setAssets(prev => {
+          const extras = prev.filter(a => !portfolio.some(p => p.ticker === a.ticker));
+          const fromPortfolio = portfolio.map(p => {
+            const old = prev.find(a => a.ticker === p.ticker);
+            const quote = q[p.ticker];
+            return {
+              id: old?.id || p.ticker,
+              ticker: p.ticker,
+              name: quote?.name || old?.name || p.ticker,
+              currentPrice: quote?.price || old?.currentPrice || 0,
+              currentShares: p.quantity,
+              targetWeight: old?.targetWeight ?? Math.round(100 / portfolio.length),
+              bazinCeiling: quote?.bazinFair5y || 0,
+              grahamFair: quote?.grahamFair || 0,
+            };
+          });
+          return [...fromPortfolio, ...extras];
+        });
+        const missing = portfolio.filter(p => !q[p.ticker]).map(p => p.ticker);
+        if (missing.length) setQuoteError(`Sem cotação agora para ${missing.join(', ')}: esses ativos ficam fora da sugestão.`);
+      })
+      .catch(e => alive && setQuoteError(e?.message || 'Não foi possível buscar as cotações.'))
+      .finally(() => alive && setLoadingQuotes(false));
+    return () => { alive = false; };
+  }, [portfolioKey, minYield]);
 
   const [newTickerInput, setNewTickerInput] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -105,9 +97,10 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
       const idealValue = totalFutureValue * (normalizedTargetWeight / 100);
       const gapValue = Math.max(0, idealValue - currentTotal);
 
-      const ceiling = asset.bazinCeiling || (asset.currentPrice * 1.15);
-      const upside = asset.currentPrice > 0 ? ((ceiling / asset.currentPrice) - 1) * 100 : 0;
-      const isDiscounted = upside > 0;
+      // Sem provento não há teto de Bazin: antes o app inventava um teto 15% acima da cotação
+      const ceiling = asset.bazinCeiling || 0;
+      const upside = asset.currentPrice > 0 && ceiling > 0 ? ((ceiling / asset.currentPrice) - 1) * 100 : 0;
+      const isDiscounted = ceiling > 0 && upside > 0;
 
       return {
         ticker: asset.ticker,
@@ -217,9 +210,12 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
     setTimeout(() => setAppliedMessage(null), 5000);
   };
 
+  const [addError, setAddError] = useState<string | null>(null);
   const handleAddTicker = async () => {
     if (!newTickerInput.trim() || isAdding) return;
-    const clean = newTickerInput.trim().toUpperCase().replace(/\.SA$/i, '');
+    const clean = normalizeTicker(newTickerInput);
+    setAddError(null);
+    if (!isValidTicker(clean)) { setAddError('Use o código da B3, ex.: EGIE3.'); return; }
     if (assets.some(a => a.ticker === clean)) {
       setNewTickerInput('');
       return;
@@ -227,31 +223,25 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
 
     setIsAdding(true);
     try {
-      const res = await fetch(`/api/stock/${encodeURIComponent(clean)}`);
-      if (res.ok) {
-        const d = await res.json();
-        const price = d.currentPrice || 25;
-        const divs = d.avgDividends5y || d.dividends || 1.5;
-        const bazinCeil = divs > 0 ? divs / 0.06 : price * 1.2;
-        const gFair = d.lpa > 0 && d.vpa > 0 ? Math.sqrt(22.5 * d.lpa * d.vpa) : price * 1.2;
-
-        setAssets(prev => [
-          ...prev,
-          {
-            id: String(Date.now()),
-            ticker: clean,
-            name: d.companyName || clean,
-            currentPrice: price,
-            currentShares: 0,
-            targetWeight: 10,
-            bazinCeiling: Number(bazinCeil.toFixed(2)),
-            grahamFair: Number(gFair.toFixed(2))
-          }
-        ]);
-        setNewTickerInput('');
-      }
-    } catch (e) {
-      console.error(e);
+      const q = (await fetchQuotes([clean], minYield))[clean];
+      // Corrigido: antes, sem cotação, o app usava preço 25 e proventos 1,5 inventados
+      if (!q || q.price <= 0) { setAddError(`Não encontramos cotação para ${clean}.`); return; }
+      setAssets(prev => [
+        ...prev,
+        {
+          id: `${clean}-${Date.now()}`,
+          ticker: clean,
+          name: q.name || clean,
+          currentPrice: q.price,
+          currentShares: 0,
+          targetWeight: 10,
+          bazinCeiling: q.bazinFair5y || 0,
+          grahamFair: q.grahamFair || 0,
+        }
+      ]);
+      setNewTickerInput('');
+    } catch (e: any) {
+      setAddError(e?.message || 'Não foi possível adicionar agora.');
     } finally {
       setIsAdding(false);
     }
@@ -343,6 +333,14 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
         </div>
       </div>
 
+      {(loadingQuotes || quoteError || addError || (!portfolio.length && !assets.length)) && (
+        <div role="status" className={`p-3 rounded-xl text-xs border ${quoteError || addError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>
+          {loadingQuotes ? 'Buscando cotações da sua carteira…'
+            : addError || quoteError
+            || 'Sua carteira está vazia. Adicione ativos abaixo (ex.: TAEE11) e defina a meta de cada um.'}
+        </div>
+      )}
+
       {appliedMessage && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-mono font-bold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -356,7 +354,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
           <div>
             <h3 className="font-serif italic text-lg text-zinc-900">Sugestão de Compra para o Aporte</h3>
             <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-mono">
-              Distribuição matemática exata sem deixar capital ocioso
+              Teto de Bazin com yield mínimo de {num(minYield, 1)}% · média de 5 anos
             </p>
           </div>
 
@@ -403,12 +401,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
                   <tr key={rec.ticker} className="hover:bg-zinc-50/50 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex flex-col">
-                        <span 
-                          onClick={() => onSelectStock(rec.ticker)}
-                          className="font-bold text-zinc-900 hover:text-emerald-700 cursor-pointer text-sm"
-                        >
-                          {rec.ticker}
-                        </span>
+                        <button type="button" onClick={() => onSelectStock(rec.ticker)} className="font-bold text-zinc-900 hover:text-emerald-700 text-sm text-left" title={`Abrir ${rec.ticker} no Raio-X`}>{rec.ticker}</button>
                         <span className="text-[10px] text-zinc-400 font-sans truncate max-w-[130px]">{rec.name}</span>
                       </div>
                     </td>
@@ -447,7 +440,7 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
 
                     <td className="py-3 px-3">
                       <div className="flex flex-col">
-                        <span>R$ {rec.bazinCeiling.toFixed(2)}</span>
+                        <span>{rec.bazinCeiling > 0 ? `R$ ${rec.bazinCeiling.toFixed(2)}` : 'sem proventos'}</span>
                         <span className={`text-[10px] font-bold ${rec.upside >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {rec.upside >= 0 ? '+' : ''}{rec.upside.toFixed(1)}%
                         </span>
@@ -494,19 +487,19 @@ export const AllocationOptimizer: React.FC<AllocationOptimizerProps> = ({
         </div>
 
         {/* Summary Footer */}
-        <div className="p-4 bg-zinc-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 bg-emerald-50/60 border-t border-emerald-100 text-zinc-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs font-mono">
             <div>
-              <span className="text-[10px] uppercase font-bold text-zinc-400 block">Total do Aporte</span>
+              <span className="text-[10px] uppercase font-bold text-zinc-500 block">Total do Aporte</span>
               <span className="text-lg font-bold">R$ {optimization.totalContribution.toFixed(2)}</span>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-600 block">Total Efetivamente Alocado</span>
-              <span className="text-lg font-bold text-emerald-600">R$ {optimization.allocatedAmount.toFixed(2)}</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-700 block">Total Efetivamente Alocado</span>
+              <span className="text-lg font-bold text-emerald-700">R$ {optimization.allocatedAmount.toFixed(2)}</span>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-zinc-400 block">Sobra em Caixa</span>
-              <span className="text-lg font-bold text-zinc-300">R$ {optimization.residualCash.toFixed(2)}</span>
+              <span className="text-[10px] uppercase font-bold text-zinc-500 block">Sobra em Caixa</span>
+              <span className="text-lg font-bold text-zinc-700">R$ {optimization.residualCash.toFixed(2)}</span>
             </div>
           </div>
 
