@@ -54,9 +54,9 @@ export const PriceRuler: React.FC<PriceRulerProps> = ({ price, tracks, compact }
                 </span>
               </div>
               <div className={`relative ${compact ? 'h-3' : 'h-4'} rounded-full overflow-hidden bg-rose-100`}>
-                <div className="absolute inset-y-0 left-0 bg-emerald-400/80" style={{ width: pos(t.entry) }} />
+                <div className="absolute inset-y-0 left-0 bg-emerald-300/80" style={{ width: pos(t.entry) }} />
                 <div
-                  className="absolute inset-y-0 bg-amber-300/80"
+                  className="absolute inset-y-0 bg-amber-200/80"
                   style={{ left: pos(t.entry), width: `calc(${pos(t.target)} - ${pos(t.entry)})` }}
                 />
               </div>
@@ -76,8 +76,8 @@ export const PriceRuler: React.FC<PriceRulerProps> = ({ price, tracks, compact }
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] text-zinc-500">
-        <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-full bg-emerald-400" />Zona de compra</span>
-        <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-full bg-amber-300" />Entre entrada e alvo</span>
+        <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-full bg-emerald-300" />Zona de compra</span>
+        <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-full bg-amber-200" />Entre entrada e alvo</span>
         <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-full bg-rose-200" />Acima do alvo</span>
       </div>
     </div>

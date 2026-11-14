@@ -14,6 +14,9 @@ import {
   Scale
 } from 'lucide-react';
 import { StockData } from '../types';
+import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
+import { brl } from '../lib/valuation';
 
 interface CompoundSimulatorProps {
   currentStock?: StockData;
@@ -361,6 +364,44 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
               <span className="text-[10px] font-mono text-zinc-400 block mt-1">
                 Seu esforço direto de poupança
               </span>
+            </div>
+          </div>
+
+          {/* Evolução ano a ano (os dados já eram calculados, mas não havia gráfico) */}
+          <div className="bg-white data-grid-border p-5 rounded-xl shadow-sm">
+            <h4 className="font-serif italic text-base text-zinc-900">Evolução do patrimônio</h4>
+            <p className="text-xs text-zinc-500 mb-3">
+              {viewRealPurchasingPower ? 'Em poder de compra de hoje (descontada a inflação).' : 'Em valores nominais.'} Passe o dedo ou o mouse para ver a renda de cada ano.
+            </p>
+            <div className="h-64" role="img" aria-label={'Gráfico da evolução do patrimônio em ' + years + ' anos'}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={simulation.records} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="csFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CHART.bazin} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={CHART.bazin} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
+                  <XAxis dataKey="year" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={v => v + 'a'} />
+                  <YAxis tick={axisTick} axisLine={false} tickLine={false} width={52}
+                    tickFormatter={v => (v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.round(v / 1000) + 'k')} />
+                  <Tooltip contentStyle={tooltipStyle}
+                    labelFormatter={l => 'Ano ' + l}
+                    formatter={(v: number, n: string, item: any) => {
+                      if (n === 'patrimonio') {
+                        const renda = viewRealPurchasingPower ? item.payload.realMonthlyDiv : item.payload.nominalMonthlyDiv;
+                        return [brl(v, 0) + ' · renda ' + brl(renda, 0) + '/mês', 'Patrimônio'];
+                      }
+                      return [brl(v, 0), 'Do seu bolso'];
+                    }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }}
+                    formatter={v => (v === 'patrimonio' ? 'Patrimônio' : 'Do seu bolso')} />
+                  <Area type="monotone" name="patrimonio" dataKey={viewRealPurchasingPower ? 'realBalance' : 'nominalBalance'}
+                    stroke={CHART.bazin} strokeWidth={2} fill="url(#csFill)" />
+                  <Area type="monotone" name="investido" dataKey="totalInvested" stroke={CHART.neutral} strokeDasharray="4 3" fill="none" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 

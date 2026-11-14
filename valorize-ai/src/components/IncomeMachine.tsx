@@ -4,6 +4,7 @@ import { Coins, Plus, X, Download, Target } from 'lucide-react';
 import type { PortfolioItem, RadarStockItem, StockData } from '../types';
 import { incomePlan, snowball, brl, num, toExcelCsv, downloadText } from '../lib/valuation';
 import { CHART, axisTick } from '../lib/chartTheme';
+import { loadRadar } from '../lib/radarCache';
 
 interface IncomeMachineProps {
   minYield: number;
@@ -45,11 +46,10 @@ export const IncomeMachine: React.FC<IncomeMachineProps> = ({ minYield, portfoli
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    fetch(`/api/stock/radar?minYield=${minYield}`)
-      .then(r => (r.ok ? r.json() : []))
-      .then((data: RadarStockItem[]) => { if (alive && Array.isArray(data)) setUniverse(data); })
+    loadRadar(minYield)
+      .then(data => { if (alive) setUniverse(data); })
       .catch(() => {})
-      .finally(() => alive && setLoading(false));
+      .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [minYield]);
 

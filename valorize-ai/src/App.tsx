@@ -32,7 +32,7 @@ import { StockData, ValuationResult, PortfolioItem } from './types';
 import { ValuationDisplay } from './components/ValuationDisplay';
 import { UpsideChart } from './components/UpsideChart';
 import { FundamentalAnalysis } from './components/FundamentalAnalysis';
-import { CandlestickChart } from './components/CandlestickChart';
+import { PriceHistoryChart } from './components/PriceHistoryChart';
 import { Glossary } from './components/Glossary';
 import { PortfolioDashboard } from './components/PortfolioDashboard';
 import { AIAnalyst } from './components/AIAnalyst';
@@ -645,15 +645,23 @@ export function App() {
               onToggleBazinMode={(mode) => setBazinMode(mode)}
             />
 
+            {/* Cotação mensal com faixas de Graham/Bazin (velas anuais na alternância) */}
+            <PriceHistoryChart
+              ticker={stock.ticker}
+              points={stock.priceHistory || []}
+              annual={stock.historicalData}
+              grahamFair={results.grahamFairPrice}
+              grahamEntry={results.grahamEntryPrice}
+              bazinCeiling={results.bazinCeilingPrice}
+              bazinEntry={results.bazinEntryPrice}
+              bazinLabel={`Bazin ${bazinMode === '5y' ? '5a' : '12m'}`}
+            />
+
             {/* AI Qualitative Analysis Section */}
             <div className="mt-8">
               <AIAnalyst stockData={stock} />
             </div>
 
-            {/* Price Candlestick Chart (só quando há histórico real) */}
-            {(stock.historicalData?.length ?? 0) > 0 && <div className="mt-8">
-              <CandlestickChart data={stock.historicalData || []} />
-            </div>}
           </div>
         )}
 

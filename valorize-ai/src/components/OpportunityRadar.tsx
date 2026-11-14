@@ -15,10 +15,14 @@ import {
   ExternalLink,
   SlidersHorizontal,
   ChevronRight,
-  Download
+  Download,
+  List,
+  ScatterChart as ScatterIcon
 } from 'lucide-react';
+import { OpportunityMap } from './OpportunityMap';
 import { toExcelCsv, downloadText, num } from '../lib/valuation';
 import { RadarStockItem } from '../types';
+import { loadRadar } from '../lib/radarCache';
 
 interface OpportunityRadarProps {
   onSelectStock: (ticker: string) => void;
@@ -37,19 +41,19 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
   const [filterMinDy6, setFilterMinDy6] = useState(false);
   const [sortBy, setSortBy] = useState<'score' | 'bazinUpside' | 'grahamUpside' | 'dy' | 'pl'>('score');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [view, setView] = useState<'lista' | 'mapa'>('lista');
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchRadarData = async () => {
+  const fetchRadarData = async (force = false) => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/stock/radar?minYield=${minYield}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setStocks(data);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load radar data", e);
+      const data = await loadRadar(minYield, force);
+      setStocks(data);
+      if (!data.length) setError('As fontes de cotação não responderam agora. Tente atualizar em instantes.');
+    } catch (e: any) {
+      // Corrigido: antes a falha aparecia como "Nenhum ativo encontrado"
+      setError(e?.message || 'Não foi possível carregar o Radar. Verifique a conexão e tente de novo.');
     } finally {
       setLoading(false);
     }
@@ -178,6 +182,15 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
             </button>
           </div>
 
+          <div className="bg-zinc-100 p-1 rounded-lg flex items-center border border-zinc-200" role="group" aria-label="Forma de exibição">
+            {([['lista', 'Lista', List], ['mapa', 'Mapa', ScatterIcon]] as const).map(([id, label, Icon]) => (
+              <button key={id} onClick={() => setView(id)} aria-pressed={view === id}
+                className={`px-2.5 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 ${view === id ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' : 'text-zinc-600 hover:text-zinc-900'}`}>
+                <Icon className="w-3.5 h-3.5" />{label}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={exportCsv}
             disabled={loading || !filteredAndSortedStocks.length}
@@ -188,7 +201,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
           </button>
 
           <button
-            onClick={fetchRadarData}
+            onClick={() => fetchRadarData(true)}
             disabled={loading}
             className="p-2 border border-zinc-200 rounded-lg hover:bg-zinc-100 text-zinc-600 transition-colors disabled:opacity-50"
             title="Atualizar dados do mercado"
@@ -253,6 +266,25 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
         </div>
       </div>
 
+      {error && !loading && (
+        <div role="alert" className="p-4 bg-rose-50 border border-rose-100 text-rose-800 rounded-xl text-sm flex items-center justify-between gap-3">
+          <span>{error}</span>
+          <button onClick={() => fetchRadarData(true)} className="text-xs font-bold hover:underline shrink-0">Tentar de novo</button>
+        </div>
+      )}
+
+      {view === 'mapa' && (
+        <section className="bg-white data-grid-border rounded-xl p-4 sm:p-5 shadow-sm" aria-labelledby="map-title">
+          <h3 id="map-title" className="font-serif italic text-lg text-zinc-900 mb-1">Mapa de oportunidades</h3>
+          {loading ? (
+            <div className="py-16 text-center text-xs text-zinc-500"><RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />Carregando…</div>
+          ) : (
+            <OpportunityMap stocks={filteredAndSortedStocks} bazinMode={bazinMode} currentTicker={currentTicker} onSelect={onSelectStock} />
+          )}
+        </section>
+      )}
+
+      {view === 'lista' && <>
       {/* Main Screener Table */}
       {/* Celular: cartões tocáveis em vez de tabela larga */}
       <div className="md:hidden space-y-2.5">
@@ -483,6 +515,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
           </span>
         </div>
       </div>
+      </>}
     </div>
   );
 };

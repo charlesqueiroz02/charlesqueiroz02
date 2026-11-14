@@ -17,7 +17,9 @@ import {
   DollarSign,
   Briefcase
 } from 'lucide-react';
+import { Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { StockData, ValuationResult, DividendYearPoint } from '../types';
+import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
 
 interface AssetXRayProps {
   stock: StockData;
@@ -98,7 +100,20 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
     ];
   }, [currentDy, minYield, dividendHistory, stock.currentPrice, activeCeilingPrice, stock.pl, stock.lpa, grahamFair, grahamUpside]);
 
-  const maxDivAmount = Math.max(...dividendHistory.map(d => d.amount), 0.1);
+  const avg5y = stock.avgDividends5y || 0;
+  // DY de cada ano = proventos do ano ÷ fechamento do ano (quando há cotação histórica)
+  const dividendChart = dividendHistory.map(d => {
+    const close = stock.historicalData?.find(h => h.year === d.year)?.close;
+    const dy = d.dy ?? (close && close > 0 ? (d.amount / close) * 100 : null);
+    return { year: d.year, amount: d.amount, dy: dy != null ? Number(dy.toFixed(2)) : null };
+  });
+
+  // DY por ano na tabela: mesmo cálculo do gráfico; sem cotação do ano, usa a atual (marcado com *)
+  const yearDy = (item: DividendYearPoint) => {
+    const dy = dividendChart.find(d => d.year === item.year)?.dy;
+    if (dy != null) return dy.toFixed(1) + '%';
+    return stock.currentPrice > 0 ? ((item.amount / stock.currentPrice) * 100).toFixed(1) + '%*' : '—';
+  };
 
   return (
     <div className="space-y-6">
@@ -314,35 +329,34 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
             {stock.dividends > 0 ? ` (R$ ${stock.dividends.toFixed(2)})` : ''} até o histórico ficar disponível.
           </p>
         ) : (<>
-        {/* Visual Bar Chart for 5 Years */}
+        {/* Gráfico de proventos: barras por ano, linha da média e DY do ano */}
         <div className="mb-6 bg-zinc-50/70 border border-zinc-200 p-4 rounded-xl">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 font-mono block mb-4">
-            Distribuição Anual (R$ por ação)
-          </span>
-          <div className="flex items-end gap-3 sm:gap-6 h-36 px-2">
-            {dividendHistory.map((item, idx) => {
-              const heightPct = Math.max(15, (item.amount / maxDivAmount) * 100);
-              const isLatest = idx === dividendHistory.length - 1;
-
-              return (
-                <div key={item.year} className="flex-1 flex flex-col items-center h-full justify-end group">
-                  <span className="text-[11px] font-mono font-bold text-zinc-800 mb-1.5 group-hover:text-emerald-600 transition-colors">
-                    R$ {item.amount.toFixed(2)}
-                  </span>
-                  <div className="w-full bg-zinc-200 rounded-t-md overflow-hidden flex items-end">
-                    <div 
-                      className={`w-full transition-all duration-700 rounded-t-md ${
-                        isLatest ? 'bg-emerald-600' : 'bg-zinc-800 group-hover:bg-zinc-900'
-                      }`}
-                      style={{ height: `${heightPct}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-zinc-500 mt-2 font-bold">
-                    {item.year}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span className="text-[11px] uppercase font-bold text-zinc-500 font-mono">Proventos por ano (R$ por ação) e DY do ano</span>
+            <span className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-600">
+              <span className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-sm" style={{ background: CHART.bazin }} />Proventos</span>
+              <span className="flex items-center gap-1.5"><i className="w-3 border-t-2 border-dashed" style={{ borderColor: CHART.amber }} />Média 5a</span>
+              <span className="flex items-center gap-1.5"><i className="w-3 h-0.5" style={{ background: CHART.graham }} />DY %</span>
+            </span>
+          </div>
+          <div className="h-56" role="img" aria-label={'Proventos por ano: ' + dividendChart.map(d => d.year + ' R$ ' + d.amount.toFixed(2)).join(', ')}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dividendChart} margin={{ top: 16, right: 4, left: -8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
+                <XAxis dataKey="year" tick={axisTick} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="r" tick={axisTick} axisLine={false} tickLine={false} width={48} tickFormatter={v => 'R$' + v} />
+                <YAxis yAxisId="dy" orientation="right" tick={axisTick} axisLine={false} tickLine={false} width={36} unit="%" />
+                <Tooltip contentStyle={tooltipStyle}
+                  formatter={(v: number, n: string) => (n === 'dy' ? [v.toFixed(1) + '%', 'DY do ano'] : ['R$ ' + v.toFixed(2), 'Proventos'])} />
+                {avg5y > 0 && <ReferenceLine yAxisId="r" y={avg5y} stroke={CHART.amber} strokeDasharray="5 4" label={{ value: 'média R$ ' + avg5y.toFixed(2), position: 'insideTopLeft', fontSize: 10, fill: CHART.amber }} />}
+                <Bar yAxisId="r" dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={44} label={{ position: 'top', fontSize: 10, fill: CHART.axis, formatter: (v: number) => v.toFixed(2) }}>
+                  {dividendChart.map((d, i) => (
+                    <Cell key={d.year} fill={d.amount <= 0 ? CHART.neutral : CHART.bazin} fillOpacity={i === dividendChart.length - 1 ? 1 : 0.75} />
+                  ))}
+                </Bar>
+                <Line yAxisId="dy" dataKey="dy" stroke={CHART.graham} strokeWidth={2} dot={{ r: 3 }} connectNulls />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -366,7 +380,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
                   <tr key={item.year} className="hover:bg-zinc-50/50">
                     <td className="py-3 px-3 font-bold text-zinc-900">{item.year}</td>
                     <td className="py-3 px-3 font-bold text-emerald-700">R$ {item.amount.toFixed(2)}</td>
-                    <td className="py-3 px-3 text-zinc-600">{item.dy ? `${item.dy.toFixed(1)}%` : stock.currentPrice > 0 ? `${((item.amount / stock.currentPrice) * 100).toFixed(1)}%*` : '—'}</td>
+                    <td className="py-3 px-3 text-zinc-600">{yearDy(item)}</td>
                     <td className="py-3 px-3 text-zinc-800">R$ {yearCeiling.toFixed(2)}</td>
                     <td className="py-3 px-3 text-right">
                       {item.amount > 0 ? (
