@@ -49,7 +49,6 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
   const simulation = useMemo(() => {
     let balanceNominal = initialInvestment;
     let totalInvested = initialInvestment;
-    let sharesCount = stockPrice > 0 ? Math.floor(initialInvestment / stockPrice) : 0;
     
     let monthMagicNumberReached: number | null = null;
     let milestoneSalaryMonth: number | null = null;
@@ -61,12 +60,13 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
 
     const monthlyInflationRate = ipcaRate / 100 / 12;
 
+    // Corrigido: antes o YIELD crescia todo ano sobre o patrimônio (8% virava ~14% em 15 anos).
+    // Modelo correto: o yield sobre o valor de mercado fica constante; preços e proventos
+    // crescem juntos à taxa informada (valorização das cotas).
+    const monthlyDivRate = dividendYield / 100 / 12;
+    const monthlyGrowth = Math.pow(1 + dividendGrowthRate / 100, 1 / 12) - 1;
+
     for (let month = 1; month <= years * 12; month++) {
-      const yearIndex = Math.floor((month - 1) / 12);
-      
-      // Dividend yield with annual growth rate
-      const effectiveAnnualYield = (dividendYield / 100) * Math.pow(1 + (dividendGrowthRate / 100), yearIndex);
-      const monthlyDivRate = effectiveAnnualYield / 12;
 
       // Accumulated inflation discount factor: (1 + i)^-month
       const inflationDiscountFactor = Math.pow(1 + monthlyInflationRate, -month);
@@ -76,8 +76,9 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
       // Monthly dividend earned
       const monthlyDividend = balanceNominal * monthlyDivRate;
 
-      // Check Magic Number
-      if (!monthMagicNumberReached && monthlyDividend >= stockPrice) {
+      // Número mágico: provento do mês compra 1 ação (a cotação também sobe com o tempo)
+      const priceNow = stockPrice * Math.pow(1 + monthlyGrowth, month);
+      if (!monthMagicNumberReached && monthlyDividend >= priceNow) {
         monthMagicNumberReached = month;
       }
 
@@ -97,11 +98,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
         milestone10kMonth = month;
       }
 
-      if (reinvestDividends) {
-        balanceNominal = balanceNominal + monthlyContribution + monthlyDividend;
-      } else {
-        balanceNominal = balanceNominal + monthlyContribution;
-      }
+      balanceNominal = balanceNominal * (1 + monthlyGrowth) + monthlyContribution + (reinvestDividends ? monthlyDividend : 0);
 
       if (month % 12 === 0) {
         const yr = month / 12;
@@ -121,8 +118,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
     const finalNominalBalance = balanceNominal;
     const finalRealBalance = balanceNominal * finalDiscount;
 
-    const finalAnnualYield = (dividendYield / 100) * Math.pow(1 + (dividendGrowthRate / 100), years - 1);
-    const finalNominalMonthlyDiv = finalNominalBalance * (finalAnnualYield / 12);
+    const finalNominalMonthlyDiv = finalNominalBalance * monthlyDivRate;
     const finalRealMonthlyDiv = finalNominalMonthlyDiv * finalDiscount;
 
     return {
@@ -262,7 +258,7 @@ export const CompoundSimulator: React.FC<CompoundSimulatorProps> = ({ currentSto
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-[9px] uppercase font-bold text-zinc-500 font-mono">Crescimento Div.</span>
+                <span className="text-[9px] uppercase font-bold text-zinc-500 font-mono" title="Valorização anual esperada das cotações e dos proventos">Crescimento</span>
                 <span className="text-xs font-mono font-bold text-zinc-900">{dividendGrowthRate}% a.a.</span>
               </div>
               <input 

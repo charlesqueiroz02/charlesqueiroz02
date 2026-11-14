@@ -19,6 +19,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
   const [analysis, setAnalysis] = useState<string | null>(() => readText(`ai_analysis_${stockData.ticker}`));
   const [sources, setSources] = useState<GroundingChunk[]>(() => readJSON<GroundingChunk[]>(`ai_sources_${stockData.ticker}`, []));
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setAnalysis(readText(`ai_analysis_${stockData.ticker}`));
@@ -42,6 +43,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
     if (!stockData.ticker) return;
     
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('/api/ai/analyze', {
         method: 'POST',
@@ -53,20 +55,22 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
           lpa: stockData.lpa,
           vpa: stockData.vpa,
           dividends: stockData.dividends,
-          avgDividends5y: stockData.avgDividends5y
+          avgDividends5y: stockData.avgDividends5y,
+          minYield: stockData.minYield
         })
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error("Erro na resposta do servidor.");
+        throw new Error(data?.error || "Erro na resposta do servidor.");
       }
 
-      const data = await response.json();
       setAnalysis(data.analysis || "Não foi possível gerar a análise.");
       setSources(data.sources || []);
     } catch (error) {
       console.error("AI Analysis error:", error);
-      setAnalysis("Não foi possível carregar a análise da IA no momento. Tente novamente em instantes.");
+      // Corrigido: o erro aparecia como se fosse o texto da análise
+      setError((error as Error)?.message || "Não foi possível carregar a análise da IA no momento. Tente novamente em instantes.");
     } finally {
       setLoading(false);
     }
@@ -100,6 +104,10 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
         </button>
       </div>
 
+      {error && (
+        <p role="alert" className="mb-4 text-sm text-rose-700 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2">{error}</p>
+      )}
+
       {analysis ? (
         <div className="space-y-6">
           <div className="prose prose-sm max-w-none text-zinc-700 leading-relaxed font-sans">
@@ -119,7 +127,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
             <div className="pt-6 border-t border-zinc-100">
               <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3 flex items-center gap-2">
                 <Newspaper className="w-3 h-3" />
-                Fontes e Notícias Recentes
+                Onde conferir
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {sources.map((source, idx) => source.web && (
@@ -166,7 +174,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
               Pronto para ir além dos números?
             </p>
             <p className="text-zinc-400 text-xs leading-relaxed">
-              Clique para buscar notícias recentes, fatos relevantes e análise de gestão para {stockData.ticker || 'sua ação'}.
+              Clique para uma leitura qualitativa de {stockData.ticker || 'sua ação'}: modelo de negócio, pontos fortes, riscos e o que os números de Graham e Bazin indicam.
             </p>
           </div>
         </div>
@@ -182,7 +190,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
           <span className="text-[9px] font-bold uppercase text-zinc-500">Riscos</span>
         </div>
         <div className="ml-auto text-[9px] text-zinc-400 italic">
-          Grounding via Google Search Ativo
+          Gerado por IA a partir dos dados acima · não é recomendação
         </div>
       </div>
     </div>

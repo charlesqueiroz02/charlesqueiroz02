@@ -1,292 +1,225 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, Plus, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { bazinCeilingPrice, grahamFairPrice, upsidePct, num } from '../lib/valuation';
+import { safeToFixed } from '../lib/utils';
+import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
 
 interface ComparedStock {
   ticker: string;
   name: string;
   price: number;
+  lpa: number;
+  vpa: number;
   pl: number;
   pvp: number;
   dy: number;
   grahamFair: number;
   bazinFair: number;
+  bazinFair5y?: number;
   upside: number;
 }
 
-const safeToFixed = (val: any, decimals: number = 2): string => {
-  const num = Number(val);
-  if (val === undefined || val === null || isNaN(num) || !isFinite(num)) {
-    return "0.00";
-  }
-  return num.toFixed(decimals);
-};
-
-export const StockComparator: React.FC<{ 
-  currentTicker: string; 
-  currentPrice: number; 
-  lpa: number; 
-  vpa: number; 
+interface StockComparatorProps {
+  currentTicker: string;
+  currentName?: string;
+  currentPrice: number;
+  lpa: number;
+  vpa: number;
   dividends: number;
-}> = ({
-  currentTicker,
-  currentPrice,
-  lpa,
-  vpa,
-  dividends
+  avgDividends5y?: number;
+  minYield: number;
+}
+
+const DEFAULT_PEERS = ['VALE3', 'PETR4'];
+
+/**
+ * Comparativo de múltiplos lado a lado.
+ * Corrigido: antes começava com cotações fixas e antigas, usava Bazin a 6% fixo
+ * e recalculava LPA/VPA de forma indireta. Agora tudo vem da API, com o yield do usuário.
+ */
+export const StockComparator: React.FC<StockComparatorProps> = ({
+  currentTicker, currentName, currentPrice, lpa, vpa, dividends, avgDividends5y, minYield,
 }) => {
-  const currentGraham = lpa > 0 && vpa > 0 ? Math.sqrt(22.5 * lpa * vpa) : 0;
-  const currentBazin = dividends > 0 ? dividends / 0.06 : 0; // standard 6%
-  const currentUpside = currentPrice > 0 && currentGraham > 0 ? ((currentGraham / currentPrice) - 1) * 100 : 0;
-
-  const [compareList, setCompareList] = useState<ComparedStock[]>([
-    {
-      ticker: "VALE3",
-      name: "Vale S.A.",
-      price: 70.79,
-      pl: 7.20,
-      pvp: 1.40,
-      dy: 7.92,
-      grahamFair: 78.50,
-      bazinFair: 93.50,
-      upside: 10.9
-    },
-    {
-      ticker: "PETR4",
-      name: "Petróleo Brasileiro S.A.",
-      price: 49.93,
-      pl: 4.82,
-      pvp: 1.34,
-      dy: 7.33,
-      grahamFair: 93.19,
-      bazinFair: 61.00,
-      upside: 86.6
-    }
-  ]);
-
-  const [inputTicker, setInputTicker] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
+  const [peers, setPeers] = useState<string[]>(DEFAULT_PEERS);
+  const [rows, setRows] = useState<ComparedStock[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [inputTicker, setInputTicker] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Fetch real data for compareList on mount or when default stocks need real data
-  useEffect(() => {
-    async function loadRealData() {
-      try {
-        const tickersToLoad = compareList.map(c => c.ticker).filter(t => t !== currentTicker);
-        if (tickersToLoad.length === 0) return;
-
-        const res = await fetch(`/api/stock/compare?tickers=${tickersToLoad.join(',')}`);
-        if (res.ok) {
-          const list: ComparedStock[] = await res.json();
-          if (Array.isArray(list) && list.length > 0) {
-            setCompareList(list);
-          }
-        }
-      } catch (e) {
-        console.warn("Could not load initial compare list real data:", e);
+  const load = useCallback(async (list: string[]) => {
+    const tickers = list.filter(t => t !== currentTicker);
+    if (!tickers.length) { setRows([]); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/stock/compare?tickers=${encodeURIComponent(tickers.join(','))}&minYield=${minYield}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || 'Não foi possível atualizar o comparativo.');
+      if (Array.isArray(data)) {
+        setRows(data);
+        const missing = tickers.filter(t => !data.some((d: ComparedStock) => d.ticker === t));
+        if (missing.length) setErrorMessage(`Sem cotação agora para: ${missing.join(', ')}.`);
       }
+    } catch (e: any) {
+      setErrorMessage(e?.message || 'Não foi possível atualizar o comparativo.');
+    } finally {
+      setLoading(false);
     }
-    loadRealData();
-  }, []);
+  }, [currentTicker, minYield]);
 
-  const currentStockItem: ComparedStock = {
-    ticker: currentTicker,
-    name: "Ação em Análise",
-    price: currentPrice,
-    pl: lpa > 0 ? currentPrice / lpa : 0,
-    pvp: vpa > 0 ? currentPrice / vpa : 0,
-    dy: currentPrice > 0 ? (dividends / currentPrice) * 100 : 0,
-    grahamFair: currentGraham,
-    bazinFair: currentBazin,
-    upside: currentUpside
-  };
+  // Recarrega ao trocar a ação em foco ou o yield mínimo
+  useEffect(() => { load(peers); }, [load]);
 
-  const visibleList = [
-    currentStockItem,
-    ...compareList.filter(item => item.ticker !== currentTicker)
-  ];
+  const current: ComparedStock = useMemo(() => {
+    const g = grahamFairPrice(lpa, vpa);
+    return {
+      ticker: currentTicker,
+      name: currentName || 'Ação em análise',
+      price: currentPrice, lpa, vpa,
+      pl: lpa > 0 ? currentPrice / lpa : 0,
+      pvp: vpa > 0 ? currentPrice / vpa : 0,
+      dy: currentPrice > 0 ? (dividends / currentPrice) * 100 : 0,
+      grahamFair: g,
+      bazinFair: bazinCeilingPrice(dividends, minYield),
+      bazinFair5y: bazinCeilingPrice(avgDividends5y || dividends, minYield),
+      upside: upsidePct(g, currentPrice),
+    };
+  }, [currentTicker, currentName, currentPrice, lpa, vpa, dividends, avgDividends5y, minYield]);
+
+  const visibleList = [current, ...rows.filter(r => r.ticker !== currentTicker)];
+
+  const chartData = visibleList.map(s => ({
+    ticker: s.ticker,
+    Graham: Number(safeToFixed(s.upside, 1)),
+    Bazin: Number(safeToFixed(upsidePct(s.bazinFair5y || s.bazinFair, s.price), 1)),
+  }));
 
   const addTickerToCompare = async () => {
-    if (!inputTicker || isAdding) return;
-    const cleanTicker = inputTicker.trim().toUpperCase().replace(/\.SA$/i, '');
+    const clean = inputTicker.trim().toUpperCase().replace(/\.SA$/i, '');
     setErrorMessage(null);
-
-    if (cleanTicker === currentTicker || compareList.some(s => s.ticker === cleanTicker)) {
-      setInputTicker("");
+    if (!clean) return;
+    if (!/^[A-Z]{4}\d{1,2}[A-Z]?$/.test(clean)) {
+      setErrorMessage('Use o código da B3, ex.: BBAS3, TAEE11.');
       return;
     }
-
-    setIsAdding(true);
-
-    try {
-      // Call backend API for real B3 market indicators
-      const res = await fetch(`/api/stock/${encodeURIComponent(cleanTicker)}`);
-      
-      if (!res.ok) {
-        throw new Error(`Ação ${cleanTicker} não encontrada na B3.`);
-      }
-
-      const d = await res.json();
-      
-      const price = d.currentPrice || 0;
-      const targetLpa = d.lpa || 0;
-      const targetVpa = d.vpa || 0;
-      const targetDivs = d.dividends || 0;
-      const compName = d.companyName || cleanTicker;
-
-      const gFair = targetLpa > 0 && targetVpa > 0 ? Math.sqrt(22.5 * targetLpa * targetVpa) : 0;
-      const bFair = targetDivs > 0 ? targetDivs / 0.06 : 0;
-      const up = price > 0 && gFair > 0 ? ((gFair / price) - 1) * 100 : 0;
-
-      const nextStock: ComparedStock = {
-        ticker: cleanTicker,
-        name: compName,
-        price,
-        pl: targetLpa > 0 ? price / targetLpa : 0,
-        pvp: targetVpa > 0 ? price / targetVpa : 0,
-        dy: price > 0 ? (targetDivs / price) * 100 : 0,
-        grahamFair: gFair,
-        bazinFair: bFair,
-        upside: up
-      };
-
-      setCompareList(prev => [...prev.filter(s => s.ticker !== cleanTicker), nextStock]);
-      setInputTicker("");
-    } catch (err: any) {
-      console.error("Failed adding comparator ticker:", err);
-      setErrorMessage(err.message || `Não foi possível encontrar ${cleanTicker}.`);
-    } finally {
-      setIsAdding(false);
-    }
+    if (clean === currentTicker || peers.includes(clean)) { setInputTicker(''); return; }
+    if (peers.length >= 8) { setErrorMessage('Compare até 8 ações por vez.'); return; }
+    const next = [...peers, clean];
+    setPeers(next);
+    setInputTicker('');
+    await load(next);
   };
 
-  const removeTicker = (tickerToRemove: string) => {
-    if (tickerToRemove === currentTicker) return;
-    setCompareList(compareList.filter(s => s.ticker !== tickerToRemove));
-  };
-
-  const refreshAll = async () => {
-    setIsAdding(true);
-    try {
-      const tickers = compareList.map(c => c.ticker).filter(t => t !== currentTicker);
-      if (tickers.length > 0) {
-        const res = await fetch(`/api/stock/compare?tickers=${tickers.join(',')}`);
-        if (res.ok) {
-          const list = await res.json();
-          if (Array.isArray(list)) setCompareList(list);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAdding(false);
-    }
+  const removeTicker = (t: string) => {
+    setPeers(p => p.filter(x => x !== t));
+    setRows(r => r.filter(x => x.ticker !== t));
   };
 
   return (
-    <div className="bg-white data-grid-border p-6 rounded-lg shadow-sm mt-8 transition-all hover:shadow-md">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-zinc-100 pb-4">
+    <section className="bg-white data-grid-border p-5 sm:p-6 rounded-xl shadow-sm mt-8" aria-labelledby="cmp-title">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-zinc-100 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-black text-white rounded-lg">
+          <div className="p-2 bg-emerald-50 text-emerald-700 rounded-lg">
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-serif italic text-xl tracking-tight text-zinc-900">Comparativo de Múltiplos Reais</h3>
-            <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-mono">Dados oficiais da B3 side-by-side em tempo real</p>
+            <h3 id="cmp-title" className="font-serif italic text-xl tracking-tight text-zinc-900">Comparativo de múltiplos</h3>
+            <p className="text-xs text-zinc-500">Bazin com yield mínimo de {num(minYield, 1)}% · média de 5 anos</p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-          {errorMessage && (
-            <span className="text-[10px] text-red-500 font-bold">{errorMessage}</span>
-          )}
-          <div className="flex gap-2">
-            <input 
-              type="text" 
-              placeholder="Adicionar Ticker (ex: BBAS3)" 
-              value={inputTicker}
-              onChange={(e) => {
-                setInputTicker(e.target.value.toUpperCase());
-                if (errorMessage) setErrorMessage(null);
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && addTickerToCompare()}
-              disabled={isAdding}
-              className="border border-zinc-300 rounded px-2.5 py-1.5 text-xs font-mono uppercase bg-zinc-50 w-44 outline-none focus:ring-1 focus:ring-black disabled:opacity-50"
-            />
-            <button 
-              onClick={addTickerToCompare}
-              disabled={isAdding || !inputTicker.trim()}
-              className="bg-black hover:bg-zinc-800 text-white rounded p-2 flex items-center justify-center transition-colors disabled:opacity-50"
-              title="Adicionar ação à tabela comparativa"
-            >
-              {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={refreshAll}
-              disabled={isAdding}
-              className="p-2 border border-zinc-200 rounded text-zinc-600 hover:bg-zinc-100 transition-colors"
-              title="Atualizar cotações reais"
-            >
-              <RefreshCw className={`w-4 h-4 ${isAdding ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-        </div>
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); addTickerToCompare(); }}>
+          <input
+            type="text"
+            placeholder="Adicionar (ex: BBAS3)"
+            aria-label="Código da ação para comparar"
+            value={inputTicker}
+            onChange={e => { setInputTicker(e.target.value.toUpperCase()); setErrorMessage(null); }}
+            className="border border-zinc-200 rounded-lg px-3 py-2 text-xs font-mono uppercase bg-zinc-50 w-40 outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <button type="submit" disabled={loading || !inputTicker.trim()}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg p-2 disabled:opacity-50" aria-label="Adicionar ao comparativo">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          </button>
+          <button type="button" onClick={() => load(peers)} disabled={loading}
+            className="p-2 border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-100" aria-label="Atualizar cotações">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </form>
       </div>
 
+      {errorMessage && <p role="status" className="text-xs text-rose-700 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-4">{errorMessage}</p>}
+
+      {visibleList.length > 1 && (
+        <div className="h-56 mb-6" role="img" aria-label="Gráfico de barras com o potencial até o preço justo de Graham e o preço teto de Bazin de cada ação">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART.grid} />
+              <XAxis dataKey="ticker" tick={axisTick} axisLine={false} tickLine={false} />
+              <YAxis tick={axisTick} axisLine={false} tickLine={false} unit="%" />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number, n: string) => [`${num(v, 1)}%`, `Até o alvo ${n}`]} />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+              <ReferenceLine y={0} stroke={CHART.neutral} />
+              <Bar dataKey="Graham" fill={CHART.graham} radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="Bazin" fill={CHART.bazin} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
-        <table className="w-full text-left font-mono">
+        <table className="w-full text-left font-mono text-xs">
           <thead>
-            <tr className="border-b border-zinc-200">
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">Ticker</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">Preço Atual</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">LPA</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">VPA</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">P/L</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">P/VP</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">DY Real (%)</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">Graham Justo</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">Bazin Teto</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold">Upside</th>
-              <th className="py-2.5 text-[9px] uppercase text-zinc-400 font-bold text-right">Ação</th>
+            <tr className="border-b border-zinc-200 text-[11px] uppercase text-zinc-500">
+              <th scope="col" className="py-2.5 pr-3">Ticker</th>
+              <th scope="col" className="py-2.5 pr-3">Preço</th>
+              <th scope="col" className="py-2.5 pr-3">LPA</th>
+              <th scope="col" className="py-2.5 pr-3">VPA</th>
+              <th scope="col" className="py-2.5 pr-3">P/L</th>
+              <th scope="col" className="py-2.5 pr-3">P/VP</th>
+              <th scope="col" className="py-2.5 pr-3">DY 12m</th>
+              <th scope="col" className="py-2.5 pr-3">Graham</th>
+              <th scope="col" className="py-2.5 pr-3">Bazin 5a</th>
+              <th scope="col" className="py-2.5 pr-3">Até Graham</th>
+              <th scope="col" className="py-2.5 text-right"><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 text-xs text-zinc-800">
-            {visibleList.map((stk) => (
-              <tr key={stk.ticker} className={stk.ticker === currentTicker ? "bg-emerald-50/60 font-bold" : "hover:bg-zinc-50/50"}>
-                <td className="py-3 font-bold text-zinc-900">
-                  <div className="flex flex-col">
-                    <span>{stk.ticker}</span>
-                    <span className="text-[9px] text-zinc-400 font-normal truncate max-w-[130px]">{stk.name}</span>
-                  </div>
+          <tbody className="divide-y divide-zinc-100 text-zinc-800">
+            {visibleList.map(stk => (
+              <tr key={stk.ticker} className={stk.ticker === currentTicker ? 'bg-emerald-50/60 font-semibold' : 'hover:bg-zinc-50/60'}>
+                <td className="py-3 pr-3">
+                  <div className="font-bold text-zinc-900">{stk.ticker}</div>
+                  <div className="text-[10px] text-zinc-500 font-sans font-normal truncate max-w-[130px]">{stk.name}</div>
                 </td>
-                <td className="py-3">R$ {safeToFixed(stk.price)}</td>
-                <td className="py-3 text-zinc-600">R$ {safeToFixed(stk.pl > 0 && stk.price > 0 ? stk.price / stk.pl : 0)}</td>
-                <td className="py-3 text-zinc-600">R$ {safeToFixed(stk.pvp > 0 && stk.price > 0 ? stk.price / stk.pvp : 0)}</td>
-                <td className="py-3">{stk.pl > 0 ? safeToFixed(stk.pl) : "N/D"}</td>
-                <td className="py-3">{stk.pvp > 0 ? safeToFixed(stk.pvp) : "N/D"}</td>
-                <td className="py-3 text-emerald-600 font-bold">{safeToFixed(stk.dy)}%</td>
-                <td className="py-3 text-zinc-500">R$ {safeToFixed(stk.grahamFair)}</td>
-                <td className="py-3 text-zinc-500">R$ {safeToFixed(stk.bazinFair)}</td>
-                <td className={`py-3 font-bold ${stk.upside >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {stk.upside >= 0 ? "+" : ""}{safeToFixed(stk.upside, 1)}%
+                <td className="py-3 pr-3">R$ {safeToFixed(stk.price)}</td>
+                <td className="py-3 pr-3 text-zinc-600">R$ {safeToFixed(stk.lpa)}</td>
+                <td className="py-3 pr-3 text-zinc-600">R$ {safeToFixed(stk.vpa)}</td>
+                <td className="py-3 pr-3">{stk.pl > 0 ? safeToFixed(stk.pl, 1) : 'N/D'}</td>
+                <td className="py-3 pr-3">{stk.pvp > 0 ? safeToFixed(stk.pvp) : 'N/D'}</td>
+                <td className="py-3 pr-3 text-emerald-700 font-bold">{safeToFixed(stk.dy)}%</td>
+                <td className="py-3 pr-3">{stk.grahamFair > 0 ? `R$ ${safeToFixed(stk.grahamFair)}` : 'N/A'}</td>
+                <td className="py-3 pr-3">{(stk.bazinFair5y || stk.bazinFair) > 0 ? `R$ ${safeToFixed(stk.bazinFair5y || stk.bazinFair)}` : 'N/A'}</td>
+                <td className={`py-3 pr-3 font-bold ${stk.upside >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                  {stk.grahamFair > 0 ? `${stk.upside >= 0 ? '+' : ''}${safeToFixed(stk.upside, 1)}%` : '—'}
                 </td>
                 <td className="py-3 text-right">
                   {stk.ticker !== currentTicker ? (
-                    <button 
-                      onClick={() => removeTicker(stk.ticker)}
-                      className="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors"
-                      title={`Remover ${stk.ticker}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5 inline" />
+                    <button onClick={() => removeTicker(stk.ticker)}
+                      className="text-zinc-400 hover:text-rose-600 p-1.5 rounded hover:bg-rose-50" aria-label={`Remover ${stk.ticker}`}>
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   ) : (
-                    <span className="text-[9px] uppercase tracking-tighter bg-emerald-100 text-emerald-800 rounded px-1.5 py-0.5 font-bold">Foco</span>
+                    <span className="text-[10px] uppercase bg-emerald-100 text-emerald-800 rounded px-1.5 py-0.5 font-bold">Foco</span>
                   )}
                 </td>
               </tr>
             ))}
+            {loading && rows.length === 0 && (
+              <tr><td colSpan={11} className="py-6 text-center text-zinc-500"><Loader2 className="w-4 h-4 animate-spin inline mr-2" />Carregando comparativo…</td></tr>
+            )}
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 };

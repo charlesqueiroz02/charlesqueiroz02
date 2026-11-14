@@ -391,7 +391,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
 
                       {/* Dividend Yield */}
                       <td className="py-3 px-3">
-                        <span className={`font-bold ${stk.dy >= 6 ? 'text-emerald-700' : 'text-zinc-600'}`}>
+                        <span className={`font-bold ${stk.dy >= minYield ? 'text-emerald-700' : 'text-zinc-600'}`}>
                           {stk.dy.toFixed(2)}%
                         </span>
                       </td>

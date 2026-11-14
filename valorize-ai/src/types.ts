@@ -52,6 +52,8 @@ export interface StockData {
   sector?: SectorData;
   quickSummary?: string;
   historicalData?: HistoricalPoint[];
+  /** Fechamentos mensais (t em ms) dos últimos ~6 anos */
+  priceHistory?: { t: number; close: number }[];
   portfolioInfo?: PortfolioItem;
   lastUpdated?: number;
   dataQuality?: Record<string, DataQuality>;

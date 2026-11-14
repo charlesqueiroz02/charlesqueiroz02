@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlaskConical, RotateCcw, Grid3x3, ScanSearch } from 'lucide-react';
 import type { StockData } from '../types';
 import {
@@ -48,6 +48,11 @@ export const ValuationLab: React.FC<ValuationLabProps> = ({ stock, minYield, mar
   /* ---------------- Teste de estresse ---------------- */
   const [shock, setShock] = useState<StressShock>({ lpaPct: 0, vpaPct: 0, divPct: 0, minYield });
   const [presetId, setPresetId] = useState('base');
+  // Corrigido: o cenário não acompanhava a mudança do yield mínimo em "Meus parâmetros"
+  useEffect(() => {
+    setShock(p => ({ ...p, minYield }));
+    setPresetId(id => (id === 'base' ? 'base' : ''));
+  }, [minYield]);
   const stressed = useMemo(() => {
     const s = applyShock(stock.lpa, stock.vpa, baseDiv, shock);
     const g = grahamFairPrice(s.lpa, s.vpa);
@@ -173,7 +178,7 @@ export const ValuationLab: React.FC<ValuationLabProps> = ({ stock, minYield, mar
           {STRESS_PRESETS.map(p => (
             <button
               key={p.id}
-              onClick={() => { setPresetId(p.id); setShock(p.id === 'base' ? { ...p.shock, minYield } : p.shock); }}
+              onClick={() => { setPresetId(p.id); setShock(p.id === 'selic' ? p.shock : { ...p.shock, minYield }); }}
               className={`shrink-0 text-left px-3 py-2 rounded-lg border transition-colors ${presetId === p.id ? 'bg-zinc-950 border-zinc-950 text-white' : 'border-zinc-200 hover:border-zinc-400'}`}
             >
               <div className="text-xs font-bold">{p.label}</div>

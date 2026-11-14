@@ -283,6 +283,7 @@ export function App() {
           sector: allData.sector || prev.sector,
           quickSummary: allData.quickSummary || prev.quickSummary,
           historicalData: allData.historicalData?.length ? allData.historicalData : [],
+          priceHistory: Array.isArray(allData.priceHistory) ? allData.priceHistory : [],
           dataQuality: allData.dataQuality,
           warnings: allData.warnings,
           lastUpdated: Date.now()
@@ -839,12 +840,15 @@ export function App() {
 
             {/* Live Multiples Comparator */}
             <div className="mt-8">
-              <StockComparator 
+              <StockComparator
                 currentTicker={stock.ticker}
+                currentName={stock.companyName}
                 currentPrice={stock.currentPrice}
                 lpa={stock.lpa}
                 vpa={stock.vpa}
                 dividends={stock.dividends}
+                avgDividends5y={stock.avgDividends5y}
+                minYield={stock.minYield}
               />
             </div>
           </div>

@@ -37,25 +37,21 @@ export const UpsideChart: React.FC<UpsideChartProps> = ({
 }) => {
   // Generate sensitivity data: How upside changes if price moves
   const data = useMemo(() => {
-    const points = [];
-    const range = 0.3; // +/- 30%
-    const basePrice = currentPrice || 1;
-    for (let i = -range; i <= range; i += 0.05) {
-      const price = basePrice * (1 + i);
-      const grahamUpside = price > 0 ? ((grahamFairPrice / price) - 1) * 100 : 0;
-      const bazinUpside = price > 0 ? ((bazinCeilingPrice / price) - 1) * 100 : 0;
+    const points: { label: string; price: number; graham: number | null; bazin: number | null; isCurrent: boolean }[] = [];
+    if (currentPrice <= 0) return points;
+    // Corrigido: o passo em casas decimais gerava o rótulo "-0%" e a linha "Preço atual" sumia.
+    for (let step = -30; step <= 30; step += 5) {
+      const price = currentPrice * (1 + step / 100);
       points.push({
-        label: `${(i * 100).toFixed(0)}%`,
-        price: safeToFixed(price, 2),
-        graham: safeToFixed(grahamUpside, 1),
-        bazin: safeToFixed(bazinUpside, 1),
-        isCurrent: Math.abs(i) < 0.01
+        label: `${step > 0 ? '+' : ''}${step}%`,
+        price: Number(safeToFixed(price, 2)),
+        graham: grahamFairPrice > 0 ? Number(safeToFixed(((grahamFairPrice / price) - 1) * 100, 1)) : null,
+        bazin: bazinCeilingPrice > 0 ? Number(safeToFixed(((bazinCeilingPrice / price) - 1) * 100, 1)) : null,
+        isCurrent: step === 0,
       });
     }
     return points;
   }, [currentPrice, grahamFairPrice, bazinCeilingPrice]);
-
-  const currentUpsideGraham = ((grahamFairPrice / currentPrice) - 1) * 100;
 
   return (
     <div className="bg-white data-grid-border p-6 rounded-lg shadow-sm mt-8">

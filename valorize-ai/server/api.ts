@@ -4,6 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import dns from 'node:dns';
 import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DEFAULT_MIN_YIELD } from '../src/lib/valuation';
+import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends';
 
 // Ensure IPv4 first to prevent IPv6 stalling on external API connections
 dns.setDefaultResultOrder('ipv4first');
@@ -33,9 +34,8 @@ const apiKey = process.env.GEMINI_API_KEY || '';
 // Modelo configurável via .env (GEMINI_MODEL). Troque sem mexer no código.
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
-// Últimos 5 anos COMPLETOS (dinâmico — não quebra na virada do ano)
-const LAST_FULL_YEAR = new Date().getFullYear() - 1;
-const FIVE_YEARS = [4, 3, 2, 1, 0].map(k => LAST_FULL_YEAR - k);
+// Últimos 5 anos COMPLETOS: calculado a cada consulta (o servidor pode ficar no ar na virada do ano)
+const fiveYears = () => lastFullYears(new Date());
 const ai = new GoogleGenAI({
   apiKey,
   httpOptions: {
@@ -48,12 +48,6 @@ const ai = new GoogleGenAI({
 // Cache for stock data to avoid repeated scrapers (valid for 15 minutes)
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 15 * 60 * 1000;
-
-export interface DividendYearPoint {
-  year: number;
-  amount: number;
-  dy?: number;
-}
 
 export interface ReferenceStock {
   ticker: string;
@@ -611,44 +605,23 @@ async function fetchYahooData(ticker: string) {
     const price = meta?.regularMarketPrice || meta?.chartPreviousClose || 0;
     const name = meta?.shortName || meta?.longName || ticker;
 
-    // Calculate real accumulated 12-month and 5-year dividend history
+    // Proventos: 12 meses contados a partir de hoje e média de 5 anos incluindo anos sem pagamento
     const divsObj = result?.events?.dividends || {};
     const divEntries = Object.entries(divsObj).map(([tsStr, divItem]: [string, any]) => ({
-      date: divItem.date || parseInt(tsStr, 10),
-      amount: Number(divItem.amount) || 0
-    })).filter(e => e.amount > 0);
-
-    divEntries.sort((a, b) => b.date - a.date);
-
-    let dividends12m = 0;
-    const yearTotals: Record<number, number> = {};
-
-    divEntries.forEach(e => {
-      const yr = new Date(e.date * 1000).getFullYear();
-      if (yr >= FIVE_YEARS[0]) {
-        yearTotals[yr] = (yearTotals[yr] || 0) + e.amount;
-      }
-    });
-
-    if (divEntries.length > 0) {
-      const latestDate = divEntries[0].date;
-      const oneYearCutoff = latestDate - (365 * 24 * 60 * 60);
-      const recent12mEvents = divEntries.filter(e => e.date >= oneYearCutoff);
-      dividends12m = recent12mEvents.reduce((acc, e) => acc + e.amount, 0);
-    }
-
-    const dividendHistory5y: DividendYearPoint[] = FIVE_YEARS.map(yr => ({
-      year: yr,
-      amount: Number((yearTotals[yr] || 0).toFixed(2))
+      date: Number(divItem?.date) || parseInt(tsStr, 10),
+      amount: Number(divItem?.amount) || 0
     }));
-
-    const validYears = dividendHistory5y.filter(d => d.amount > 0);
-    const avgDividends5y = validYears.length > 0 
-      ? Number((validYears.reduce((acc, d) => acc + d.amount, 0) / validYears.length).toFixed(2))
-      : 0;
+    const timestamps: number[] = result.timestamp || [];
+    const firstTradeYear = timestamps.length ? new Date(timestamps[0] * 1000).getUTCFullYear() : undefined;
+    // O Yahoo devolve no máximo ~6 anos; se o primeiro candle é do início da janela, a ação já existia antes.
+    const windowStart = fiveYears()[0];
+    const { dividends12m, dividendHistory5y, avgDividends5y } = summarizeDividends(
+      divEntries,
+      new Date(),
+      firstTradeYear && firstTradeYear > windowStart ? firstTradeYear : undefined,
+    );
 
     // Historical candles
-    const timestamps = result.timestamp || [];
     const quoteIndicators = result.indicators?.quote?.[0] || {};
     const opens = quoteIndicators.open || [];
     const closes = quoteIndicators.close || [];
@@ -659,7 +632,7 @@ async function fetchYahooData(ticker: string) {
     timestamps.forEach((ts: number, idx: number) => {
       const date = new Date(ts * 1000);
       const year = date.getFullYear();
-      if (year >= FIVE_YEARS[0]) {
+      if (year >= windowStart) {
         if (!yearDataMap[year]) {
           yearDataMap[year] = { open: [], close: [], high: [], low: [] };
         }
@@ -689,13 +662,20 @@ async function fetchYahooData(ticker: string) {
       };
     });
 
+    // Série mensal de fechamento (para o gráfico de preço com as faixas de Graham e Bazin)
+    const monthly = timestamps
+      .map((ts: number, idx: number) => ({ t: ts * 1000, close: closes[idx] }))
+      .filter((p: { t: number; close: number | null }) => p.close != null && p.close > 0)
+      .map((p: { t: number; close: number }) => ({ t: p.t, close: Number(p.close.toFixed(2)) }));
+
     return {
       price: Number(price.toFixed(2)),
       name,
-      dividends12m: Number(dividends12m.toFixed(2)),
+      dividends12m,
       avgDividends5y,
       dividendHistory5y,
-      historicalData
+      historicalData,
+      monthly
     };
   } catch (e) {
     return null;
@@ -771,8 +751,9 @@ async function getCompleteStockData(tickerInput: string) {
   quality.history = yahooHasHistory ? 'live' : known ? 'reference' : 'missing';
   if (!yahooHasHistory && !known) warnings.push('Sem histórico de 5 anos: o Bazin usa os proventos de 12 meses.');
 
-  const avgDividends5y = (yahoo && yahoo.avgDividends5y > 0)
-    ? yahoo.avgDividends5y
+  // Média 5a vem da MESMA fonte do histórico exibido (antes podiam divergir)
+  const avgDividends5y = yahooHasHistory
+    ? yahoo!.avgDividends5y
     : (known ? known.refAvgDivs5y : dividends);
 
   const payoutConsistencyYears = dividendHistory5y.filter(d => d.amount > 0).length;
@@ -789,7 +770,11 @@ async function getCompleteStockData(tickerInput: string) {
         ...h,
         pl: lpa > 0 ? Number((h.close / lpa).toFixed(2)) : 0,
         pvp: vpa > 0 ? Number((h.close / vpa).toFixed(2)) : 0,
-        dy: h.close > 0 && dividends > 0 ? Number(((dividends / h.close) * 100).toFixed(2)) : 0
+        // DY do ano = proventos pagos NAQUELE ano ÷ fechamento do ano (antes usava os proventos de hoje)
+        dy: (() => {
+          const paid = dividendHistory5y.find(d => d.year === h.year)?.amount || 0;
+          return h.close > 0 && paid > 0 ? Number(((paid / h.close) * 100).toFixed(2)) : 0;
+        })()
       }))
     : [];
 
@@ -815,6 +800,7 @@ async function getCompleteStockData(tickerInput: string) {
       avgDY
     },
     historicalData: historical,
+    priceHistory: yahoo?.monthly || [],
     dataQuality: quality,
     warnings,
     lastUpdated: Date.now()
@@ -917,13 +903,14 @@ app.get('/api/stock/compare', async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Parâmetro 'tickers' é obrigatório" });
     }
 
+    const minYield = Math.min(15, Math.max(3, Number(req.query.minYield) || DEFAULT_MIN_YIELD));
     const tickers = tickersParam.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
     const results = await Promise.all(tickers.map(async (t) => {
       try {
         const d = await getCompleteStockData(t);
         const grahamFair = grahamFairPrice(d.lpa, d.vpa);
-        const bazinFair = bazinCeilingPrice(d.dividends);
-        const bazinFair5y = bazinCeilingPrice(d.avgDividends5y || d.dividends);
+        const bazinFair = bazinCeilingPrice(d.dividends, minYield);
+        const bazinFair5y = bazinCeilingPrice(d.avgDividends5y || d.dividends, minYield);
         const upside = d.currentPrice > 0 && grahamFair > 0 ? ((grahamFair / d.currentPrice) - 1) * 100 : 0;
 
         return {
@@ -941,7 +928,9 @@ app.get('/api/stock/compare', async (req: Request, res: Response) => {
           grahamFair: Number(grahamFair.toFixed(2)),
           bazinFair: Number(bazinFair.toFixed(2)),
           bazinFair5y: Number(bazinFair5y.toFixed(2)),
-          upside: Number(upside.toFixed(1))
+          upside: Number(upside.toFixed(1)),
+          sector: d.sector?.sectorName,
+          dataQuality: d.dataQuality
         };
       } catch (e) {
         return null;
@@ -1014,6 +1003,7 @@ app.get('/api/stock/:ticker', async (req: Request, res: Response) => {
 app.post('/api/ai/analyze', async (req: Request, res: Response) => {
   try {
     const { ticker, currentPrice, lpa, vpa, dividends, avgDividends5y, companyName } = req.body;
+    const minYield = Math.min(15, Math.max(3, Number(req.body?.minYield) || DEFAULT_MIN_YIELD));
     if (!ticker) {
       return res.status(400).json({ error: "Ticker é obrigatório." });
     }
@@ -1026,7 +1016,7 @@ Analise a ação ${ticker} (${companyName || ''}) para um investidor pessoa fís
 - Proventos 12m: R$ ${dividends || 0}
 - Média Proventos 5 Anos: R$ ${avgDividends5y || dividends || 0}
 - Preço Justo de Graham: R$ ${lpa > 0 && vpa > 0 ? Math.sqrt(22.5 * lpa * vpa).toFixed(2) : 'N/D'}
-- Preço Teto Bazin (6% sobre Média 5a): R$ ${(avgDividends5y || dividends) > 0 ? ((avgDividends5y || dividends) / 0.06).toFixed(2) : 'N/D'}
+- Preço Teto Bazin (${minYield}% sobre Média 5a): R$ ${(avgDividends5y || dividends) > 0 ? ((avgDividends5y || dividends) / (minYield / 100)).toFixed(2) : 'N/D'}
 
 Instruções:
 - Seja didático, claro e objetivo.
@@ -1068,10 +1058,10 @@ Instruções:
     if (!analysisText) {
       const p = Number(currentPrice) || 1;
       const gPrice = lpa > 0 && vpa > 0 ? Math.sqrt(22.5 * lpa * vpa) : 0;
-      const bPrice = (avgDividends5y || dividends) > 0 ? (avgDividends5y || dividends) / 0.06 : 0;
+      const bPrice = (avgDividends5y || dividends) > 0 ? (avgDividends5y || dividends) / (minYield / 100) : 0;
       const dy = Number(((dividends / p) * 100).toFixed(2));
 
-      analysisText = `1. O QUE ESTÁ ACONTECENDO?\nA empresa ${ticker} (${companyName || 'B3'}) negocia a R$ ${p.toFixed(2)} com proventos pagos nos últimos 12 meses de R$ ${dividends.toFixed(2)} por ação (Yield de ${dy}%) e média de 5 anos de R$ ${(avgDividends5y || dividends).toFixed(2)} por ação.\n\n2. PONTOS FORTES E RISCOS\n• Método de Graham: Valor intrínseco estimado de R$ ${gPrice.toFixed(2)}.${gPrice > p ? ' Ativo com desconto patrimonial e de lucros.' : ''}\n• Método de Bazin: Com base na média dos últimos 5 anos de proventos (yield mín. 6%), o preço teto estimado é de R$ ${bPrice.toFixed(2)}.${bPrice > p ? ' Ativo dentro da margem de segurança para dividendos.' : ' Cotação acima do teto estipulado.'}\n• Riscos a Monitorar: Cenário macroeconômico, taxa Selic e volatilidade setorial.\n\n3. CONCLUSÃO PARA VOCÊ\n${ticker} atende aos critérios fundamentais para compor carteira previdenciária se comprada abaixo de R$ ${bPrice.toFixed(2)}. Mantenha disciplina de aportes regulares e diversificação.`;
+      analysisText = `1. O QUE ESTÁ ACONTECENDO?\nA empresa ${ticker} (${companyName || 'B3'}) negocia a R$ ${p.toFixed(2)} com proventos pagos nos últimos 12 meses de R$ ${dividends.toFixed(2)} por ação (Yield de ${dy}%) e média de 5 anos de R$ ${(avgDividends5y || dividends).toFixed(2)} por ação.\n\n2. PONTOS FORTES E RISCOS\n• Método de Graham: Valor intrínseco estimado de R$ ${gPrice.toFixed(2)}.${gPrice > p ? ' Ativo com desconto patrimonial e de lucros.' : ''}\n• Método de Bazin: Com base na média dos últimos 5 anos de proventos (yield mín. ${minYield}%), o preço teto estimado é de R$ ${bPrice.toFixed(2)}.${bPrice > p ? ' Ativo dentro da margem de segurança para dividendos.' : ' Cotação acima do teto estipulado.'}\n• Riscos a Monitorar: Cenário macroeconômico, taxa Selic e volatilidade setorial.\n\n3. CONCLUSÃO PARA VOCÊ\n${ticker} atende aos critérios fundamentais para compor carteira previdenciária se comprada abaixo de R$ ${bPrice.toFixed(2)}. Mantenha disciplina de aportes regulares e diversificação.`;
     }
 
     return res.json({

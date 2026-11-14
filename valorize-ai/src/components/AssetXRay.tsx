@@ -40,34 +40,17 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
   const minYield = stock.minYield || 6;
   const marginOfSafety = stock.marginOfSafety ?? 20;
 
-  // 5-year dividend history points
-  const dividendHistory: DividendYearPoint[] = useMemo(() => {
-    if (stock.dividendHistory5y && stock.dividendHistory5y.length > 0) {
-      return stock.dividendHistory5y;
-    }
-    const d = stock.dividends || 1.5;
-    return [
-      { year: 2021, amount: Number((d * 0.75).toFixed(2)) },
-      { year: 2022, amount: Number((d * 0.88).toFixed(2)) },
-      { year: 2023, amount: Number((d * 0.95).toFixed(2)) },
-      { year: 2024, amount: Number((d * 1.05).toFixed(2)) },
-      { year: 2025, amount: Number(d.toFixed(2)) }
-    ];
-  }, [stock.dividendHistory5y, stock.dividends]);
+  // Histórico real de 5 anos. Corrigido: antes, sem histórico, o app INVENTAVA valores de 2021–2025.
+  const dividendHistory: DividendYearPoint[] = stock.dividendHistory5y || [];
+  const hasHistory = dividendHistory.length > 0;
 
-  // Calculations based on mode
-  const activeDividend = bazinMode === '5y' 
-    ? (stock.avgDividends5y || stock.dividends) 
+  // Bazin vem do núcleo de cálculo (valuation.ts) — antes era refeito aqui à mão
+  const activeDividend = bazinMode === '5y'
+    ? (stock.avgDividends5y || stock.dividends)
     : stock.dividends;
-
-  const activeCeilingPrice = activeDividend > 0 && minYield > 0 
-    ? activeDividend / (minYield / 100) 
-    : 0;
-
-  const activeEntryPriceBazin = activeCeilingPrice * (1 - marginOfSafety / 100);
-  const activeUpsideBazin = stock.currentPrice > 0 && activeCeilingPrice > 0 
-    ? ((activeCeilingPrice / stock.currentPrice) - 1) * 100 
-    : 0;
+  const activeCeilingPrice = results.bazinCeilingPrice;
+  const activeEntryPriceBazin = results.bazinEntryPrice;
+  const activeUpsideBazin = results.bazinUpside;
 
   const grahamFair = results.grahamFairPrice;
   const grahamEntry = results.grahamEntryPrice;
@@ -79,7 +62,7 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
     : 0;
 
   const criteria = useMemo(() => {
-    const hasConsistentDividends = dividendHistory.filter(d => d.amount > 0).length >= 4;
+    const hasConsistentDividends = hasHistory && dividendHistory.filter(d => d.amount > 0).length >= 4;
     const dyAboveMin = currentDy >= minYield;
     const priceBelowCeiling = stock.currentPrice <= activeCeilingPrice;
     const priceBelowGraham = stock.currentPrice <= grahamFair;
@@ -95,20 +78,22 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
       {
         id: 2,
         title: "Histórico Consistente em 5 Anos",
-        desc: `Pagou proventos sem falha em ${dividendHistory.filter(d => d.amount > 0).length} dos últimos 5 anos.`,
+        desc: hasHistory
+          ? `Pagou proventos em ${dividendHistory.filter(d => d.amount > 0).length} dos últimos ${dividendHistory.length} anos.`
+          : 'Histórico de proventos indisponível para este ativo.',
         passed: hasConsistentDividends
       },
       {
         id: 3,
         title: "Cotação Abaixo do Preço Teto Bazin",
         desc: `Cotação de R$ ${stock.currentPrice.toFixed(2)} vs Teto Bazin de R$ ${activeCeilingPrice.toFixed(2)}.`,
-        passed: priceBelowCeiling
+        passed: activeCeilingPrice > 0 && priceBelowCeiling
       },
       {
         id: 4,
         title: "Margem de Lucro e Múltiplos (Graham)",
         desc: `P/L saudável (${(stock.pl || 0).toFixed(1)}x) e preço com ${grahamUpside >= 0 ? '+' : ''}${grahamUpside.toFixed(1)}% de margem frente ao valor intrínseco.`,
-        passed: isPlHealthy && priceBelowGraham
+        passed: grahamFair > 0 && isPlHealthy && priceBelowGraham
       }
     ];
   }, [currentDy, minYield, dividendHistory, stock.currentPrice, activeCeilingPrice, stock.pl, stock.lpa, grahamFair, grahamUpside]);
@@ -323,6 +308,12 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
           </div>
         </div>
 
+        {!hasHistory ? (
+          <p className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
+            Não encontramos o histórico de proventos deste ativo. O Bazin usa os proventos de 12 meses
+            {stock.dividends > 0 ? ` (R$ ${stock.dividends.toFixed(2)})` : ''} até o histórico ficar disponível.
+          </p>
+        ) : (<>
         {/* Visual Bar Chart for 5 Years */}
         <div className="mb-6 bg-zinc-50/70 border border-zinc-200 p-4 rounded-xl">
           <span className="text-[10px] uppercase font-bold text-zinc-400 font-mono block mb-4">
@@ -369,12 +360,13 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {dividendHistory.map((item) => {
-                const yearCeiling = (item.amount / 0.06);
+                // Corrigido: usava 6% fixo; agora segue o yield mínimo do usuário
+                const yearCeiling = item.amount / (minYield / 100);
                 return (
                   <tr key={item.year} className="hover:bg-zinc-50/50">
                     <td className="py-3 px-3 font-bold text-zinc-900">{item.year}</td>
                     <td className="py-3 px-3 font-bold text-emerald-700">R$ {item.amount.toFixed(2)}</td>
-                    <td className="py-3 px-3 text-zinc-600">{item.dy ? `${item.dy.toFixed(1)}%` : `${((item.amount / stock.currentPrice) * 100).toFixed(1)}%`}</td>
+                    <td className="py-3 px-3 text-zinc-600">{item.dy ? `${item.dy.toFixed(1)}%` : stock.currentPrice > 0 ? `${((item.amount / stock.currentPrice) * 100).toFixed(1)}%*` : '—'}</td>
                     <td className="py-3 px-3 text-zinc-800">R$ {yearCeiling.toFixed(2)}</td>
                     <td className="py-3 px-3 text-right">
                       {item.amount > 0 ? (
@@ -393,7 +385,9 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
               })}
             </tbody>
           </table>
+          <p className="text-[10px] text-zinc-500 mt-2">* Sem cotação do ano: yield calculado sobre a cotação atual. Teto por ano com yield mínimo de {minYield}%.</p>
         </div>
+        </>)}
       </div>
 
       {/* Checklist Décio Bazin & Graham */}

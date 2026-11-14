@@ -60,9 +60,11 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
     }
   };
 
-  const portfolioPerformance = portfolioInfo 
-    ? ((currentPrice / portfolioInfo.purchasePrice) - 1) * 100 
+  const portfolioPerformance = portfolioInfo && portfolioInfo.purchasePrice > 0
+    ? ((currentPrice / portfolioInfo.purchasePrice) - 1) * 100
     : 0;
+  // Evita divisão por zero quando o método não se aplica (preço justo = 0)
+  const ratio = (v: number) => (fairPrice > 0 ? Math.min(100, Math.max(0, (v / fairPrice) * 100)) : 0);
 
   return (
     <div className="bg-white data-grid-border p-6 rounded-lg shadow-sm flex flex-col h-full relative overflow-hidden">
@@ -137,11 +139,11 @@ export const ValuationDisplay: React.FC<ValuationDisplayProps> = ({
         <div className="relative h-2 bg-zinc-100 rounded-full overflow-hidden mb-6">
           <div 
             className="absolute h-full bg-emerald-500 transition-all duration-500"
-            style={{ width: `${Math.min(100, Math.max(0, (entryPrice / fairPrice) * 100))}%` }}
+            style={{ width: `${ratio(entryPrice)}%` }}
           />
           <div 
             className="absolute w-1 h-4 bg-black top-1/2 -translate-y-1/2 z-10"
-            style={{ left: `${Math.min(100, Math.max(0, (currentPrice / fairPrice) * 100))}%` }}
+            style={{ left: `${ratio(currentPrice)}%` }}
             title="Preço Atual"
           />
         </div>

@@ -16,13 +16,13 @@ export const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose }) => {
     },
     {
       title: "Método de Bazin",
-      description: "Foca em quem quer receber 'aluguel' das ações (dividendos). Ele calcula o preço máximo que você pode pagar para garantir que vai receber pelo menos 6% de retorno em dinheiro na sua conta todo ano.",
+      description: "Foca em quem quer receber 'aluguel' das ações (dividendos). Ele calcula o preço máximo que você pode pagar para receber pelo menos o yield mínimo escolhido (6% no clássico) de retorno em dinheiro na sua conta todo ano.",
       formula: "Dividendos / Yield Mínimo"
     },
     {
       title: "Analista IA",
-      description: "Nossa inteligência artificial que lê as notícias mais recentes e explica o que está acontecendo com a empresa de um jeito simples. Ela olha para a gestão e para o mercado, coisas que os números sozinhos não mostram.",
-      formula: "Busca em Tempo Real + Explicação Simples"
+      description: "Uma inteligência artificial (Gemini) explica de forma simples o modelo de negócio, os pontos fortes e os riscos da empresa, cruzando com os números de Graham e Bazin. Ela usa o conhecimento do próprio modelo e os dados do app — não consulta notícias em tempo real, então confira fatos recentes no site de RI da empresa.",
+      formula: "Dados do app + conhecimento do modelo"
     },
     {
       title: "Margem de Segurança",
