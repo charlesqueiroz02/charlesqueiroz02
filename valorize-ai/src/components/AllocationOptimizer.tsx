@@ -1,18 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  Calculator, 
-  DollarSign, 
-  PieChart, 
-  Plus, 
-  Trash2, 
-  CheckCircle2, 
-  Sparkles, 
-  ShieldCheck, 
-  Coins, 
-  ArrowRight,
-  TrendingUp,
-  RefreshCw
-} from 'lucide-react';
+import { Calculator, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { OptimizerAsset, OptimizerResult, PortfolioItem } from '../types';
 import { fetchQuotes } from '../lib/quotes';
 import { isValidTicker, normalizeTicker } from '../lib/ticker';

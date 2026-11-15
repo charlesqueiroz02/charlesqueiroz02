@@ -1,5 +1,14 @@
 import {
-  Radar, ScanSearch, FlaskConical, Coins, Briefcase, Calculator, Zap, TrendingUp, UserCheck, type LucideIcon,
+  Radar,
+  ScanSearch,
+  FlaskConical,
+  Coins,
+  Briefcase,
+  Calculator,
+  Zap,
+  TrendingUp,
+  UserCheck,
+  type LucideIcon,
 } from 'lucide-react';
 
 export type TabId =

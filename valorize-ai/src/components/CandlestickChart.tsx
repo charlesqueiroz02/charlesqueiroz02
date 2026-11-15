@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  ComposedChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
+import { ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HistoricalPoint } from '../types';
 import { CHART } from '../lib/chartTheme';
 import { brl } from '../lib/valuation';

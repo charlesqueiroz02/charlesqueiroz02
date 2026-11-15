@@ -1,18 +1,17 @@
 import React, { useMemo } from 'react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   ReferenceLine,
   AreaChart,
   Area,
-  Label
+  Label,
 } from 'recharts';
-import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { CHART, tooltipStyle } from '../lib/chartTheme';
 import { safeToFixed } from '../lib/utils';
 import { num } from '../lib/valuation';
@@ -23,7 +22,6 @@ interface UpsideChartProps {
   grahamFairPrice: number;
   bazinCeilingPrice: number;
 }
-
 
 export const UpsideChart: React.FC<UpsideChartProps> = ({ 
   ticker, 

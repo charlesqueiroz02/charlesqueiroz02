@@ -1,6 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Area, ComposedChart, CartesianGrid, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area,
+  ComposedChart,
+  CartesianGrid,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
 import { LineChart as LineIcon } from 'lucide-react';
 import type { HistoricalPoint } from '../types';

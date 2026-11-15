@@ -37,10 +37,18 @@ export function rateLimit(opts: { windowMs: number; max: number; message: string
 }
 
 /** Cabeçalhos básicos de segurança para as respostas da API. */
-export function securityHeaders(_req: Request, res: Response, next: NextFunction) {
+export function securityHeaders(req: Request, res: Response, next: NextFunction) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Cache-Control', 'no-store');
+  // Cotações podem ser reaproveitadas pela CDN por 15 min (mesmo tempo do cache interno):
+  // consultas repetidas não executam a função de novo. Erros e a IA nunca ficam em cache.
+  const cacheable = req.method === 'GET' && (req.baseUrl + req.path).startsWith('/api/stock/');
+  res.setHeader('Cache-Control', cacheable ? 'public, max-age=0, s-maxage=900, stale-while-revalidate=300' : 'no-store');
+  const json = res.json.bind(res);
+  res.json = (body: unknown) => {
+    if (res.statusCode >= 400) res.setHeader('Cache-Control', 'no-store');
+    return json(body);
+  };
   next();
 }
 

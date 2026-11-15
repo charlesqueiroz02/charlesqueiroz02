@@ -1,18 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Coins, 
-  TrendingUp, 
-  Sparkles, 
-  HelpCircle, 
-  ArrowRight, 
-  Wallet,
-  ShieldAlert,
-  ShieldCheck,
-  CheckCircle2,
-  Calendar,
-  Layers,
-  Scale
-} from 'lucide-react';
+import { Coins, Sparkles, ShieldCheck } from 'lucide-react';
 import { StockData } from '../types';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';

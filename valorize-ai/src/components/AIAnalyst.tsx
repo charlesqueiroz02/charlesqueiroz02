@@ -20,6 +20,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
   const [sources, setSources] = useState<GroundingChunk[]>(() => readJSON<GroundingChunk[]>(`ai_sources_${stockData.ticker}`, []));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackNote, setFallbackNote] = useState(false);
 
   useEffect(() => {
     setAnalysis(readText(`ai_analysis_${stockData.ticker}`));
@@ -66,6 +67,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
       }
 
       setAnalysis(data.analysis || "Não foi possível gerar a análise.");
+      setFallbackNote(data.source === 'automatico');
       setSources(data.sources || []);
     } catch (error) {
       console.error("AI Analysis error:", error);
@@ -110,6 +112,12 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
 
       {analysis ? (
         <div className="space-y-6">
+          {fallbackNote && (
+            <p role="status" className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              A IA não respondeu agora (chave não configurada, limite atingido ou instabilidade). Abaixo, um resumo automático
+              feito só com os números de Graham e Bazin. Tente de novo mais tarde para a análise completa.
+            </p>
+          )}
           <div className="prose prose-sm max-w-none text-zinc-700 leading-relaxed font-sans">
             {analysis.split('\n').filter(p => p.trim()).map((para, i) => {
               const isHeader = para.toUpperCase() === para && para.length < 50;

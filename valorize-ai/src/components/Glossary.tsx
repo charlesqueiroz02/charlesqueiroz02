@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Info, HelpCircle, X } from 'lucide-react';
+import { BookOpen, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEscape } from '../lib/useEscape';
 

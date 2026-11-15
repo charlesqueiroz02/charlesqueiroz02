@@ -1,9 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Briefcase, Trash2, AlertCircle, ArrowRight, RefreshCw, Download, Loader2,
-} from 'lucide-react';
+import { Briefcase, Trash2, AlertCircle, ArrowRight, RefreshCw, Download, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bar, BarChart, Cell, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { PortfolioItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -134,7 +144,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
         </div>
         <h3 className="font-serif italic text-xl text-zinc-900 mb-2">Sua carteira está vazia</h3>
         <p className="text-sm text-zinc-600 max-w-md mx-auto leading-relaxed">
-          Abra uma ação no Raio-X e toque em "Adicionar à carteira" para acompanhar resultado, renda e os sinais de Graham e Bazin.
+          Abra uma ação no Raio-X e toque em "Adicionar à carteira" (ao lado da cotação) para acompanhar resultado, renda e os sinais de Graham e Bazin.
         </p>
       </div>
     );

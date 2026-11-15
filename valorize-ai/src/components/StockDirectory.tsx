@@ -1,5 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { Search, X, ChevronRight, Globe, Factory, Landmark, ShoppingCart, Zap, Droplets, HeartPulse, HardHat, Car, Plane, Smartphone } from 'lucide-react';
+import {
+  Search,
+  X,
+  Globe,
+  Factory,
+  Landmark,
+  ShoppingCart,
+  Zap,
+  Droplets,
+  HeartPulse,
+  HardHat,
+  Car,
+  Plane,
+  Smartphone,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { POPULAR_TICKERS } from '../constants';
 import { useEscape } from '../lib/useEscape';

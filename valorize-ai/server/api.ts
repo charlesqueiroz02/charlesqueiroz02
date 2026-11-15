@@ -1083,6 +1083,8 @@ Instruções:
       console.log(`AI synthesis fallback active for ${ticker}: ${aiErr?.message || 'standard'}`);
     }
 
+    // Sem resposta do modelo: devolvemos um resumo automático e AVISAMOS que não é da IA
+    const fromAi = !!analysisText;
     if (!analysisText) {
       const p = Number(currentPrice) || 1;
       const gPrice = lpa > 0 && vpa > 0 ? Math.sqrt(22.5 * lpa * vpa) : 0;
@@ -1094,6 +1096,7 @@ Instruções:
 
     return res.json({
       ticker,
+      source: fromAi ? 'ia' : 'automatico',
       analysis: analysisText,
       sources: [
         { web: { title: "B3 - Brasil, Bolsa, Balcão", uri: "https://www.b3.com.br" } },

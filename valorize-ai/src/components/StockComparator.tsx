@@ -1,6 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, Plus, Trash2, Loader2, RefreshCw } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { bazinCeilingPrice, grahamFairPrice, upsidePct, num, brl } from '../lib/valuation';
 import { safeToFixed } from '../lib/utils';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';

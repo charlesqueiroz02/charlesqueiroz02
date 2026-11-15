@@ -2,8 +2,19 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FlaskConical, RotateCcw, Grid3x3, ScanSearch } from 'lucide-react';
 import type { StockData } from '../types';
 import {
-  computeValuation, valorizeScore, reverseEngineer, applyShock, STRESS_PRESETS, StressShock,
-  grahamFairPrice, bazinCeilingPrice, upsidePct, brl, pct, num, BazinBase,
+  computeValuation,
+  valorizeScore,
+  reverseEngineer,
+  applyShock,
+  STRESS_PRESETS,
+  StressShock,
+  grahamFairPrice,
+  bazinCeilingPrice,
+  upsidePct,
+  brl,
+  pct,
+  num,
+  BazinBase,
 } from '../lib/valuation';
 import { PriceRuler } from './PriceRuler';
 import { ScoreCard } from './ScoreCard';

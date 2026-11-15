@@ -1,6 +1,16 @@
 import React from 'react';
 import {
-  CartesianGrid, Cell, ReferenceArea, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
+  CartesianGrid,
+  Cell,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ZAxis,
 } from 'recharts';
 import type { RadarStockItem } from '../types';
 import { CHART, axisTick } from '../lib/chartTheme';

@@ -1,33 +1,5 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { 
-  Calculator, 
-  HelpCircle, 
-  TrendingUp, 
-  DollarSign, 
-  ShieldCheck, 
-  CheckCircle2, 
-  AlertTriangle, 
-  RefreshCw, 
-  Info,
-  BookOpen,
-  PieChart as PieChartIcon,
-  BarChart3,
-  Globe,
-  Briefcase,
-  Plus,
-  Trash2,
-  ChevronDown,
-  Layers,
-  Search,
-  Zap,
-  Radar,
-  Coins,
-  ArrowRight,
-  User,
-  UserPlus,
-  UserCheck,
-  Sparkles
-} from 'lucide-react';
+import { HelpCircle, AlertTriangle, RefreshCw, BarChart3, Globe, Sparkles } from 'lucide-react';
 import { StockData, ValuationResult, PortfolioItem } from './types';
 import { Glossary } from './components/Glossary';
 import { OpportunityRadar } from './components/OpportunityRadar';
@@ -41,7 +13,7 @@ import { MobileNav } from './components/MobileNav';
 import { InstallApp, OfflineBanner } from './components/InstallApp';
 import { DataQualityNote } from './components/DataQualityNote';
 import { TABS, TabId } from './lib/tabs';
-import { computeValuation, brl, num } from './lib/valuation';
+import { computeValuation, brl } from './lib/valuation';
 import { readJSON, readText, writeJSON, writeText, pruneCache, touchCache } from './lib/storage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { fetchQuotes } from './lib/quotes';
@@ -68,7 +40,7 @@ const TabLoading = () => (
 );
 
 export function App() {
-  const { user, isAuthenticated, logout, syncPortfolio } = useAuth();
+  const { user, isAuthenticated, syncPortfolio } = useAuth();
   // Tema no App: ao trocar, todas as telas (e gráficos) são redesenhadas com as cores novas
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<TabId>(() => {
@@ -102,7 +74,6 @@ export function App() {
       { ticker: 'PETR4', purchasePrice: 42.10, quantity: 60, addedAt: Date.now() - 90 * 86400000 }
     ];
   });
-
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     const parsed = readJSON<unknown>('valorize_recent_searches', []);
@@ -153,7 +124,15 @@ export function App() {
   }, [stock]);
 
   // Synchronize user-specific portfolio and risk preferences when logged in
+  const previousUserId = React.useRef<string | null>(user?.id ?? null);
   useEffect(() => {
+    // Corrigido: ao sair da conta, a carteira da pessoa continuava na tela (modo convidado)
+    if (!user && previousUserId.current) {
+      setPortfolio([]);
+      writeJSON('valorize_portfolio', []);
+      setTriggeredAlerts([]);
+    }
+    previousUserId.current = user?.id ?? null;
     if (user && user.portfolio) {
       setPortfolio(user.portfolio);
       writeJSON('valorize_portfolio', user.portfolio);

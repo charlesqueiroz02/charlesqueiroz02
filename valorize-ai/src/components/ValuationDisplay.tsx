@@ -1,14 +1,5 @@
 import React from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
-  CheckCircle2, 
-  MinusCircle,
-  HelpCircle,
-  Briefcase
-} from 'lucide-react';
-import { ValuationResult } from '../types';
+import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, MinusCircle, HelpCircle, Briefcase } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { brl, num } from '../lib/valuation';

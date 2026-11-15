@@ -1,23 +1,18 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { 
-  Radar, 
-  Search, 
-  Filter, 
-  ArrowUpDown, 
-  TrendingUp, 
-  ShieldCheck, 
-  Coins, 
-  CheckCircle2, 
-  AlertCircle, 
-  ArrowUpRight, 
+import {
+  Radar,
+  Search,
+  Filter,
+  ArrowUpDown,
+  ShieldCheck,
+  Coins,
+  CheckCircle2,
   Sparkles,
   RefreshCw,
-  ExternalLink,
-  SlidersHorizontal,
   ChevronRight,
   Download,
   List,
-  ScatterChart as ScatterIcon
+  ScatterChart as ScatterIcon,
 } from 'lucide-react';
 // O mapa usa a biblioteca de gráficos: carregada só quando o usuário abre o modo Mapa
 const OpportunityMap = lazy(() => import('./OpportunityMap').then(m => ({ default: m.OpportunityMap })));
@@ -522,7 +517,6 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({ onSelectStoc
     </div>
   );
 };
-
 
 const ScorePill: React.FC<{ score?: number; grade?: string }> = ({ score, grade }) => {
   if (score == null) return <span className="text-zinc-300">—</span>;

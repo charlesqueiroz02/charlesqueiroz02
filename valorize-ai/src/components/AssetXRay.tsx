@@ -1,23 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Building2, 
-  TrendingUp, 
-  Calendar, 
-  ShieldCheck, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  HelpCircle, 
-  Info, 
-  Coins, 
-  BarChart3, 
-  Sparkles,
-  ArrowRight,
-  Sliders,
-  DollarSign,
-  Briefcase
-} from 'lucide-react';
-import { Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import React, { useMemo } from 'react';
+import { Calendar, ShieldCheck, CheckCircle2, AlertTriangle, Coins, Sparkles, Briefcase } from 'lucide-react';
+import {
+  Bar,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Line,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { StockData, ValuationResult, DividendYearPoint } from '../types';
 import { CHART, axisTick, tooltipStyle } from '../lib/chartTheme';
 import { brl, num } from '../lib/valuation';
@@ -163,7 +157,14 @@ export const AssetXRay: React.FC<AssetXRayProps> = ({
             </h2>
           </div>
 
-          <div className="flex items-baseline gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={onAddToPortfolio}
+              disabled={!(stock.currentPrice > 0)}
+              className="order-last sm:order-first flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-40"
+            >
+              <Briefcase className="w-4 h-4" /> Adicionar à carteira
+            </button>
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-zinc-400 block font-mono">Cotação Atual</span>
               <span className="font-mono text-3xl font-bold text-zinc-900">

@@ -1,7 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import {
-  grahamFairPrice, bazinCeilingPrice, upsidePct, entryPrice, signalFor, computeValuation,
-  valorizeScore, reverseEngineer, applyShock, incomePlan, snowball, toExcelCsv, round,
+  grahamFairPrice,
+  bazinCeilingPrice,
+  upsidePct,
+  entryPrice,
+  signalFor,
+  computeValuation,
+  valorizeScore,
+  reverseEngineer,
+  applyShock,
+  incomePlan,
+  snowball,
+  toExcelCsv,
+  round,
 } from '../valuation';
 
 describe('Graham', () => {
