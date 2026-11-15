@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanApiKey, classifyAiError, redactSecrets } from '../aiStatus';
+import { cleanApiKey, classifyAiError, redactSecrets, suggestedModel } from '../aiStatus';
 
 describe('chave da IA', () => {
   it('limpa espaços, quebras de linha, aspas e o nome da variável colados junto', () => {
@@ -21,5 +21,17 @@ describe('causa do erro da IA', () => {
     expect(classifyAiError('Resource has been exhausted (e.g. check quota).', 429)).toBe('limite');
     expect(classifyAiError('Timeout waiting for model response')).toBe('tempo');
     expect(classifyAiError('fetch failed')).toBe('outro');
+  });
+});
+
+describe('modelo sugerido pelo Google', () => {
+  it('extrai o modelo indicado na mensagem de modelo desativado', () => {
+    const msg = 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements.';
+    expect(classifyAiError(msg, 404)).toBe('modelo');
+    expect(suggestedModel(msg)).toBe('gemini-3.8-flash');
+    expect(suggestedModel('Please use models/gemini-3.8-flash.')).toBe('gemini-3.8-flash');
+  });
+  it('sem sugestão devolve null', () => {
+    expect(suggestedModel('API key not valid')).toBeNull();
   });
 });

@@ -24,6 +24,15 @@ export function classifyAiError(message: string, status?: number): AiReason {
   return 'outro';
 }
 
+/**
+ * Quando um modelo é desativado, o Google costuma dizer qual usar no lugar
+ * ("Please update your code to use models/gemini-3.8-flash"). Devolve esse nome, se houver.
+ */
+export function suggestedModel(message: string): string | null {
+  const m = (message || '').match(/use (?:models\/)?(gemini-[\w.-]+)/i);
+  return m ? m[1].replace(/[.-]+$/, '') : null; // tira o ponto final da frase
+}
+
 /** Texto para a tela: o que aconteceu e onde corrigir. */
 export const AI_REASON_TEXT: Record<Exclude<AiReason, 'ok'>, { title: string; fix: string }> = {
   sem_chave: {
@@ -36,7 +45,7 @@ export const AI_REASON_TEXT: Record<Exclude<AiReason, 'ok'>, { title: string; fi
   },
   modelo: {
     title: 'O modelo de IA configurado não existe ou não está liberado para a sua chave.',
-    fix: 'Na Vercel, defina GEMINI_MODEL = gemini-2.5-flash (ou outro modelo listado no AI Studio) e faça um Redeploy.',
+    fix: 'Na Vercel, defina GEMINI_MODEL com o modelo indicado na mensagem abaixo (ex.: gemini-3.8-flash) e faça um Redeploy.',
   },
   limite: {
     title: 'O limite de uso gratuito do Gemini foi atingido.',
@@ -48,7 +57,7 @@ export const AI_REASON_TEXT: Record<Exclude<AiReason, 'ok'>, { title: string; fi
   },
   vazio: {
     title: 'A IA respondeu sem texto.',
-    fix: 'Tente de novo; se continuar, troque GEMINI_MODEL na Vercel por gemini-2.5-flash.',
+    fix: 'Tente de novo; se continuar, troque GEMINI_MODEL na Vercel por outro modelo Flash listado no AI Studio.',
   },
   bloqueado: {
     title: 'A IA recusou responder por filtro de segurança.',
