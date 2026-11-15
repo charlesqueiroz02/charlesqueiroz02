@@ -2,10 +2,10 @@ import express, { Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import dns from 'node:dns';
-import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DEFAULT_MIN_YIELD } from '../src/lib/valuation';
-import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends';
-import { normalizeTicker, isValidTicker } from '../src/lib/ticker';
-import { rateLimit, securityHeaders, finiteNumber, cleanText } from './security';
+import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DEFAULT_MIN_YIELD } from '../src/lib/valuation.js';
+import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends.js';
+import { normalizeTicker, isValidTicker } from '../src/lib/ticker.js';
+import { rateLimit, securityHeaders, finiteNumber, cleanText } from './security.js';
 
 // Ensure IPv4 first to prevent IPv6 stalling on external API connections
 dns.setDefaultResultOrder('ipv4first');
@@ -13,18 +13,23 @@ dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
 
-// Roda em dois lugares: no servidor Express (AI Studio/Cloud Run) e como Netlify Function.
-export const IS_SERVERLESS = !!(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
-// Funções do Netlify têm ~10 s de limite: usamos tempos menores lá.
-const T = IS_SERVERLESS ? { fund: 4000, yahoo: 5000, ai: 8000 } : { fund: 6000, yahoo: 8000, ai: 25000 };
+// Roda em dois lugares: no servidor Express (local, AI Studio/Cloud Run) e como função da Vercel.
+export const IS_SERVERLESS = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+// Na Vercel a função pode rodar até 30 s (vercel.json); mantemos folga para o Radar, que consulta ~25 ações.
+const T = IS_SERVERLESS ? { fund: 6000, yahoo: 7000, ai: 20000 } : { fund: 6000, yahoo: 8000, ai: 25000 };
 
 export const apiApp = express();
 const app = apiApp;
-// No Netlify a chamada pode chegar como /.netlify/functions/api/...; normalizamos para /api/...
+// Na Vercel, o vercel.json reescreve /api/stock/PETR4 para /api?__path=stock/PETR4 (uma função só).
+// Aqui devolvemos o caminho original para as rotas abaixo funcionarem igual ao servidor local.
 app.use((req, _res, next) => {
-  if (!IS_SERVERLESS) return next(); // no Express local nada muda
-  req.url = req.url.replace(/^\/\.netlify\/functions\/api(?=\/|$)/, '/api');
-  if (!req.url.startsWith('/api')) req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+  const url = new URL(req.url, 'http://local');
+  const original = url.searchParams.get('__path');
+  if (original !== null) {
+    url.searchParams.delete('__path');
+    const rest = url.searchParams.toString();
+    req.url = '/api/' + original.replace(/^\/+/, '') + (rest ? `?${rest}` : '');
+  }
   next();
 });
 
@@ -986,8 +991,10 @@ app.get('/api/stock/search', async (req: Request, res: Response) => {
       sector: s.sector
     }));
 
-    const cleanQ = q.toUpperCase();
-    if (cleanQ.length >= 4 && !matches.some(m => m.ticker === cleanQ)) {
+    // Só sugere o texto digitado como código quando ele já tem o formato da B3 (ex.: KLBN11).
+    // Antes, "petr" virava a sugestão inválida "PETR" no topo da lista.
+    const cleanQ = normalizeTicker(q);
+    if (isValidTicker(cleanQ) && !matches.some(m => m.ticker === cleanQ)) {
       matches.unshift({
         ticker: cleanQ,
         name: `Ação ${cleanQ} (B3)`,

@@ -7,7 +7,7 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.ts",
+    "start": "NODE_ENV=production tsx server.ts",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "vitest run"
@@ -24,8 +24,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.7.0",
-    "serverless-http": "^3.2.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -33,10 +33,12 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vitest": "^3.2.4"
   },
-  "description": "Analisador de ações da B3 pelos métodos de Graham e Bazin"
+  "description": "Analisador de ações da B3 pelos métodos de Graham e Bazin",
+  "engines": {
+    "node": ">=20"
+  }
 }
