@@ -6,7 +6,7 @@ import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DE
 import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends.js';
 import { normalizeTicker, isValidTicker } from '../src/lib/ticker.js';
 import { rateLimit, securityHeaders, finiteNumber, cleanText } from './security.js';
-import { cleanApiKey, classifyAiError, redactSecrets, type AiReason } from '../src/lib/aiStatus.js';
+import { cleanApiKey, classifyAiError, redactSecrets, suggestedModel, type AiReason } from '../src/lib/aiStatus.js';
 import { brl, num } from '../src/lib/valuation.js';
 
 // Ensure IPv4 first to prevent IPv6 stalling on external API connections
@@ -44,9 +44,13 @@ app.use('/api/ai', rateLimit({ windowMs: 10 * 60_000, max: 12, message: 'Limite 
 // Initialize Gemini on server-side
 // Limpa a chave colada (espaços, quebras de linha e aspas que vêm junto ao colar no celular)
 const apiKey = cleanApiKey(process.env.GEMINI_API_KEY);
-// Modelo configurável (GEMINI_MODEL). Se não existir, tentamos o modelo reserva abaixo.
-const GEMINI_MODEL = cleanApiKey(process.env.GEMINI_MODEL) || 'gemini-2.5-flash';
-const FALLBACK_MODEL = 'gemini-2.5-flash';
+// Modelo configurável (GEMINI_MODEL). Se não estiver disponível para a chave, tentamos os reservas
+// abaixo e também o modelo que o próprio Google sugerir na mensagem de erro.
+// (O gemini-2.5-flash não é mais liberado para contas novas: o Google indica o gemini-3.8-flash.)
+const GEMINI_MODEL = cleanApiKey(process.env.GEMINI_MODEL) || 'gemini-3.8-flash';
+const FALLBACK_MODELS = ['gemini-3.8-flash', 'gemini-2.5-flash'];
+// Lembra o último modelo que funcionou nesta instância (evita repetir tentativas que falham)
+let workingModel: string | null = null;
 
 // Últimos 5 anos COMPLETOS: calculado a cada consulta (o servidor pode ficar no ar na virada do ano)
 const fiveYears = () => lastFullYears(new Date());
@@ -1077,10 +1081,11 @@ Instruções:
     let modelUsed = GEMINI_MODEL;
 
     if (apiKey) {
-      // Tenta o modelo configurado; se ele não existir para a chave, tenta o modelo reserva
-      const models = Array.from(new Set([GEMINI_MODEL, FALLBACK_MODEL]));
+      // Ordem: o que funcionou por último, o configurado, os reservas e o sugerido pelo Google
+      const models = Array.from(new Set([workingModel, GEMINI_MODEL, ...FALLBACK_MODELS].filter(Boolean) as string[]));
       const deadline = Date.now() + T.ai;
-      for (const model of models) {
+      for (let i = 0; i < models.length && i < 4; i++) {
+        const model = models[i];
         modelUsed = model;
         try {
           const left = Math.max(1000, deadline - Date.now());
@@ -1098,7 +1103,7 @@ Instruções:
           });
           const response: any = await Promise.race([aiPromise, timeoutPromise]);
           analysisText = (response?.text || '').trim();
-          if (analysisText) { aiReason = 'ok'; break; }
+          if (analysisText) { aiReason = 'ok'; workingModel = model; break; }
           aiReason = response?.promptFeedback?.blockReason ? 'bloqueado' : 'vazio';
           aiDetail = String(response?.candidates?.[0]?.finishReason || '');
           break;
@@ -1108,6 +1113,9 @@ Instruções:
           aiDetail = redactSecrets(msg);
           console.log(`AI synthesis fallback active for ${ticker} (modelo ${model}, motivo ${aiReason}): ${aiDetail}`);
           if (aiReason !== 'modelo') break; // só vale tentar outro modelo se o problema for o modelo
+          if (workingModel === model) workingModel = null;
+          const hint = suggestedModel(msg);
+          if (hint && !models.includes(hint)) models.splice(i + 1, 0, hint); // tenta já o sugerido
         }
       }
     }
