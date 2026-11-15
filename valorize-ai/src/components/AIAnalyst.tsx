@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Loader2, Sparkles, Newspaper, ShieldCheck, AlertTriangle, ExternalLink } from 'lucide-react';
 import { StockData } from '../types';
+import { AI_REASON_TEXT, type AiReason } from '../lib/aiStatus';
 import { readJSON, readText, writeJSON, writeText, touchCache, pruneCache } from '../lib/storage';
 
 interface AIAnalystProps {
@@ -20,7 +21,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
   const [sources, setSources] = useState<GroundingChunk[]>(() => readJSON<GroundingChunk[]>(`ai_sources_${stockData.ticker}`, []));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fallbackNote, setFallbackNote] = useState(false);
+  const [fallbackNote, setFallbackNote] = useState<{ reason: AiReason; model?: string; detail?: string } | null>(null);
 
   useEffect(() => {
     setAnalysis(readText(`ai_analysis_${stockData.ticker}`));
@@ -67,7 +68,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
       }
 
       setAnalysis(data.analysis || "Não foi possível gerar a análise.");
-      setFallbackNote(data.source === 'automatico');
+      setFallbackNote(data.source === 'automatico' ? { reason: data.aiStatus?.reason || 'outro', model: data.aiStatus?.model, detail: data.aiStatus?.detail } : null);
       setSources(data.sources || []);
     } catch (error) {
       console.error("AI Analysis error:", error);
@@ -112,11 +113,17 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ stockData, isLoading }) =>
 
       {analysis ? (
         <div className="space-y-6">
-          {fallbackNote && (
-            <p role="status" className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              A IA não respondeu agora (chave não configurada, limite atingido ou instabilidade). Abaixo, um resumo automático
-              feito só com os números de Graham e Bazin. Tente de novo mais tarde para a análise completa.
-            </p>
+          {fallbackNote && fallbackNote.reason !== 'ok' && (
+            <div role="status" className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 space-y-1">
+              <p className="font-semibold">{AI_REASON_TEXT[fallbackNote.reason as Exclude<AiReason, 'ok'>]?.title || AI_REASON_TEXT.outro.title}</p>
+              <p><b>Como resolver:</b> {AI_REASON_TEXT[fallbackNote.reason as Exclude<AiReason, 'ok'>]?.fix || AI_REASON_TEXT.outro.fix}</p>
+              {(fallbackNote.model || fallbackNote.detail) && (
+                <p className="text-amber-800/90 font-mono text-[11px] break-words">
+                  {fallbackNote.model ? `modelo: ${fallbackNote.model}` : ''}{fallbackNote.detail ? ` · ${fallbackNote.detail}` : ''}
+                </p>
+              )}
+              <p>Abaixo, um resumo automático feito só com os números de Graham e Bazin.</p>
+            </div>
           )}
           <div className="prose prose-sm max-w-none text-zinc-700 leading-relaxed font-sans">
             {analysis.split('\n').filter(p => p.trim()).map((para, i) => {

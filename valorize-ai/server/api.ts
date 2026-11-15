@@ -6,6 +6,8 @@ import { grahamFairPrice, bazinCeilingPrice, upsidePct, valorizeScore, round, DE
 import { summarizeDividends, lastFullYears, type DividendYearPoint } from '../src/lib/dividends.js';
 import { normalizeTicker, isValidTicker } from '../src/lib/ticker.js';
 import { rateLimit, securityHeaders, finiteNumber, cleanText } from './security.js';
+import { cleanApiKey, classifyAiError, redactSecrets, type AiReason } from '../src/lib/aiStatus.js';
+import { brl, num } from '../src/lib/valuation.js';
 
 // Ensure IPv4 first to prevent IPv6 stalling on external API connections
 dns.setDefaultResultOrder('ipv4first');
@@ -40,9 +42,11 @@ app.use('/api/stock', rateLimit({ windowMs: 60_000, max: 120, message: 'Muitas c
 app.use('/api/ai', rateLimit({ windowMs: 10 * 60_000, max: 12, message: 'Limite de análises por IA atingido. Tente novamente em alguns minutos.' }));
 
 // Initialize Gemini on server-side
-const apiKey = process.env.GEMINI_API_KEY || '';
-// Modelo configurável via .env (GEMINI_MODEL). Troque sem mexer no código.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+// Limpa a chave colada (espaços, quebras de linha e aspas que vêm junto ao colar no celular)
+const apiKey = cleanApiKey(process.env.GEMINI_API_KEY);
+// Modelo configurável (GEMINI_MODEL). Se não existir, tentamos o modelo reserva abaixo.
+const GEMINI_MODEL = cleanApiKey(process.env.GEMINI_MODEL) || 'gemini-2.5-flash';
+const FALLBACK_MODEL = 'gemini-2.5-flash';
 
 // Últimos 5 anos COMPLETOS: calculado a cada consulta (o servidor pode ficar no ar na virada do ano)
 const fiveYears = () => lastFullYears(new Date());
@@ -1068,26 +1072,44 @@ Instruções:
 (Recomendação prática de compra/espera e disciplina de alocação)`;
 
     let analysisText = "";
+    let aiReason: AiReason = apiKey ? 'outro' : 'sem_chave';
+    let aiDetail = '';
+    let modelUsed = GEMINI_MODEL;
 
-    try {
-      if (apiKey) {
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout waiting for model response")), T.ai)
-        );
-        const aiPromise = ai.models.generateContent({
-          model: GEMINI_MODEL,
-          contents: prompt,
-          config: {
-            maxOutputTokens: 1200,
-            temperature: 0.3,
-          }
-        });
-
-        const response: any = await Promise.race([aiPromise, timeoutPromise]);
-        analysisText = response?.text || "";
+    if (apiKey) {
+      // Tenta o modelo configurado; se ele não existir para a chave, tenta o modelo reserva
+      const models = Array.from(new Set([GEMINI_MODEL, FALLBACK_MODEL]));
+      const deadline = Date.now() + T.ai;
+      for (const model of models) {
+        modelUsed = model;
+        try {
+          const left = Math.max(1000, deadline - Date.now());
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout waiting for model response")), left)
+          );
+          const aiPromise = ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+              // Modelos novos gastam parte do limite "pensando": com 1200 a resposta podia vir vazia
+              maxOutputTokens: 4096,
+              temperature: 0.3,
+            }
+          });
+          const response: any = await Promise.race([aiPromise, timeoutPromise]);
+          analysisText = (response?.text || '').trim();
+          if (analysisText) { aiReason = 'ok'; break; }
+          aiReason = response?.promptFeedback?.blockReason ? 'bloqueado' : 'vazio';
+          aiDetail = String(response?.candidates?.[0]?.finishReason || '');
+          break;
+        } catch (aiErr: any) {
+          const msg = String(aiErr?.message || aiErr || '');
+          aiReason = classifyAiError(msg, Number(aiErr?.status) || undefined);
+          aiDetail = redactSecrets(msg);
+          console.log(`AI synthesis fallback active for ${ticker} (modelo ${model}, motivo ${aiReason}): ${aiDetail}`);
+          if (aiReason !== 'modelo') break; // só vale tentar outro modelo se o problema for o modelo
+        }
       }
-    } catch (aiErr: any) {
-      console.log(`AI synthesis fallback active for ${ticker}: ${aiErr?.message || 'standard'}`);
     }
 
     // Sem resposta do modelo: devolvemos um resumo automático e AVISAMOS que não é da IA
@@ -1098,12 +1120,14 @@ Instruções:
       const bPrice = (avgDividends5y || dividends) > 0 ? (avgDividends5y || dividends) / (minYield / 100) : 0;
       const dy = Number(((dividends / p) * 100).toFixed(2));
 
-      analysisText = `1. O QUE ESTÁ ACONTECENDO?\nA empresa ${ticker} (${companyName || 'B3'}) negocia a R$ ${p.toFixed(2)} com proventos pagos nos últimos 12 meses de R$ ${dividends.toFixed(2)} por ação (Yield de ${dy}%) e média de 5 anos de R$ ${(avgDividends5y || dividends).toFixed(2)} por ação.\n\n2. PONTOS FORTES E RISCOS\n• Método de Graham: Valor intrínseco estimado de R$ ${gPrice.toFixed(2)}.${gPrice > p ? ' Ativo com desconto patrimonial e de lucros.' : ''}\n• Método de Bazin: Com base na média dos últimos 5 anos de proventos (yield mín. ${minYield}%), o preço teto estimado é de R$ ${bPrice.toFixed(2)}.${bPrice > p ? ' Ativo dentro da margem de segurança para dividendos.' : ' Cotação acima do teto estipulado.'}\n• Riscos a Monitorar: Cenário macroeconômico, taxa Selic e volatilidade setorial.\n\n3. CONCLUSÃO PARA VOCÊ\n${ticker} atende aos critérios fundamentais para compor carteira previdenciária se comprada abaixo de R$ ${bPrice.toFixed(2)}. Mantenha disciplina de aportes regulares e diversificação.`;
+      analysisText = `1. O QUE ESTÁ ACONTECENDO?\nA empresa ${ticker} (${companyName || 'B3'}) negocia a ${brl(p)} com proventos pagos nos últimos 12 meses de ${brl(dividends)} por ação (yield de ${num(dy, 2)}%) e média de 5 anos de ${brl(avgDividends5y || dividends)} por ação.\n\n2. PONTOS FORTES E RISCOS\n• Método de Graham: Valor intrínseco estimado de ${brl(gPrice)}.${gPrice > p ? ' Ativo com desconto patrimonial e de lucros.' : ''}\n• Método de Bazin: Com base na média dos últimos 5 anos de proventos (yield mín. ${minYield}%), o preço teto estimado é de ${brl(bPrice)}.${bPrice > p ? ' Ativo dentro da margem de segurança para dividendos.' : ' Cotação acima do teto estipulado.'}\n• Riscos a Monitorar: Cenário macroeconômico, taxa Selic e volatilidade setorial.\n\n3. CONCLUSÃO PARA VOCÊ\n${ticker} atende aos critérios fundamentais para compor carteira previdenciária se comprada abaixo de ${brl(bPrice)}. Mantenha disciplina de aportes regulares e diversificação.`;
     }
 
     return res.json({
       ticker,
       source: fromAi ? 'ia' : 'automatico',
+      // Diagnóstico para a tela: por que a IA não respondeu (nunca inclui a chave)
+      aiStatus: { reason: aiReason, model: modelUsed, detail: aiReason === 'ok' ? '' : aiDetail },
       analysis: analysisText,
       sources: [
         { web: { title: "B3 - Brasil, Bolsa, Balcão", uri: "https://www.b3.com.br" } },
