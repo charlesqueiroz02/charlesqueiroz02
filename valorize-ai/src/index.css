@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/*
+ * Paleta do Valorize — clara e suave (v2.5)
+ * ------------------------------------------------------------------
+ * Em vez de trocar classe por classe em 25 telas, redefinimos aqui as escalas
+ * de cor que o app já usa. Mudou aqui, muda no app inteiro.
+ *  - emerald → verde-sálvia (cor da marca, menos saturada)
+ *  - zinc    → cinzas-ardósia; os tons 400/500 ficaram mais escuros para ler melhor
+ *              textos pequenos (contraste AA sobre branco)
+ *  - rose    → coral suave (quedas e alertas sem vermelho gritante)
+ *  - blue    → azul-ardósia (método de Graham)
+ * As cores dos gráficos ficam em src/lib/chartTheme.ts.
+ */
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Newsreader", Georgia, Cambria, serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  --color-bg: #f6f7f5;
+  --color-ink: #273039;
+  --color-line: #e3e7eb;
+  --color-accent: #3b7d67;
+
+  --color-emerald-50: #f0f7f4;
+  --color-emerald-100: #dcede6;
+  --color-emerald-200: #bddccf;
+  --color-emerald-300: #94c5b1;
+  --color-emerald-400: #69a993;
+  --color-emerald-500: #4c917a;
+  --color-emerald-600: #3b7d67;
+  --color-emerald-700: #326a58;
+  --color-emerald-800: #2b574a;
+  --color-emerald-900: #24483e;
+  --color-emerald-950: #152a24;
+
+  --color-zinc-50: #f8f9fa;
+  --color-zinc-100: #f0f2f4;
+  --color-zinc-200: #e3e7eb;
+  --color-zinc-300: #cfd5db;
+  --color-zinc-400: #7b8592;
+  --color-zinc-500: #616c79;
+  --color-zinc-600: #4d5764;
+  --color-zinc-700: #3d4651;
+  --color-zinc-800: #313942;
+  --color-zinc-900: #273039;
+  --color-zinc-950: #1d242b;
+
+  --color-rose-50: #fcf4f2;
+  --color-rose-100: #f8e4e0;
+  --color-rose-200: #efc8c1;
+  --color-rose-300: #e2a399;
+  --color-rose-400: #d4847a;
+  --color-rose-500: #c46a5e;
+  --color-rose-600: #ad5548;
+  --color-rose-700: #91463b;
+  --color-rose-800: #763b33;
+  --color-rose-900: #61332d;
+
+  --color-blue-50: #f2f5f9;
+  --color-blue-100: #e2e9f2;
+  --color-blue-200: #c6d4e5;
+  --color-blue-500: #6a8bb0;
+  --color-blue-600: #4f7096;
+  --color-blue-700: #405c7d;
+  --color-blue-800: #364d68;
+  --color-blue-900: #2d4056;
+  --color-blue-950: #1f2c3c;
+}
+
+/*
+ * Tema escuro (v2.6)
+ * ------------------------------------------------------------------
+ * Ativado por <html data-theme="dark"> (botão Claro/Escuro/Automático no topo).
+ * Mesma ideia do tema claro: redefinimos as escalas que o app já usa.
+ *  - zinc é espelhado (50 vira o fundo escuro, 900 vira texto claro)
+ *  - "white" vira a cor dos cartões
+ *  - verde, coral, âmbar e azul ficam claros e suaves para ler bem no escuro
+ * Declarar color-scheme faz o navegador (ex.: modo noturno do Brave/Chrome)
+ * não "inverter" as cores do app por conta própria.
+ */
+:root { color-scheme: light; }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #12161a;
+  --color-ink: #e3e8ed;
+  --color-line: #2a323a;
+  --color-accent: #7cbba2;
+  --color-white: #1a2026;
+
+  --color-zinc-50: #161b20;
+  --color-zinc-100: #1f262d;
+  --color-zinc-200: #2a323a;
+  --color-zinc-300: #39424c;
+  --color-zinc-400: #8893a0;
+  --color-zinc-500: #9aa5b1;
+  --color-zinc-600: #b0bac5;
+  --color-zinc-700: #c6ced7;
+  --color-zinc-800: #d8dfe6;
+  --color-zinc-900: #e6ebf0;
+  --color-zinc-950: #f2f5f7;
+
+  --color-emerald-50: #15241f;
+  --color-emerald-100: #1b2f28;
+  --color-emerald-200: #27453a;
+  --color-emerald-300: #356150;
+  --color-emerald-400: #4f8a73;
+  --color-emerald-500: #66a68d;
+  --color-emerald-600: #7cbba2;
+  --color-emerald-700: #93cbb4;
+  --color-emerald-800: #abd8c5;
+  --color-emerald-900: #c6e6d8;
+  --color-emerald-950: #e3f3ec;
+
+  --color-rose-50: #2a1b19;
+  --color-rose-100: #3a2320;
+  --color-rose-200: #55312c;
+  --color-rose-300: #7a463e;
+  --color-rose-400: #b8675b;
+  --color-rose-500: #d47c70;
+  --color-rose-600: #e39286;
+  --color-rose-700: #eba69c;
+  --color-rose-800: #f1bab2;
+  --color-rose-900: #f6cfc9;
+
+  --color-amber-50: #2a2315;
+  --color-amber-100: #372d19;
+  --color-amber-200: #4c3e21;
+  --color-amber-300: #6b5528;
+  --color-amber-400: #b48a3a;
+  --color-amber-500: #d4a445;
+  --color-amber-600: #e2b65f;
+  --color-amber-700: #e9c374;
+  --color-amber-800: #efd08c;
+  --color-amber-900: #f5dea8;
+
+  --color-blue-50: #182029;
+  --color-blue-100: #1f2a37;
+  --color-blue-200: #2c3c50;
+  --color-blue-500: #7d9dc2;
+  --color-blue-600: #93b2d6;
+  --color-blue-700: #a7c1e0;
+  --color-blue-800: #bcd1e9;
+  --color-blue-900: #d0e0f1;
+  --color-blue-950: #e5eef8;
+
+  --color-slate-50: #161b20;
+  --color-slate-200: #2a323a;
+  --color-slate-600: #b0bac5;
+  --color-slate-700: #c6ced7;
+  --color-slate-800: #d8dfe6;
+
+  --color-orange-50: #2b1f16;
+  --color-orange-200: #4f3420;
+  --color-orange-700: #eeae7f;
+  --color-orange-800: #f3c19c;
+
+  --color-purple-50: #211b2a;
+  --color-purple-100: #2a2236;
+  --color-purple-500: #a58fd0;
+  --color-purple-600: #b6a2dc;
+  --color-purple-700: #c6b6e5;
+
+  --color-teal-100: #1b2f2e;
+  --color-teal-800: #a6d8d2;
+}
+
+/* No escuro, sombras quase não aparecem: um contorno sutil separa os cartões */
+:root[data-theme="dark"] .shadow-sm,
+:root[data-theme="dark"] .shadow-xs { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.02); }
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  /* Foco visível para quem navega pelo teclado */
+  :focus-visible {
+    outline: 2px solid var(--color-emerald-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Institutional Terminal & Data Grid Styles */
+.data-grid-border {
+  border: 1px solid var(--color-line);
+}
+
+.col-header {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--color-zinc-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.data-value {
+  font-family: var(--font-mono);
+  letter-spacing: -0.025em;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}

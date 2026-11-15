@@ -1,0 +1,8 @@
+{
+  "name": "Valorize AI - Stock Valuation Dashboard",
+  "description": "Calculadora inteligente de ações baseada nos métodos de Graham e Bazin, com análise qualitativa via IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

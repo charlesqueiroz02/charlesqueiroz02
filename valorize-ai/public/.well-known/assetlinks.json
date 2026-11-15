@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.valorizza.twa",
+        "sha256_cert_fingerprints": ["6E:53:B1:5E:CC:E9:89:93:9E:23:3C:79:1D:B5:F4:9D:DF:30:01:08:8A:7D:70:B1:60:5E:34:A7:D1:BA:53:ED"]
+      }
+    }]

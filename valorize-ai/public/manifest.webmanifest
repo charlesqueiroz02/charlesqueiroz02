@@ -1,0 +1,29 @@
+{
+  "name": "Valorize AI — Graham & Bazin",
+  "short_name": "Valorize",
+  "description": "Valuation de ações da B3 pelos métodos de Graham e Bazin: radar, laboratório de estresse e máquina de renda.",
+  "id": "/",
+  "start_url": "/?origem=atalho",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f6f7f5",
+  "theme_color": "#f6f7f5",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["finance", "education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Radar de Oportunidades", "short_name": "Radar", "url": "/?tab=radar", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] },
+    { "name": "Laboratório de Valuation", "short_name": "Laboratório", "url": "/?tab=laboratorio", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] },
+    { "name": "Máquina de Renda", "short_name": "Renda", "url": "/?tab=renda", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] },
+    { "name": "Minha Carteira", "short_name": "Carteira", "url": "/?tab=portfolio", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] }
+  ]
+}
