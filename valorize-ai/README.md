@@ -45,8 +45,9 @@ src/
 server/
   api.ts            # cotações (Yahoo + Fundamentus), Radar, comparador e IA
   security.ts       # limite de requisições, cabeçalhos e validação de entrada
-server.ts           # servidor Express (AI Studio / Cloud Run)
-netlify/functions/api.ts  # mesma API no Netlify
+server.ts           # servidor Express (local, AI Studio / Cloud Run)
+api/index.ts      # mesma API como função da Vercel
+vercel.json       # build, rotas e cabeçalhos na Vercel
 ```
 
 **Onde mexer**
@@ -87,13 +88,27 @@ npm run dev                  # http://localhost:3000
 - Testes de componente (Testing Library) da busca, da carteira e do otimizador.
 - Fluxo de ponta a ponta com Playwright: buscar ação, adicionar à carteira, ver o alerta.
 
-## Publicar no Netlify
+## Publicar na Vercel
 
-1. Envie o projeto para o GitHub e, no Netlify, use **Add new site → Import from Git**. Se o app estiver numa subpasta do repositório (ex.: `valorize-ai/`), informe-a em **Base directory**. O `netlify.toml` preenche o build e a pasta de publicação.
-2. Em **Site configuration → Environment variables**, crie `GEMINI_API_KEY` e, se quiser, `GEMINI_MODEL`.
-3. Faça o deploy e teste `https://SEU-SITE.netlify.app/api/stock/search?q=petr`.
+**Primeira publicação**
+1. Entre em **vercel.com** e faça login com a conta do GitHub.
+2. Toque em **Add New… → Project** e, em **Import Git Repository**, escolha `charlesqueiroz02/charlesqueiroz02`.
+   Se ele não aparecer, toque em **Adjust GitHub App Permissions** e libere o repositório.
+3. Na tela **Configure Project**:
+   - **Root Directory:** toque em **Edit** e escolha `valorize-ai`.
+   - **Framework Preset:** Vite (o `vercel.json` já define build e pasta `dist`).
+   - **Environment Variables:** crie `GEMINI_API_KEY` com a sua chave e, se quiser, `GEMINI_MODEL`.
+4. Toque em **Deploy** e espere o "Congratulations".
+5. Teste `https://SEU-PROJETO.vercel.app/api/stock/search?q=petr`: deve aparecer uma lista em JSON.
 
-As funções do Netlify têm cerca de 10 segundos de limite; os tempos de espera das fontes já são menores nesse ambiente. Ao publicar uma versão nova, aumente `VERSION` em `public/sw.js` para os aparelhos baixarem a atualização. O APK Android (TWA) continua funcionando: veja `MELHORIAS.md`.
+**Depois disso:** cada mudança enviada ao branch de produção publica sozinha; branches e pull requests geram endereços de pré-visualização.
+Ao publicar uma versão nova, aumente `VERSION` em `public/sw.js` para os aparelhos baixarem a atualização.
+
+**Limites:** cada chamada da API pode rodar até 30 s (`vercel.json`). As cotações ficam guardadas pela CDN por 15 min, o que reduz o número de execuções da função.
+
+**Mudança de endereço:** os dados do app ficam no navegador e são ligados ao endereço do site. Ao trocar de endereço, use **Exportar meus dados** no endereço antigo e **Importar backup** no novo (telas Carteira ou Minha conta). Se o endereço antigo não tiver esse botão, exporte a carteira pelo botão **Excel** e use **Importar carteira do Excel**.
+
+**App Android (APK/TWA):** o APK abre um endereço fixo. Para usar o endereço da Vercel, gere um APK novo no PWABuilder com a URL nova e a **mesma chave de assinatura** (`signing.keystore`); o `public/.well-known/assetlinks.json` já tem a impressão digital dessa chave.
 
 ## Segurança e privacidade
 

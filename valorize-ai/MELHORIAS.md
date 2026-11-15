@@ -145,3 +145,23 @@ Arquivos: `src/components/AddTickerField.tsx` (novo), `RegistrationFlow.tsx`, `A
 - Fundo das janelas (modais) escurecido de forma consistente nos dois temas.
 - Topo não quebra mais "Instalar app" e "6,0% · 20%" em duas linhas.
 - 5 testes novos (formato brasileiro e escolha de tema): 34 no total.
+
+## Versão 2.7: publicação na Vercel, backup e revisão
+
+**Publicação**
+- O app sai do Netlify e passa a ser publicado na **Vercel** (`vercel.json` e `api/index.ts`), com os mesmos cabeçalhos de segurança e de PWA.
+- Removidos `netlify.toml`, `netlify/functions` e a dependência `serverless-http`.
+- `npm start` corrigido: antes tentava rodar TypeScript direto no Node e falhava.
+- As cotações ficam em cache na CDN por 15 min, com menos execuções e menos custo.
+
+**Backup**
+- "Exportar meus dados" e "Importar backup" levam conta, carteira, alertas e preferências para outro endereço ou aparelho.
+- "Importar carteira do Excel" lê a planilha do botão Excel da Carteira.
+
+**Correções da revisão**
+- O Raio-X não tinha o botão **Adicionar à carteira** (a função existia, mas não estava ligada a nenhum botão).
+- Ao sair da conta, a carteira da pessoa continuava visível no modo convidado.
+- Quando a IA não responde, a tela avisa que o texto é um resumo automático.
+- A busca sugeria o código inválido "PETR" no topo da lista.
+- 67 imports não usados removidos.
+- 41 testes automatizados (eram 34).
