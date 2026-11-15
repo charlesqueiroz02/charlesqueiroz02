@@ -33,6 +33,7 @@ const AllocationOptimizer = lazy(() => import('./components/AllocationOptimizer'
 const RegistrationFlow = lazy(() => import('./components/RegistrationFlow').then(m => ({ default: m.RegistrationFlow })));
 const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const ValuationLab = lazy(() => import('./components/ValuationLab').then(m => ({ default: m.ValuationLab })));
+const BackupCard = lazy(() => import('./components/BackupCard').then(m => ({ default: m.BackupCard })));
 const IncomeMachine = lazy(() => import('./components/IncomeMachine').then(m => ({ default: m.IncomeMachine })));
 
 const TabLoading = () => (
@@ -918,6 +919,7 @@ export function App() {
               margin={stock.marginOfSafety}
               bazinMode={bazinMode}
             />
+            <BackupCard />
           </div>
         )}
 
@@ -928,6 +930,7 @@ export function App() {
               initialMode={isAuthenticated ? 'profile' : 'register'}
               onSuccess={() => {}}
             />
+            <BackupCard />
           </div>
         )}
         </Suspense>
