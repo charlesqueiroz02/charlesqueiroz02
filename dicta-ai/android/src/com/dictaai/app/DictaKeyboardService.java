@@ -1,4 +1,4 @@
-package com.charles.dicta;
+package com.dictaai.app;
 
 import android.Manifest;
 import android.content.Intent;
@@ -31,6 +31,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Locale;
 
 /**
  * Teclado de sistema Dicta: toque no microfone, fale, e o texto polido pela IA
@@ -215,7 +216,7 @@ public class DictaKeyboardService extends InputMethodService {
     /** Estilo automático conforme o app em uso */
     private String resolveMode() {
         if (!"auto".equals(mode)) return mode;
-        String p = currentPackage == null ? "" : currentPackage.toLowerCase();
+        String p = currentPackage == null ? "" : currentPackage.toLowerCase(Locale.ROOT);
         if (p.equals("com.google.android.gm") || p.contains("outlook") || p.contains("mail")) return "email";
         if (p.contains("linkedin")) return "social";
         if (p.contains("keep") || p.contains("notes") || p.contains("notion") || p.contains("todo") || p.contains("tasks")) return "bullet";
@@ -328,7 +329,7 @@ public class DictaKeyboardService extends InputMethodService {
         public void run() {
             if (!recording || recorder == null) return;
             long secs = (System.currentTimeMillis() - recStart) / 1000;
-            setStatus(String.format("Ouvindo… %d:%02d  • toque ■ para finalizar", secs / 60, secs % 60), 0xFFF9A8D4, false);
+            setStatus(String.format(Locale.ROOT, "Ouvindo… %d:%02d  • toque ■ para finalizar", secs / 60, secs % 60), 0xFFF9A8D4, false);
             try {
                 float amp = Math.min(1f, recorder.getMaxAmplitude() / 12000f);
                 float s = 1f + amp * 0.18f;

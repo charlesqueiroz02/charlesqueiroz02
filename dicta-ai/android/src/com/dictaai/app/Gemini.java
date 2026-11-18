@@ -1,4 +1,4 @@
-package com.charles.dicta;
+package com.dictaai.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /** Cliente Gemini usado pelo teclado nativo (mesma lógica do app web). */
 public class Gemini {
@@ -51,7 +52,7 @@ public class Gemini {
     static boolean isModelUnavailable(int code, String msg) {
         if (code == 404) return true;
         if (code != 400 && code != 403) return false;
-        String m = msg == null ? "" : msg.toLowerCase();
+        String m = msg == null ? "" : msg.toLowerCase(Locale.ROOT);
         if (m.contains("api key") && !m.contains("model")) return false;
         return UNAVAILABLE.matcher(m).find();
     }
@@ -242,7 +243,7 @@ public class Gemini {
                             rank = P_UNAVAILABLE;
                         } else {
                             attempts++;
-                            if (code == 400 && msg.toLowerCase().contains("api key")) throw new GeminiException("Chave da IA inválida — confira no app Dicta", true);
+                            if (code == 400 && msg.toLowerCase(Locale.ROOT).contains("api key")) throw new GeminiException("Chave da IA inválida — confira no app Dicta", true);
                             if (code == 401 || code == 403) throw new GeminiException("Chave sem permissão — gere outra no AI Studio", true);
                             if (code == 429) {
                                 long wait = retryDelayMs(resp);

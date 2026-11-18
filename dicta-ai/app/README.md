@@ -57,7 +57,7 @@ preferências de som/vibração e validação de upload.
 ## Notas
 
 - A lógica de prompt existe em duas cópias: `src/lib/gemini.ts` (app) e
-  `android/src/com/charles/dicta/Gemini.java` (teclado nativo). Ao mudar uma, mude a outra.
+  `android/src/com/dictaai/app/Gemini.java` (teclado nativo). Ao mudar uma, mude a outra.
 - A lista de modelos (`AUTO_MODELS`) também existe nas duas cópias. Modelos 1.x/2.x são
   tratados como aposentados (`isRetiredModel`) e nunca são chamados.
 - Uploads de áudio têm limite de 14 MB (o Gemini aceita ~20 MB por requisição em base64).

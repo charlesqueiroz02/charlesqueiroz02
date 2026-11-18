@@ -1,4 +1,4 @@
-package com.charles.dicta;
+package com.dictaai.app;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -11,6 +11,7 @@ import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Locale;
 
 /** Provider mínimo para compartilhar PDFs/backups gerados pelo app. */
 public class ShareProvider extends ContentProvider {
@@ -44,7 +45,7 @@ public class ShareProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         String ext = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-        String m = ext == null ? null : MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext.toLowerCase());
+        String m = ext == null ? null : MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext.toLowerCase(Locale.ROOT));
         if (m == null && "md".equalsIgnoreCase(ext)) m = "text/markdown";
         return m != null ? m : "application/octet-stream";
     }

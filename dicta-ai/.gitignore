@@ -4,3 +4,7 @@
 # Saídas do build Android
 android/build/
 android/assets/www/
+# Gradle
+android/.gradle/
+android/build/
+android/local.properties

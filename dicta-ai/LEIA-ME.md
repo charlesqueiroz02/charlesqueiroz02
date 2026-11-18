@@ -1,30 +1,48 @@
-# Dicta AI 2.0 — projeto-fonte
+# Dicta AI — projeto-fonte
 
 - `app/` → app web (React + Vite + Tailwind). IA via Gemini direto do aparelho. Ver `app/README.md`.
 - `android/` → casca nativa (WebView) + teclado de sistema (InputMethodService) em Java.
 
-## Recompilar o APK (Linux/Ubuntu)
-    sudo apt install openjdk-21-jdk-headless aapt apksigner zipalign dalvik-exchange android-sdk-platform-23
-    cd app && npm install && cd ..
-    export DICTA_KS_PASS='senha-do-keystore'
+## Gerar o app para a Play Store (AAB) e o APK de teste
+Requisitos: JDK 17+, Node.js 20+ e Android SDK com `platforms;android-36` (Android Studio
+instala tudo; sem ele, use o *command-line tools* e
+`sdkmanager "platforms;android-36" "build-tools;36.1.0"`).
+
+    export ANDROID_HOME=/caminho/do/android-sdk
     export DICTA_KEYSTORE=/caminho/seguro/dicta-release.keystore   # fora do repositório
-    ./android/build-apk.sh      # gera android/build/DictaAI-v<versão>.apk
+    export DICTA_KS_PASS='senha-do-keystore'
+    ./android/build.sh
+    # gera android/build/dist/DictaAI-v<versão>.aab (Play Store) e .apk (instalar direto)
 
-A versão (`versionCode`/`versionName`) é lida do `AndroidManifest.xml`: para lançar uma
-atualização, aumente as duas lá.
+- Projeto Gradle em `android/` (AGP 9.5, Gradle 9.9 via `./gradlew`), mantendo
+  `AndroidManifest.xml`, `src/`, `res/` e `assets/` nas mesmas pastas.
+- Pacote: **`com.dictaai.app`** (permanente na Play Store). `targetSdk` 36, `minSdk` 24.
+- **Versão:** em `android/build.gradle.kts` (`versionCode` e `versionName`). Aumente os dois
+  a cada envio à Play Store.
 
-## IMPORTANTE — chave de assinatura
-- O keystore (`*.keystore`) **não** fica no git: este repositório é público e qualquer
-  pessoa com o arquivo + senha poderia assinar APKs como se fossem seus.
+## IMPORTANTE — chaves de assinatura
+- **Play App Signing:** o Google gera e guarda a chave que assina o app entregue aos
+  usuários. O seu `dicta-release.keystore` é só a **chave de envio** (upload key): é com
+  ela que cada AAB precisa ser assinado para o Play Console aceitar. Se perdê-la, o Google
+  permite registrar outra pelo Play Console (suporte).
+- O keystore (`*.keystore`) **não** fica no git: este repositório é público.
 - Guarde o keystore e a senha em local seguro (gerenciador de senhas / backup offline).
-  Atualizações futuras precisam ser assinadas com a MESMA chave, senão o Android não
-  instala por cima.
 - A senha é lida de `DICTA_KS_PASS`; nunca a escreva em arquivos versionados.
-- O script se recusa a criar uma chave nova se não encontrar o keystore. Para criar uma de
-  propósito (perde a atualização por cima das instalações atuais): `DICTA_NEW_KEYSTORE=1`.
 
 ## Testes
     cd app && npm run lint && npm test && npm run build
+
+## Versão 2.1.0 — preparação para a Play Store
+- Build com Gradle gerando **AAB** (formato exigido pela loja) e APK; `build-apk.sh`
+  substituído por `build.sh`.
+- Pacote novo `com.dictaai.app` (instala ao lado da versão antiga `com.charles.dicta`;
+  desinstale a antiga depois de exportar o backup em Preferências).
+- `targetSdk` 36 (exigência da Play Store desde 31/08/2026): tela de ponta a ponta com
+  margens para barras do sistema e teclado; gesto voltar no Android 13+ pela API nova.
+- Dados fora do backup na nuvem **e** da transferência para outro celular
+  (`data_extraction_rules.xml`): no Android 12+, `allowBackup=false` sozinho não bloqueia
+  a transferência, e a chave da IA iria junto.
+- Correções do lint do Android (formatação de texto independente do idioma do aparelho).
 
 ## Versão 2.0.1 — correção do erro de modelo
 - O Google deixou de liberar os modelos Gemini 2.5 para chaves novas ("This model
