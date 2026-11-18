@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Política de Privacidade — Dicta AI</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px;
+           margin: 0 auto; padding: 24px 16px 64px; line-height: 1.6; background: #fff; color: #1f2937; }
+    @media (prefers-color-scheme: dark) { body { background: #0b0c12; color: #e5e7eb; } a { color: #c4b5fd; } }
+    h1 { font-size: 1.8rem; } table { border-collapse: collapse; width: 100%; font-size: .92rem; display: block; overflow-x: auto; }
+    th, td { border: 1px solid #8884; padding: 6px 8px; vertical-align: top; text-align: left; }
+  </style>
+</head>
+<body>
+<h1 id="política-de-privacidade-dicta-ai">Política de Privacidade —
+Dicta AI</h1>
+<p><strong>Última atualização:</strong> 18 de novembro de 2026</p>
+<p>Esta política explica como o aplicativo <strong>Dicta AI</strong>
+(pacote <code>com.dictaai.app</code>), incluindo o <strong>teclado
+Dicta</strong>, trata os seus dados. Ela segue a Lei Geral de Proteção
+de Dados (LGPD — Lei nº 13.709/2018).</p>
+<ul>
+<li><strong>Responsável pelo app:</strong> Charles F. Queiroz</li>
+<li><strong>Contato:</strong> charlesferreiradequeiroz@gmail.com</li>
+</ul>
+<h2 id="resumo">1. Resumo</h2>
+<ul>
+<li>O Dicta AI <strong>não tem servidor próprio</strong> e <strong>não
+cria conta</strong> para você.</li>
+<li>Sua voz e os textos que você pede para refinar são enviados
+<strong>diretamente do seu celular para a API Google Gemini</strong>,
+usando a chave de API que <strong>você</strong> cadastra no app.</li>
+<li>O histórico, o dicionário e as preferências ficam <strong>somente no
+seu aparelho</strong>.</li>
+<li><strong>Não vendemos</strong> dados, não exibimos anúncios e não
+usamos ferramentas de rastreamento.</li>
+</ul>
+<h2 id="quais-dados-o-app-usa-e-por-quê">2. Quais dados o app usa e por
+quê</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dado</th>
+<th>Quando</th>
+<th>Para quê</th>
+<th>Para onde vai</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Áudio do microfone</td>
+<td>Só enquanto você grava (botão de ditar ou microfone do teclado)</td>
+<td>Transcrever e refinar o que você disse</td>
+<td>Google Gemini, para processamento</td>
+</tr>
+<tr class="even">
+<td>Texto ditado e textos que você pede para editar</td>
+<td>Quando você dita, troca o estilo ou dá um comando de edição</td>
+<td>Gerar o texto refinado</td>
+<td>Google Gemini, para processamento</td>
+</tr>
+<tr class="odd">
+<td>Texto já digitado antes do cursor (até 600 caracteres)</td>
+<td><strong>Só no teclado Dicta</strong>, quando você toca no
+microfone</td>
+<td>Dar contexto para a IA não repetir nem contradizer o que já está
+escrito</td>
+<td>Google Gemini, para processamento</td>
+</tr>
+<tr class="even">
+<td>Arquivos de áudio que você importa</td>
+<td>Quando você escolhe um arquivo</td>
+<td>Transcrever o arquivo</td>
+<td>Google Gemini, para processamento</td>
+</tr>
+<tr class="odd">
+<td>Chave da API do Gemini</td>
+<td>Quando você a cadastra</td>
+<td>Autorizar as chamadas à IA</td>
+<td>Fica no aparelho; é enviada apenas ao Google em cada chamada</td>
+</tr>
+<tr class="even">
+<td>Histórico, dicionário pessoal e preferências</td>
+<td>Durante o uso</td>
+<td>Mostrar seus ditados anteriores e personalizar o app</td>
+<td>Ficam só no aparelho</td>
+</tr>
+</tbody>
+</table>
+<p>O teclado Dicta <strong>não lê nem envia</strong> o que você digita
+normalmente. Ele só acessa o texto antes do cursor no momento em que
+você toca no microfone para ditar.</p>
+<h2 id="google-gemini">3. Google Gemini</h2>
+<p>O processamento de voz e texto é feito pela API Google Gemini,
+operada pelo Google LLC, nos termos da chave de API que você cadastrou.
+O tratamento desses dados pelo Google segue os <a
+href="https://ai.google.dev/gemini-api/terms">Termos adicionais da API
+Gemini</a> e a <a href="https://policies.google.com/privacy">Política de
+Privacidade do Google</a>. No nível gratuito da API, o Google pode usar
+o conteúdo enviado para melhorar os produtos dele; se isso for uma
+preocupação, use uma chave com faturamento ativo ou não dite informações
+sensíveis.</p>
+<h2 id="armazenamento-e-segurança">4. Armazenamento e segurança</h2>
+<ul>
+<li>Os dados locais ficam na área privada do app no seu celular.</li>
+<li>O app <strong>desativa o backup na nuvem e a transferência para
+outro aparelho</strong>, para que a sua chave e o seu histórico não
+saiam do celular.</li>
+<li>Toda comunicação com o Google é feita por conexão criptografada
+(HTTPS).</li>
+<li>Backups que você exportar manualmente (arquivo JSON) <strong>não
+incluem</strong> a chave da API e ficam sob a sua guarda.</li>
+</ul>
+<h2 id="seus-direitos-e-exclusão-de-dados">5. Seus direitos e exclusão
+de dados</h2>
+<p>Como os dados ficam no seu aparelho, você mesmo controla tudo: -
+<strong>Apagar o histórico:</strong> Preferências › Apagar histórico. -
+<strong>Apagar todos os dados:</strong> Configurações do Android › Apps
+› Dicta AI › Armazenamento › Limpar dados, ou desinstalar o app. -
+<strong>Remover a chave:</strong> apague o campo em Preferências › Chave
+da IA, ou revogue a chave em aistudio.google.com/apikey.</p>
+<p>Para dúvidas ou para exercer seus direitos previstos na LGPD, escreva
+para charlesferreiradequeiroz@gmail.com.</p>
+<h2 id="permissões-do-android">6. Permissões do Android</h2>
+<ul>
+<li><strong>Microfone (RECORD_AUDIO):</strong> gravar sua voz somente
+quando você toca para ditar.</li>
+<li><strong>Internet:</strong> enviar o áudio e o texto ao Google
+Gemini.</li>
+<li><strong>Vibração:</strong> feedback ao gravar (pode ser desligado em
+Preferências).</li>
+</ul>
+<h2 id="crianças">7. Crianças</h2>
+<p>O Dicta AI não é destinado a menores de 18 anos e não coleta dados de
+crianças de forma intencional.</p>
+<h2 id="alterações">8. Alterações</h2>
+<p>Se esta política mudar (por exemplo, quando o app passar a oferecer
+um plano pago com servidor próprio), a nova versão será publicada neste
+mesmo endereço com a data atualizada, e mudanças relevantes serão
+avisadas no app.</p>
+</body>
+</html>

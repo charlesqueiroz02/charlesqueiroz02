@@ -6,8 +6,8 @@ Esta política explica como o aplicativo **Dicta AI** (pacote `com.dictaai.app`)
 **teclado Dicta**, trata os seus dados. Ela segue a Lei Geral de Proteção de Dados
 (LGPD — Lei nº 13.709/2018).
 
-**Responsável pelo app:** {{NOME_DO_DESENVOLVEDOR}}
-**Contato:** {{EMAIL_DE_CONTATO}}
+- **Responsável pelo app:** Charles F. Queiroz
+- **Contato:** charlesferreiradequeiroz@gmail.com
 
 ## 1. Resumo
 - O Dicta AI **não tem servidor próprio** e **não cria conta** para você.
@@ -55,7 +55,7 @@ Como os dados ficam no seu aparelho, você mesmo controla tudo:
   aistudio.google.com/apikey.
 
 Para dúvidas ou para exercer seus direitos previstos na LGPD, escreva para
-{{EMAIL_DE_CONTATO}}.
+charlesferreiradequeiroz@gmail.com.
 
 ## 6. Permissões do Android
 - **Microfone (RECORD_AUDIO):** gravar sua voz somente quando você toca para ditar.
