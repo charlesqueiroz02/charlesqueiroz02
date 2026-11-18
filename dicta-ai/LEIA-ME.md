@@ -2,6 +2,8 @@
 
 - `app/` → app web (React + Vite + Tailwind). IA via Gemini direto do aparelho. Ver `app/README.md`.
 - `android/` → casca nativa (WebView) + teclado de sistema (InputMethodService) em Java.
+- `docs/` → material da Play Store: passo a passo do Play Console, ficha da loja, política de
+  privacidade, guia dos testadores e imagens. Ver `docs/README.md`.
 
 ## Gerar o app para a Play Store (AAB) e o APK de teste
 Requisitos: JDK 17+, Node.js 20+ e Android SDK com `platforms;android-36` (Android Studio
@@ -43,6 +45,8 @@ instala tudo; sem ele, use o *command-line tools* e
   (`data_extraction_rules.xml`): no Android 12+, `allowBackup=false` sozinho não bloqueia
   a transferência, e a chave da IA iria junto.
 - Correções do lint do Android (formatação de texto independente do idioma do aparelho).
+- Histórico: datas sempre no formato brasileiro (dd/mm/aaaa 24 h) e filtro "E-mail" sem
+  quebrar linha.
 
 ## Versão 2.0.1 — correção do erro de modelo
 - O Google deixou de liberar os modelos Gemini 2.5 para chaves novas ("This model

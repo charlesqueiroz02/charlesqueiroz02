@@ -58,7 +58,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
     const content = notes
       .map(
         (n) =>
-          `# ${new Date(n.timestamp).toLocaleString()} (${modeShortLabel(n.mode)})\n\n${n.refinedText}\n\n---\n*Fala bruta:* ${n.rawText}\n*Vícios removidos:* ${n.fillerWordsRemoved.join(', ') || 'Nenhum'}\n`
+          `# ${new Date(n.timestamp).toLocaleString('pt-BR')} (${modeShortLabel(n.mode)})\n\n${n.refinedText}\n\n---\n*Fala bruta:* ${n.rawText}\n*Vícios removidos:* ${n.fillerWordsRemoved.join(', ') || 'Nenhum'}\n`
       )
       .join('\n\n');
 
@@ -119,7 +119,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                 key={mode}
                 onClick={() => setSelectedFilter(mode)}
                 aria-pressed={selectedFilter === mode}
-                className={`px-2.5 py-1 rounded-lg border transition-all uppercase font-medium ${
+                className={`px-2.5 py-1 rounded-lg border transition-all uppercase font-medium whitespace-nowrap shrink-0 ${
                   selectedFilter === mode
                     ? 'bg-purple-600 text-white border-purple-500'
                     : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
@@ -167,7 +167,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                       {modeShortLabel(note.mode)}
                     </span>
                     <span className="text-[11px] text-zinc-500">
-                      {new Date(note.timestamp).toLocaleDateString()} {new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(note.timestamp).toLocaleDateString('pt-BR')} {new Date(note.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
