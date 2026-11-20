@@ -67,3 +67,14 @@ Ordem sugerida das capturas: 2 (resultado), 3 (comparar), 4 (teclado), 1 (estúd
 - **Site:** opcional
 - **Política de privacidade (URL):** `https://charlesqueiroz02.github.io/charlesqueiroz02/privacidade.html`
   (depois de publicar — veja `play-console-passo-a-passo.md`, passo 2)
+
+## Página do desenvolvedor — texto promocional (140)
+Play Console › Página do desenvolvedor › Texto promocional. Adicione o pt-BR como idioma
+padrão e os outros em "Gerenciar traduções".
+
+| Idioma | Texto | Caracteres |
+|---|---|---|
+| Português (Brasil) – pt-BR | Apps com inteligência artificial que transformam sua voz em texto pronto. Escreva, organize e trabalhe mais rápido. Feito no Brasil. | 132 |
+| Inglês (EUA) – en-US | AI-powered apps that turn your voice into ready-to-send text. Write, organize and work faster. Made in Brazil. | 110 |
+| Espanhol (Espanha) – es-ES | Apps con inteligencia artificial que convierten tu voz en texto listo. Escribe, organiza y trabaja más rápido. Hecho en Brasil. | 127 |
+| Português (Portugal) – pt-PT | Apps com inteligência artificial que transformam a sua voz em texto pronto. Escreva, organize e trabalhe mais depressa. Feito no Brasil. | 136 |
