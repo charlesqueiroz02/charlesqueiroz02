@@ -53,6 +53,7 @@ O Dicta AI usa a inteligência artificial Google Gemini. Na primeira abertura, c
 |---|---|---|
 | Ícone do app | `loja/icone-512.png` | 512×512 |
 | Recurso gráfico (imagem de destaque) | `loja/imagem-destaque-1024x500.png` | 1024×500 |
+| Ícone do desenvolvedor (Página do desenvolvedor) | `loja/desenvolvedor-icone-512.png` ou `loja/desenvolvedor-icone-512-escuro.png` | 512×512 |
 | Capturas de tela do telefone (mín. 2) | `loja/captura-1-estudio.png` … `loja/captura-6-preferencias.png` | 1080×1920 |
 
 Ordem sugerida das capturas: 2 (resultado), 3 (comparar), 4 (teclado), 1 (estúdio),
