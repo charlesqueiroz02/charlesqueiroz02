@@ -1,6 +1,6 @@
 # Play Console — passo a passo para o teste fechado do Dicta AI
 
-Arquivo a enviar: **`DictaAI-v2.1.0.aab`** (pacote `com.dictaai.app`, versão 2.1.0, código 22).
+Arquivo a enviar: **`DictaAI-v2.1.0.aab`** (pacote `dictaai.app.com`, versão 2.1.0, código 22).
 Os nomes dos menus do Play Console mudam de vez em quando; se algum não bater exatamente,
 procure pelo termo parecido no menu da esquerda.
 
@@ -106,7 +106,7 @@ A revisão costuma levar de algumas horas a poucos dias.
 ## 6. Pegar o link de participação
 Depois de aprovado: **Teste fechado › aba Testadores** › seção **"Como os testadores
 participam"** › copie o link **"Participar no Android"**. Formato:
-`https://play.google.com/apps/testing/com.dictaai.app`
+`https://play.google.com/apps/testing/dictaai.app.com`
 
 Mande o link junto com a mensagem pronta de `guia-testadores.md`.
 

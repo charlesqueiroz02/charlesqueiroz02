@@ -46,8 +46,8 @@ public class MainActivity extends Activity {
 
     static final String HOST = "appassets.androidplatform.net";
     static final String START_URL = "https://" + HOST + "/index.html";
-    /** Mesmo valor de android:authorities do ShareProvider no AndroidManifest.xml */
-    static final String SHARE_AUTHORITY = "com.dictaai.app.share";
+    /** android:authorities do ShareProvider no AndroidManifest.xml = "<id do app>.share" */
+    private String shareAuthority() { return getPackageName() + ".share"; }
     private static final int REQ_MIC = 11;
     private static final int REQ_FILE = 12;
 
@@ -345,7 +345,7 @@ public class MainActivity extends Activity {
                 FileOutputStream fo = new FileOutputStream(f);
                 fo.write(Base64.decode(base64, Base64.DEFAULT));
                 fo.close();
-                final Uri uri = Uri.parse("content://" + SHARE_AUTHORITY + "/" + safe);
+                final Uri uri = Uri.parse("content://" + shareAuthority() + "/" + safe);
                 runOnUiThread(new Runnable() {
                     public void run() {
                         Intent i = new Intent(Intent.ACTION_SEND);

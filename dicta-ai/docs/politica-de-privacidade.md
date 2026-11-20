@@ -2,7 +2,7 @@
 
 **Última atualização:** 18 de novembro de 2026
 
-Esta política explica como o aplicativo **Dicta AI** (pacote `com.dictaai.app`), incluindo o
+Esta política explica como o aplicativo **Dicta AI** (pacote `dictaai.app.com`), incluindo o
 **teclado Dicta**, trata os seus dados. Ela segue a Lei Geral de Proteção de Dados
 (LGPD — Lei nº 13.709/2018).
 

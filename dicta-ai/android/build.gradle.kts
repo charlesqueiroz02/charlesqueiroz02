@@ -16,7 +16,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.dictaai.app"
+        // ID do app na Play Store (definido ao criar o app no Play Console; permanente).
+        // O namespace do código Java continua com.dictaai.app.
+        applicationId = "dictaai.app.com"
         minSdk = 24
         targetSdk = 36
         // Aumente os dois a cada versão enviada à Play Store

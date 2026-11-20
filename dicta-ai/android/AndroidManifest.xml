@@ -53,7 +53,7 @@
 
         <provider
             android:name=".ShareProvider"
-            android:authorities="com.dictaai.app.share"
+            android:authorities="${applicationId}.share"
             android:exported="false"
             android:grantUriPermissions="true" />
     </application>

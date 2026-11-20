@@ -18,7 +18,9 @@ instala tudo; sem ele, use o *command-line tools* e
 
 - Projeto Gradle em `android/` (AGP 9.5, Gradle 9.9 via `./gradlew`), mantendo
   `AndroidManifest.xml`, `src/`, `res/` e `assets/` nas mesmas pastas.
-- Pacote: **`com.dictaai.app`** (permanente na Play Store). `targetSdk` 36, `minSdk` 24.
+- ID do app na Play Store: **`dictaai.app.com`** (`applicationId`, permanente — foi o informado ao
+  criar o app no Play Console). O código Java usa o namespace `com.dictaai.app`.
+  `targetSdk` 36, `minSdk` 24.
 - **Versão:** em `android/build.gradle.kts` (`versionCode` e `versionName`). Aumente os dois
   a cada envio à Play Store.
 
@@ -37,7 +39,7 @@ instala tudo; sem ele, use o *command-line tools* e
 ## Versão 2.1.0 — preparação para a Play Store
 - Build com Gradle gerando **AAB** (formato exigido pela loja) e APK; `build-apk.sh`
   substituído por `build.sh`.
-- Pacote novo `com.dictaai.app` (instala ao lado da versão antiga `com.charles.dicta`;
+- ID novo `dictaai.app.com` (instala ao lado da versão antiga `com.charles.dicta`;
   desinstale a antiga depois de exportar o backup em Preferências).
 - `targetSdk` 36 (exigência da Play Store desde 31/08/2026): tela de ponta a ponta com
   margens para barras do sistema e teclado; gesto voltar no Android 13+ pela API nova.
