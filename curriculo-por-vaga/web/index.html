@@ -1,0 +1,861 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Currículo por Vaga</title>
+<meta name="description" content="Gere um currículo e uma carta ajustados a cada vaga, com aderência ATS, revisão automática e controle de candidaturas. Tudo fica no seu aparelho.">
+<meta name="theme-color" content="#0f5c7a">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: bancada de trabalho em duas colunas — painel de controle à esquerda, folha A4 à direita; empilha no celular */
+:root{
+  --bg:#e9eef1; --panel:#ffffff; --panel-2:#f4f7f9; --ink:#14202a; --muted:#5a6772; --line:#d3dbe1;
+  --accent:#0f5c7a; --accent-ink:#ffffff; --accent-soft:#dcecf3;
+  --signal:#c98a00; --signal-soft:#fff2c9; --good:#1d7f55; --good-soft:#dcf2e6; --bad:#b9420e; --bad-soft:#fbe5d9;
+  --paper:#ffffff; --paper-shadow:0 1px 2px rgba(20,32,42,.08),0 8px 28px rgba(20,32,42,.10);
+  --f-display:"Archivo","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1419; --panel:#161f26; --panel-2:#1c2730; --ink:#e3e9ed; --muted:#93a1ab; --line:#2a3741;
+  --accent:#62b4d4; --accent-ink:#07202b; --accent-soft:#16323e;
+  --signal:#f0b52a; --signal-soft:#3a2e0c; --good:#4fc48c; --good-soft:#123426; --bad:#f08a5a; --bad-soft:#3d1f12;
+  --paper-shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --panel:#161f26; --panel-2:#1c2730; --ink:#e3e9ed; --muted:#93a1ab; --line:#2a3741;
+  --accent:#62b4d4; --accent-ink:#07202b; --accent-soft:#16323e;
+  --signal:#f0b52a; --signal-soft:#3a2e0c; --good:#4fc48c; --good-soft:#123426; --bad:#f08a5a; --bad-soft:#3d1f12;
+  --paper-shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(20px,env(safe-area-inset-top,0px));padding-bottom:max(48px,env(safe-area-inset-bottom,0px))}
+[hidden]{display:none!important}
+.wrap{max-width:1360px;margin:0 auto;display:grid;gap:18px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px}
+header.top h1{font-family:var(--f-display);font-weight:800;font-size:1.65rem;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header.top p{margin:0;color:var(--muted);font-size:.9rem;max-width:62ch}
+.tag-mono{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.banner{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--accent-soft);border:1px solid transparent}
+.banner p{margin:0;font-size:.86rem}
+.app{display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.app{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:1 0 auto;background:none;border:0;border-bottom:2px solid transparent;padding:12px 12px;font:600 .84rem var(--f-body);color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .cnt{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--signal-soft);color:var(--ink);font:600 .68rem var(--f-mono);line-height:18px;text-align:center}
+.tabs button:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pane{padding:18px;display:grid;gap:16px}
+label.f{display:grid;gap:5px;font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.02em}
+label.f .hint{font-weight:400;letter-spacing:0}
+input[type=text],input[type=email],input[type=tel],input[type=url],textarea,select{width:100%;font:400 .9rem var(--f-body);color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:9px 10px}
+textarea{resize:vertical;line-height:1.45}
+#vaga{min-height:190px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:600 .82rem var(--f-body);padding:8px 12px;border-radius:7px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:none}
+.btn.small{padding:4px 9px;font-size:.74rem;min-height:30px}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{font-size:.78rem;color:var(--muted);margin:0}
+/* score */
+.score{display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+.gauge{position:relative;width:92px;height:92px}
+.gauge svg{width:92px;height:92px;transform:rotate(-90deg)}
+.gauge .num{position:absolute;inset:0;display:grid;place-items:center;font:700 1.5rem var(--f-display);font-variant-numeric:tabular-nums}
+.gauge .num small{font-size:.7rem;font-weight:600;color:var(--muted);display:block;margin-top:-6px;text-align:center}
+.score h3{margin:0 0 2px;font:700 1rem var(--f-display)}
+.score p{margin:0;color:var(--muted);font-size:.82rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:500;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.chip.ok{background:var(--good-soft);border-color:transparent;color:var(--good)}
+.chip.mid{background:var(--signal-soft);border-color:transparent;color:var(--ink)}
+.chip.miss{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.chip .w{font:600 .62rem var(--f-mono);opacity:.75;letter-spacing:.04em}
+.chip button{border:0;background:var(--panel);color:var(--ink);font:600 .68rem var(--f-body);border-radius:999px;padding:1px 7px;cursor:pointer}
+.chip.tog{cursor:pointer}
+.chip.tog[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.sub{font:700 .72rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.tips{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.tips li{font-size:.82rem;padding:8px 10px;border-radius:7px;background:var(--signal-soft);color:var(--ink);border-left:3px solid var(--signal)}
+/* revisão */
+.checks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:.83rem;padding:9px 10px;border-radius:7px;background:var(--panel-2);border-left:3px solid var(--line)}
+.checks li.ok{border-left-color:var(--good)}.checks li.warn{border-left-color:var(--signal)}.checks li.bad{border-left-color:var(--bad)}
+.checks .ic{font:700 .85rem var(--f-mono);text-align:center}
+.checks li.ok .ic{color:var(--good)}.checks li.warn .ic{color:var(--signal)}.checks li.bad .ic{color:var(--bad)}
+.checks small{display:block;color:var(--muted);font-size:.76rem;margin-top:2px}
+/* roles */
+.role{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.role-h{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:10px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.role-h .r3{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 74px auto;gap:8px;align-items:center}
+@media (max-width:520px){.role-h{grid-template-columns:1fr}.role-h .r3{grid-template-columns:minmax(0,1fr) 70px}.role-h .r3 .btns{grid-column:1/-1}}
+.role-h input,.role-h select{font-size:.8rem;padding:6px 8px}
+.blist{display:grid}
+.b{display:grid;gap:6px;padding:10px;border-bottom:1px solid var(--line)}
+.b:last-child{border-bottom:0}
+.b.in{box-shadow:inset 3px 0 0 var(--accent)}
+.b-top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.b-top select{width:auto;font-size:.74rem;padding:3px 6px}
+.state{font:600 .68rem var(--f-mono);letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:4px}
+.state.on{background:var(--accent-soft);color:var(--accent)}
+.state.off{background:var(--panel-2);color:var(--muted)}
+.len{font:500 .68rem var(--f-mono);color:var(--muted);margin-left:auto}
+.len.long{color:var(--bad)}
+.b textarea{min-height:64px;font-size:.84rem}
+.b .chips .chip{font-size:.68rem;padding:1px 7px}
+.b .chips .chip.hit{background:var(--good-soft);color:var(--good);border-color:transparent}
+.role-f{padding:8px 10px;background:var(--panel-2);border-top:1px solid var(--line)}
+/* candidaturas */
+.funnel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+@media (max-width:420px){.funnel{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.funnel div{padding:8px;border-radius:8px;background:var(--panel-2);text-align:center}
+.funnel b{display:block;font:700 1.2rem var(--f-display);font-variant-numeric:tabular-nums}
+.funnel span{font-size:.68rem;color:var(--muted)}
+.vlist{display:grid;gap:8px}
+.v{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.v-h{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start}
+.v strong{display:block;font-size:.88rem}
+.v-h span{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.v select{width:auto;font-size:.76rem;padding:4px 8px}
+.empty{padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:.84rem;text-align:center}
+details.box{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+details.box summary{cursor:pointer;font-weight:600;font-size:.85rem}
+details.box[open] summary{margin-bottom:10px}
+/* preview */
+.prev{position:sticky;top:12px;display:grid;gap:12px;min-width:0}
+@media (max-width:980px){.prev{position:static}}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:7px 14px;font:600 .8rem var(--f-body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.toolbar select{width:auto;padding:6px 8px;font-size:.8rem}
+.badge{font:600 .72rem var(--f-mono);padding:4px 8px;border-radius:5px;letter-spacing:.03em}
+.badge.warn{background:var(--signal-soft);color:var(--ink)}
+.badge.okb{background:var(--good-soft);color:var(--good)}
+.sheet-wrap{overflow-x:auto;max-height:calc(100vh - 120px);overflow-y:auto;border-radius:6px}
+@media (max-width:980px){.sheet-wrap{max-height:none}}
+#paper{background:var(--paper);color:#1b1f23;box-shadow:var(--paper-shadow);max-width:794px;margin:0 auto;padding:44px 50px;min-height:600px}
+@media (max-width:560px){#paper{padding:22px 18px}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:center;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.85rem;font-weight:500;max-width:calc(100% - 32px);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast button{background:none;border:0;color:var(--accent-soft);font:700 .85rem var(--f-body);cursor:pointer;text-decoration:underline;padding:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.gauge circle.arc{transition:stroke-dashoffset .5s ease}}
+@media print{@page{size:A4;margin:16mm}
+body{background:#fff!important;padding:0!important}
+header.top,.banner,.panel,.toolbar,.toast{display:none!important}
+.wrap{display:block}.app{display:block}.prev{position:static}
+.sheet-wrap{max-height:none!important;overflow:visible!important}
+#paper{box-shadow:none!important;padding:0!important;max-width:none!important;min-height:0!important}
+mark{background:none!important}}
+</style></head><body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="tag-mono">ATS · modelo XYZ · 1 coluna · 100% no seu aparelho</div>
+      <h1>Currículo por Vaga</h1>
+    </div>
+    <p>Cole a vaga, veja a aderência, corrija o que a revisão apontar e envie um currículo feito para aquela vaga.</p>
+  </header>
+
+  <div class="banner" id="sampleBanner" hidden>
+    <p><b>Você está vendo um exemplo.</b> Explore à vontade; quando quiser, comece o seu com os campos em branco.</p>
+    <button class="btn primary small" id="startMine">Começar o meu currículo</button>
+  </div>
+
+  <div class="app">
+    <section class="panel" aria-label="Controles">
+      <div class="tabs" role="tablist" aria-label="Seções">
+        <button role="tab" id="tab-vaga" aria-controls="pane-vaga" data-tab="vaga" aria-selected="true">Vaga</button>
+        <button role="tab" id="tab-exp" aria-controls="pane-exp" data-tab="exp" aria-selected="false" tabindex="-1">Experiência</button>
+        <button role="tab" id="tab-perfil" aria-controls="pane-perfil" data-tab="perfil" aria-selected="false" tabindex="-1">Perfil</button>
+        <button role="tab" id="tab-rev" aria-controls="pane-rev" data-tab="rev" aria-selected="false" tabindex="-1">Revisão<span class="cnt" id="revCnt" hidden></span></button>
+        <button role="tab" id="tab-cand" aria-controls="pane-cand" data-tab="cand" aria-selected="false" tabindex="-1">Candidaturas</button>
+      </div>
+
+      <!-- VAGA -->
+      <div class="pane" id="pane-vaga" role="tabpanel" aria-labelledby="tab-vaga" data-pane="vaga">
+        <div class="row2">
+          <label class="f">Empresa<input type="text" id="empresa" placeholder="Nome da empresa" autocomplete="organization"></label>
+          <label class="f">Cargo da vaga<input type="text" id="cargo" placeholder="Ex.: Analista de Planejamento Pleno"></label>
+        </div>
+        <label class="f"><span id="vagaLbl">Texto da vaga</span><textarea id="vaga" placeholder="Cole aqui a descrição completa da vaga (responsabilidades, requisitos e diferenciais)"></textarea></label>
+        <div class="btns">
+          <button class="btn ghost small" id="limpar">Limpar vaga</button>
+          <button class="btn ghost small" id="exemplo">Carregar vaga de exemplo</button>
+        </div>
+        <div class="score">
+          <div class="gauge">
+            <svg viewBox="0 0 92 92" aria-hidden="true">
+              <circle cx="46" cy="46" r="38" fill="none" stroke="var(--line)" stroke-width="9"></circle>
+              <circle class="arc" id="gArc" cx="46" cy="46" r="38" fill="none" stroke="var(--good)" stroke-width="9" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76"></circle>
+            </svg>
+            <div class="num"><div><span id="gNum">0</span><small>%</small></div></div>
+          </div>
+          <div>
+            <h3>Aderência à vaga</h3>
+            <p id="gTxt" aria-live="polite">Cole uma vaga para calcular.</p>
+          </div>
+        </div>
+        <div>
+          <p class="sub">Já está no currículo</p>
+          <div class="chips" id="okChips"></div>
+        </div>
+        <div id="midWrap" hidden>
+          <p class="sub">Está no seu perfil, mas não saiu no currículo</p>
+          <div class="chips" id="midChips"></div>
+        </div>
+        <div>
+          <p class="sub">A vaga pede e não aparece no currículo</p>
+          <div class="chips" id="missChips"></div>
+          <p class="note" style="margin-top:8px">Clique em “Tenho” só no que você realmente domina: o recrutador vai perguntar na entrevista. <span class="w">REQ</span> = requisito · <span class="w">DIF</span> = diferencial.</p>
+        </div>
+        <ul class="tips" id="tips"></ul>
+      </div>
+
+      <!-- EXPERIÊNCIA -->
+      <div class="pane" id="pane-exp" role="tabpanel" aria-labelledby="tab-exp" data-pane="exp" hidden>
+        <p class="note">Os bullets mais ligados à vaga entram sozinhos (modo Auto). Use “Incluir” ou “Excluir” para fixar. Escreva no modelo XYZ: <b>o que você fez</b>, <b>o resultado com número</b> e <b>como</b>. Troque cada [colchete] por um dado real.</p>
+        <div id="roles" style="display:grid;gap:14px"></div>
+        <button class="btn" id="addRole">+ Adicionar experiência</button>
+      </div>
+
+      <!-- PERFIL -->
+      <div class="pane" id="pane-perfil" role="tabpanel" aria-labelledby="tab-perfil" data-pane="perfil" hidden>
+        <div class="row2">
+          <label class="f">Nome completo<input type="text" data-p="name" id="p-name" autocomplete="name"></label>
+          <label class="f">Cidade / UF<input type="text" data-p="city" id="p-city" placeholder="Ex.: Guarulhos, SP" autocomplete="address-level2"></label>
+          <label class="f">Telefone / WhatsApp<input type="tel" data-p="phone" id="p-phone" placeholder="(11) 90000-0000" autocomplete="tel"></label>
+          <label class="f">E-mail<input type="email" data-p="email" id="p-email" autocomplete="email"></label>
+        </div>
+        <label class="f">LinkedIn ou portfólio<input type="text" data-p="linkedin" id="p-linkedin" placeholder="linkedin.com/in/seu-nome"></label>
+        <label class="f">Título padrão <span class="hint">(usado quando o cargo da vaga está vazio)</span><input type="text" data-p="headline" id="p-headline" placeholder="Ex.: Analista de Planejamento e Controle da Produção"></label>
+        <label class="f">Resumo profissional <span class="hint">(deixe vazio para gerar automaticamente a partir da vaga)</span><textarea data-p="summary" id="p-summary" rows="4"></textarea></label>
+        <label class="f">Formação <span class="hint">(uma por linha)</span><textarea data-p="education" id="p-education" rows="2"></textarea></label>
+        <label class="f">Cursos e certificações <span class="hint">(uma por linha)</span><textarea data-p="courses" id="p-courses" rows="2" placeholder="Ex.: Lean Six Sigma Green Belt — 2026"></textarea></label>
+        <label class="f">Idiomas<input type="text" data-p="languages" id="p-languages" placeholder="Ex.: Português nativo · Inglês intermediário"></label>
+        <div>
+          <p class="sub">Competências que você domina</p>
+          <div class="chips" id="skillChips"></div>
+          <form id="skillForm" class="btns" style="margin-top:10px">
+            <input type="text" id="skillIn" list="skillList" placeholder="Adicionar competência (ex.: SQL, Negociação)" aria-label="Nova competência" style="flex:1;min-width:180px">
+            <datalist id="skillList"></datalist>
+            <button class="btn small" type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- REVISÃO -->
+      <div class="pane" id="pane-rev" role="tabpanel" aria-labelledby="tab-rev" data-pane="rev" hidden>
+        <p class="note">O que um recrutador e um sistema ATS vão notar neste currículo, do mais grave ao mais leve.</p>
+        <ul class="checks" id="checks"></ul>
+      </div>
+
+      <!-- CANDIDATURAS -->
+      <div class="pane" id="pane-cand" role="tabpanel" aria-labelledby="tab-cand" data-pane="cand" hidden>
+        <div class="funnel" id="funnel"></div>
+        <button class="btn primary" id="salvarV">Salvar esta candidatura</button>
+        <p class="note">Guarda a vaga, a aderência e o texto exato do currículo enviado, para você saber o que mandou para cada empresa.</p>
+        <div class="vlist" id="vlist"></div>
+        <details class="box">
+          <summary>Backup e dados</summary>
+          <div style="display:grid;gap:10px">
+            <p class="note">Seus dados ficam só neste aparelho. Faça backup antes de trocar de celular ou limpar o navegador.</p>
+            <div class="btns">
+              <button class="btn small" id="expBtn">Exportar backup</button>
+              <label class="btn small" id="impFileLbl">Importar arquivo<input type="file" id="impFile" accept="application/json,.json" class="sr"></label>
+            </div>
+            <label class="f">Ou cole aqui o texto do backup<textarea id="impTxt" rows="3" placeholder='{"v":2, ...}'></textarea></label>
+            <div class="btns">
+              <button class="btn small" id="impBtn">Restaurar do texto colado</button>
+              <button class="btn small ghost danger" id="resetBtn" style="margin-left:auto">Apagar tudo</button>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="prev" aria-label="Pré-visualização">
+      <div class="toolbar">
+        <div class="btns">
+          <div class="seg" role="group" aria-label="Documento">
+            <button data-view="cv" aria-pressed="true">Currículo</button>
+            <button data-view="carta" aria-pressed="false">Carta</button>
+          </div>
+          <select id="tpl" aria-label="Modelo visual">
+            <option value="classico">Clássico</option>
+            <option value="moderno">Moderno</option>
+            <option value="compacto">Compacto</option>
+          </select>
+        </div>
+        <span class="badge" id="phBadge" aria-live="polite"></span>
+        <div class="btns">
+          <button class="btn primary" id="copyWord">Copiar para Word</button>
+          <button class="btn" id="copyTxt">Copiar texto</button>
+          <button class="btn" id="pdfBtn">Salvar PDF</button>
+          <button class="btn" id="docBtn">Baixar .doc</button>
+          <button class="btn" id="shareBtn" hidden>Compartilhar</button>
+        </div>
+      </div>
+      <div class="sheet-wrap"><article id="paper" aria-label="Documento"></article></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastAct" hidden></button></div>
+
+<script>
+'use strict';
+const KEY='cv-por-vaga-v1'; // mesma chave da versão 1: quem já usa o app não perde nada (os dados são migrados)
+const VERSION=2;
+const IS_ANDROID=!!window.Android;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const listPt=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' e '+a[a.length-1];
+const lines=s=>(s||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+
+/* ---------- dicionário de palavras-chave (rótulo → variações sem acento) ---------- */
+const DICT=[
+ // Operações, indústria e qualidade
+ ['PCP',['pcp','planejamento e controle da producao','planejamento e controle de producao']],
+ ['MRP',['mrp','mps']],['ERP',['erp']],['SAP',['sap','s/4hana','sap mm','sap pp']],['TOTVS',['totvs','protheus','datasul']],
+ ['Baan',['baan','infor ln']],['Oracle',['oracle']],
+ ['Lean Manufacturing',['lean']],['Six Sigma',['six sigma','green belt','black belt','yellow belt']],['Kaizen',['kaizen']],['5S',['5s']],
+ ['PDCA',['pdca']],['FMEA',['fmea']],['MASP / 8D',['masp','8d','analise de causa raiz','causa raiz','ishikawa']],
+ ['OEE',['oee']],['KPIs',['kpi','indicadores de desempenho','indicadores']],['S&OP',['s&op','s & op','sales and operations']],
+ ['Capacidade produtiva',['capacidade produtiva','capacidade','gargalo']],['Sequenciamento',['sequenciamento','sequencia de producao','sequenciar']],
+ ['Programação da produção',['programacao da producao','programacao de producao','programacao fabril','programar a producao']],
+ ['Gestão de estoques',['estoque','inventario']],['Compras',['compras','suprimento']],['Fornecedores',['fornecedor']],
+ ['Segurança do trabalho',['seguranca do trabalho','saude e seguranca','sst','nr-12','nr 12','nr12','cipa','epi']],
+ ['Qualidade',['qualidade','ccq']],['ISO 9001',['iso 9001','iso']],['IATF 16949',['iatf']],
+ ['Gestão de turnos',['turno']],['Redução de custos',['reducao de custo','reduzir custo','custos']],['Orçamento',['orcamento','budget']],
+ ['Melhoria contínua',['melhoria continua','melhorias de processo']],['TPM',['tpm']],['SMED / setup',['smed','setup']],
+ ['Previsão de demanda',['previsao de demanda','demanda','forecast','previsao de vendas']],
+ ['Supply Chain',['supply chain','cadeia de suprimentos']],['Logística',['logistica','movimentacao de materiais','armazenagem','expedicao']],
+ ['Gestão de faltas',['falta de pecas','faltas de pecas','shortage','ruptura']],['Manutenção',['manutencao']],
+ ['Gestão de prazos',['prazo','cronograma','pontualidade']],['Relatórios gerenciais',['relatorio']],
+ ['Indústria de bens de capital',['metalurgic','bens de capital','maquinas pesadas','maquinas agricolas','autopecas','automotiv']],
+ ['Leitura de desenho técnico',['desenho tecnico','leitura de desenho']],['AutoCAD',['autocad']],['SolidWorks',['solidworks']],
+ // Gestão e negócios
+ ['Liderança de equipes',['lideranca','liderar','gestao de equipe','gestao de pessoas','coordenar equipe','coordenacao de equipe']],
+ ['Gestão de projetos',['gestao de projetos','gerenciamento de projetos','gerenciar projetos','pmbok','pmp']],
+ ['Scrum',['scrum']],['Kanban',['kanban']],['Metodologias ágeis',['metodologias ageis','metodologia agil','agil','agile']],
+ ['Negociação',['negociac','negociar']],['Planejamento estratégico',['planejamento estrategico']],
+ ['Análise de dados',['analise de dados','analisar dados','dashboard','analise de indicadores']],
+ ['Treinamento',['treinamento','treinar','capacitacao']],['Investimentos',['investimento','mercado financeiro']],
+ ['Certificação ANBIMA',['anbima','cpa-10','cpa-20','cea','c-pro']],
+ ['Atendimento ao cliente',['atendimento ao cliente','atendimento ao publico','sac','customer success','experiencia do cliente']],
+ ['Vendas',['vendas','vender','comercial']],['Prospecção',['prospeccao','prospectar']],
+ ['CRM',['crm','salesforce','hubspot','pipedrive','rd station']],
+ ['Marketing digital',['marketing digital','midias sociais','redes sociais','social media']],['SEO',['seo']],
+ ['Tráfego pago',['trafego pago','google ads','meta ads','adwords']],['Google Analytics',['google analytics','ga4']],
+ ['Contabilidade',['contabil','contabilidade']],['Fiscal e tributário',['fiscal','tributari','impostos','sped']],
+ ['Finanças / controladoria',['financeir','controladoria','fluxo de caixa','fp&a']],
+ ['Contas a pagar e receber',['contas a pagar','contas a receber','conciliacao']],['Auditoria',['auditoria']],
+ ['Recrutamento e seleção',['recrutamento','r&s','talent acquisition']],
+ ['Departamento pessoal',['departamento pessoal','folha de pagamento','esocial']],['Legislação trabalhista',['legislacao trabalhista']],
+ // Tecnologia
+ ['Excel avançado',['excel']],['Power BI',['power bi','powerbi']],['Pacote Office',['pacote office','office','powerpoint']],
+ ['Google Workspace',['google workspace','google sheets','planilhas google']],['VBA',['vba','macros']],
+ ['Power Automate',['power automate']],['RPA',['rpa']],['Tableau',['tableau']],
+ ['Python',['python']],['Java',['java']],['JavaScript',['javascript']],['TypeScript',['typescript']],
+ ['React',['react','reactjs']],['Node.js',['node.js','nodejs']],['C#',['c#','.net']],['PHP',['php']],
+ ['SQL',['sql','mysql','postgres','postgresql','sql server']],['ETL',['etl']],
+ ['AWS',['aws','amazon web services']],['Azure',['azure']],['Google Cloud',['gcp','google cloud']],
+ ['Docker',['docker']],['Kubernetes',['kubernetes','k8s']],['Git',['git','github','gitlab']],['APIs REST',['api','apis','rest']],
+ ['Testes automatizados',['testes automatizados','automacao de testes']],['Linux',['linux']],
+ ['Suporte técnico',['suporte tecnico','help desk','service desk']],['Segurança da informação',['seguranca da informacao','ciberseguranca','lgpd']],
+ ['Machine Learning',['machine learning','aprendizado de maquina']],['Inteligência artificial',['inteligencia artificial','ia generativa','llm']],
+ ['Estatística',['estatistic']],
+ // Comportamentais e gerais
+ ['Comunicação',['comunicacao']],['Trabalho em equipe',['trabalho em equipe']],['Proatividade',['proativ']],
+ ['Visão analítica',['analitic']],['Organização',['organizad','organizacao']],
+ ['Inglês',['ingles','english']],['Espanhol',['espanhol','spanish']],
+ ['CNH',['cnh','carteira de habilitacao']],['Disponibilidade para viagens',['disponibilidade para viag']]
+];
+const mkTerm=(label,pats,kind)=>({label,kind,res:pats.map(p=>new RegExp('(^|[^a-z0-9])'+reEsc(p)+(p.length<=4||/[^a-z]$/.test(p)?'s?(?![a-z0-9])':'')))});
+const DICT_T=DICT.map(([l,p])=>mkTerm(l,p,'dict'));
+const DICT_L=new Map(DICT_T.map(t=>[norm(t.label),t]));
+const matchAny=(t,n)=>t.res.some(r=>r.test(n));
+const STOP=new Set('sp rj mg pr rs sc ba pe ce go df es am pa mt ms clt pj pcd ltda me cep cnpj cpf eua usa br rh ti vr va vt plr ppr ats cv xyz ok ead jr pl sr ii iii iv vi mei obs etc hr am pm ou e de da do'.split(' '));
+
+/* ---------- exemplo (pessoa fictícia) ---------- */
+const SAMPLE_VAGA=`Analista de Planejamento (PCP) Pleno
+Indústria metalúrgica — Guarulhos, SP
+
+Responsabilidades:
+- Elaborar o planejamento e controle da produção (PCP), a programação da produção e o sequenciamento da fábrica
+- Analisar capacidade e gargalos por centro de trabalho
+- Gerir estoques e faltas de peças junto a compras e fornecedores
+- Acompanhar indicadores (KPIs, OEE, atendimento de prazo)
+- Participar do S&OP mensal e apresentar relatórios à liderança
+
+Requisitos:
+- Superior completo em Engenharia, Administração ou Gestão da Produção
+- Vivência com ERP (SAP ou TOTVS) e MRP
+- Excel avançado e Power BI
+
+Diferenciais:
+- Conhecimento em Lean Manufacturing
+- Inglês intermediário
+
+Benefícios:
+- Vale-refeição, plano de saúde e participação nos lucros`;
+
+const SAMPLE={
+ v:VERSION,sample:true,
+ profile:{name:'Mariana Alves Ribeiro',city:'Guarulhos, SP',phone:'(11) 90000-0000',email:'mariana.ribeiro@email.com',
+  linkedin:'linkedin.com/in/[seu-perfil]',headline:'Analista de Planejamento e Controle da Produção (PCP)',summary:'',
+  education:'Tecnologia em Gestão da Produção Industrial — [Instituição] | 2015',
+  courses:'Excel Avançado — [Instituição] | 2021\nPower BI para Negócios — [Instituição] | 2023',languages:'Português nativo · Inglês [nível real]'},
+ skills:['PCP','MRP','ERP','TOTVS','Excel avançado','Power BI','KPIs','Capacidade produtiva','Sequenciamento','Programação da produção','Gestão de estoques','Compras','Fornecedores','Gestão de faltas','Análise de dados','Melhoria contínua','Gestão de prazos','Relatórios gerenciais','Qualidade','Treinamento'],
+ roles:[
+  {id:'r1',company:'Metalúrgica Exemplo S.A. — Guarulhos, SP',title:'Analista de PCP',period:'03/2019 – atual',limit:5},
+  {id:'r2',company:'Metalúrgica Exemplo S.A. — Guarulhos, SP',title:'Assistente de Produção',period:'02/2015 – 02/2019',limit:3},
+  {id:'r3',company:'Autopeças Modelo Ltda. — Arujá, SP',title:'Auxiliar de Produção',period:'01/2012 – 01/2015',limit:2}],
+ bullets:[
+  {id:'b1',role:'r1',tags:['PCP','Programação da produção','Gestão de prazos'],text:'Elevei o atendimento de prazo da linha de montagem de 81% para [X%] em 12 meses, ao implantar programação diária no TOTVS integrada ao MRP e à capacidade real.'},
+  {id:'b2',role:'r1',tags:['Capacidade produtiva','Excel avançado'],text:'Criei planilha de capacidade por centro de trabalho que antecipa gargalos em até 2 semanas, reduzindo horas extras em [X%].'},
+  {id:'b3',role:'r1',tags:['Gestão de faltas','KPIs','Compras','Fornecedores'],text:'Estruturei painel de faltas de peças com ranking por fornecedor, reduzindo faltas críticas em 35% ao priorizar cobranças com compras.'},
+  {id:'b4',role:'r1',tags:['Power BI','KPIs','Relatórios gerenciais'],text:'Automatizei os relatórios de produção em Power BI, poupando 6 horas por semana da equipe e dando visão diária de atrasos à diretoria.'},
+  {id:'b5',role:'r1',tags:['Sequenciamento','Melhoria contínua'],text:'Redesenhei o sequenciamento de ordens por família de produto, cortando o tempo de setup em 18%.'},
+  {id:'b6',role:'r1',tags:['Gestão de estoques'],text:'Fui responsável pelo inventário mensal de matérias-primas e pela conferência dos saldos no ERP.'},
+  {id:'b7',role:'r2',tags:['Qualidade','Melhoria contínua'],text:'Conduzi 4 projetos de melhoria (CCQ) que geraram economia de [R$ X] por ano em refugo.'},
+  {id:'b8',role:'r2',tags:['Gestão de estoques','Logística'],text:'Organizei o almoxarifado da célula de usinagem com 5S, reduzindo o tempo de separação de materiais em 25%.'},
+  {id:'b9',role:'r2',tags:['Treinamento'],text:'Treinei 12 novos operadores nos padrões de qualidade e segurança, reduzindo o tempo de adaptação para 3 semanas.'},
+  {id:'b10',role:'r3',tags:['Qualidade'],text:'Operei linha de montagem de componentes automotivos, mantendo índice de refugo abaixo da meta por 3 anos seguidos.'},
+  {id:'b11',role:'r3',tags:[],text:'Apoiei a manutenção preventiva das máquinas da linha, registrando ocorrências no sistema.'}],
+ pins:{},vaga:SAMPLE_VAGA,empresa:'',cargo:'Analista de Planejamento (PCP) Pleno',view:'cv',tpl:'classico',history:[]
+};
+const BLANK=()=>({v:VERSION,sample:false,
+ profile:{name:'',city:'',phone:'',email:'',linkedin:'',headline:'',summary:'',education:'',courses:'',languages:'Português nativo'},
+ skills:[],roles:[{id:uid('r'),company:'',title:'',period:'',limit:4}],bullets:[],pins:{},vaga:'',empresa:'',cargo:'',view:'cv',tpl:'classico',history:[]});
+
+/* ---------- estado, migração e gravação ---------- */
+function migrate(o){
+  if(!o||typeof o!=='object'||!o.profile)return null;
+  if(!o.v){ // versão 1: empresa única no perfil → cada cargo passa a ter a sua
+    const comp=o.profile.company||'';
+    (o.roles||[]).forEach(r=>{if(r.company==null)r.company=comp});
+    delete o.profile.company;
+    (o.history||[]).forEach(h=>{if(!h.status)h.status='enviada'});
+    o.sample=false;
+  }
+  o.profile=Object.assign({},BLANK().profile,o.profile);
+  for(const k of ['skills','roles','bullets','history'])if(!Array.isArray(o[k]))o[k]=k==='roles'?BLANK().roles:[];
+  o.pins=o.pins||{};o.view=o.view==='carta'?'carta':'cv';o.tpl=o.tpl||'classico';
+  for(const k of ['vaga','empresa','cargo'])o[k]=o[k]||'';
+  o.roles.forEach(r=>{r.limit=+r.limit||3;r.company=r.company||'';r.title=r.title||'';r.period=r.period||''});
+  o.bullets.forEach(b=>{b.tags=b.tags||[];b.text=b.text||''});
+  o.v=VERSION;o.sample=!!o.sample;
+  return o;
+}
+let S;
+try{S=migrate(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=null}
+if(!S)S=clone(SAMPLE);
+let saveT,saveWarned=false;
+const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast('Não foi possível salvar neste aparelho. Exporte um backup em Candidaturas.')}}},250)};
+
+/* ---------- análise da vaga ---------- */
+let VT=[],VW=new Map(),XT=new Map(); // termos da vaga, peso de cada um, termos extras extraídos da vaga
+const customTerms=()=>S.skills.filter(s=>!DICT_L.has(norm(s))).map(s=>mkTerm(s,[norm(s)],'custom'));
+const allTerms=()=>DICT_T.concat(customTerms());
+const termsIn=(t,terms=allTerms())=>{const n=' '+norm(t)+' ';return terms.filter(x=>matchAny(x,n)).map(x=>x.label)};
+function termFor(label){const k=norm(label);return DICT_L.get(k)||XT.get(k)||mkTerm(label,[k],'custom')}
+const sectionWeight=n=>/beneficio|oferecemos|sobre a empresa|sobre nos|quem somos|remuneracao/.test(n)?0:/diferencia|desejav|nice to have|plus|nao obrigatori/.test(n)?.5:1;
+function analyzeVaga(){
+  const terms=allTerms(),W=new Map(),extra=new Map();
+  let sec=1;
+  [S.cargo,...(S.vaga||'').split('\n')].forEach((raw,i)=>{
+    const n=norm(raw).trim();if(!n)return;
+    const head=i>0&&n.length<60&&(/:\s*$/.test(n)||/^(requisitos|qualificac|responsabilidades|atribuic|atividades|o que voce|diferencia|desejav|beneficio|o que oferecemos|sobre|remuneracao|conhecimentos|competencias)/.test(n));
+    if(head)sec=sectionWeight(n);
+    let w=sec;if(w&&/diferencial|desejavel|desejado|nice to have|sera um plus|nao obrigatori/.test(n))w=.5;
+    if(!w)return;
+    const lt=termsIn(raw,terms);lt.forEach(l=>W.set(l,Math.max(W.get(l)||0,w)));
+    const ltWords=new Set(lt.flatMap(l=>norm(l).split(/[^a-z0-9#+&]+/)));
+    // ferramentas e siglas que não estão no dicionário (ex.: Salesforce é coberto; "Jira", "SolidEdge", "C++" não)
+    const letters=raw.replace(/[^A-Za-zÀ-ÿ]/g,''),up=letters.replace(/[^A-ZÀ-Þ]/g,'').length;
+    if(letters.length>8&&up/letters.length>.6)return; // linha toda em maiúsculas é título, não sigla
+    (raw.match(/[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9.+#&/-]*/g)||[]).forEach(tok=>{
+      tok=tok.replace(/[.\-/]+$/,'');
+      const ok=(/^[A-Z][A-Z0-9]{1,5}$/.test(tok)&&/[A-Z].*[A-Z]/.test(tok))||/[a-z][A-Z]/.test(tok)||/^[A-Za-z]{1,3}(\+\+|#)$/.test(tok)||/\.(js|net)$/i.test(tok);
+      if(!ok||STOP.has(tok.toLowerCase())||ltWords.has(norm(tok))||termsIn(tok,terms).length)return;
+      const k=norm(tok);const e=extra.get(k)||{label:tok,w:0};e.w=Math.max(e.w,w);extra.set(k,e);
+    });
+  });
+  XT=new Map();
+  [...extra.entries()].slice(0,12).forEach(([k,e])=>{XT.set(k,mkTerm(e.label,[k],'extra'));W.set(e.label,e.w)});
+  VW=W;VT=[...W.keys()];
+}
+const hasSkill=l=>S.skills.some(s=>norm(s)===norm(l));
+const bTerms=b=>[...new Set([...termsIn(b.text),...(b.tags||[])])];
+const hits=b=>bTerms(b).reduce((a,t)=>a+(VW.get(t)||0),0);
+function selected(role){
+  const list=S.bullets.filter(b=>b.role===role.id&&b.text.trim()&&S.pins[b.id]!=='off');
+  const sc=b=>hits(b)*10-list.indexOf(b)*0.01;
+  const on=list.filter(b=>S.pins[b.id]==='on').sort((a,b)=>sc(b)-sc(a));
+  const auto=list.filter(b=>!S.pins[b.id]).sort((a,b)=>sc(b)-sc(a));
+  return on.concat(auto.slice(0,Math.max(0,role.limit-on.length)));
+}
+function yearsExp(){
+  const ys=S.roles.flatMap(r=>(r.period.match(/\b(19[6-9]\d|20\d\d)\b/g)||[]).map(Number));
+  if(!ys.length)return 0;const y=new Date().getFullYear()-Math.min(...ys);return y>0&&y<60?y:0;
+}
+const isCurrent=r=>/atual|presente|hoje|o momento|current/i.test(r.period);
+
+/* ---------- documento ---------- */
+const TPL={
+ classico:{font:"Calibri,'IBM Plex Sans',Arial,sans-serif",size:'10.5pt',lh:1.42,name:'font-size:20pt;font-weight:700;letter-spacing:.01em',title:'color:#0f5c7a',
+  h:t=>`<p style="margin:13pt 0 5pt;font-size:10pt;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border-bottom:1px solid #1b1f23;padding-bottom:2pt">${t}</p>`},
+ moderno:{font:"'Segoe UI','IBM Plex Sans',Arial,sans-serif",size:'10.5pt',lh:1.45,name:'font-size:23pt;font-weight:700;color:#0f5c7a;letter-spacing:-.01em',title:'color:#1b1f23',
+  h:t=>`<p style="margin:14pt 0 5pt;font-size:11pt;font-weight:700;color:#0f5c7a;border-bottom:2px solid #0f5c7a;padding-bottom:2pt">${t}</p>`},
+ compacto:{font:"Arial,'IBM Plex Sans',sans-serif",size:'9.5pt',lh:1.3,name:'font-size:16pt;font-weight:700',title:'color:#1b1f23',
+  h:t=>`<p style="margin:9pt 0 3pt;font-size:9.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #8a949c;padding-bottom:1pt">${t}</p>`}
+};
+const tpl=()=>TPL[S.tpl]||TPL.classico;
+const P=(s,mark)=>{const e=esc(s);return mark?e.replace(/\[[^\]]+\]/g,m=>`<mark style="background:#ffe58a;color:inherit;padding:0 2px;border-radius:2px">${m}</mark>`):e};
+const LI=(t,m)=>`<p style="margin:0 0 3.5pt;padding-left:12pt;text-indent:-10pt">•&nbsp;&nbsp;${P(t,m)}</p>`;
+
+function title(){return S.cargo.trim()||S.profile.headline.trim()}
+function matchedSkills(){return S.skills.filter(s=>VW.has(s))}
+function cvSkills(){return [...matchedSkills(),...S.skills.filter(s=>!VW.has(s))].slice(0,18)}
+function autoSummary(){
+  const p=S.profile,y=yearsExp(),cur=S.roles.find(isCurrent)||S.roles[0];
+  let top=matchedSkills().filter(s=>!['Gestão de prazos','Comunicação','Organização','Proatividade','Trabalho em equipe'].includes(s)).slice(0,4);
+  if(top.length<3)top=S.skills.slice(0,4);
+  const who=p.headline.trim()||(cur&&cur.title)||'Profissional';
+  let t=`${who}${y?` com ${y} anos de experiência`:''}${top.length?` em ${listPt(top)}`:''}.`;
+  if(cur&&cur.title&&cur.company)t+=` Atualmente: ${cur.title} na ${cur.company.split(/\s[—–|-]\s/)[0]}.`;
+  const best=S.roles.flatMap(r=>selected(r)).filter(b=>/\d/.test(b.text.replace(/\[[^\]]*\]/g,''))).sort((a,b)=>hits(b)-hits(a))[0];
+  if(best){const s=best.text.split(/,\s| ao | por meio /)[0].replace(/\.$/,'');if(s.length<140)t+=` Destaque: ${s.charAt(0).toLowerCase()+s.slice(1)}.`}
+  if(S.cargo.trim())t+=` Busco contribuir como ${S.cargo.trim()}${S.empresa.trim()?' na '+S.empresa.trim():''}.`;
+  return t;
+}
+function summary(){return S.profile.summary.trim()||autoSummary()}
+function groups(){ // cargos seguidos na mesma empresa saem agrupados (mostra a evolução de carreira)
+  const g=[];S.roles.forEach(r=>{const last=g[g.length-1];if(last&&norm(last.company)===norm(r.company)&&r.company.trim())last.roles.push(r);else g.push({company:r.company,roles:[r]})});return g;
+}
+function cvHTML(m){
+  const p=S.profile,T=tpl();
+  let h=`<div style="font-family:${T.font};color:#1b1f23;font-size:${T.size};line-height:${T.lh}">`;
+  h+=`<p style="margin:0;line-height:1.15;${T.name}">${P(p.name||'Seu nome',m)}</p>`;
+  if(title())h+=`<p style="margin:3pt 0 0;font-size:12pt;font-weight:600;${T.title}">${P(title(),m)}</p>`;
+  const contact=[p.city,p.phone,p.email,p.linkedin].filter(x=>x&&x.trim());
+  if(contact.length)h+=`<p style="margin:5pt 0 0;color:#4b5560;font-size:9.5pt">${contact.map(x=>P(x,m)).join(' · ')}</p>`;
+  const sm=summary();if(sm)h+=T.h('Resumo profissional')+`<p style="margin:0">${P(sm,m)}</p>`;
+  const sk=cvSkills();if(sk.length)h+=T.h('Competências')+`<p style="margin:0">${sk.map(s=>P(s,m)).join(' · ')}</p>`;
+  const gs=groups().filter(g=>g.roles.some(r=>r.title.trim()||selected(r).length));
+  if(gs.length){h+=T.h('Experiência profissional');
+    gs.forEach((g,gi)=>{
+      if(g.company.trim())h+=`<p style="margin:${gi?'9pt':'0'} 0 3pt;font-weight:700">${P(g.company,m)}</p>`;
+      g.roles.forEach(r=>{
+        h+=`<p style="margin:5pt 0 3pt"><b><i>${P(r.title,m)}</i></b>${r.period.trim()?` &nbsp;|&nbsp; ${P(r.period,m)}`:''}</p>`;
+        selected(r).forEach(b=>h+=LI(b.text,m));});
+    });}
+  const ed=lines(p.education);if(ed.length)h+=T.h('Formação')+ed.map(x=>`<p style="margin:0 0 2pt">${P(x,m)}</p>`).join('');
+  const co=lines(p.courses);if(co.length)h+=T.h('Cursos e certificações')+co.map(x=>`<p style="margin:0 0 2pt">${P(x,m)}</p>`).join('');
+  if(p.languages.trim())h+=T.h('Idiomas')+`<p style="margin:0">${P(p.languages,m)}</p>`;
+  return h+'</div>';
+}
+function cartaHTML(m){
+  const p=S.profile,T=tpl(),emp=S.empresa.trim(),cargo=title(),y=yearsExp(),cur=S.roles.find(isCurrent)||S.roles[0];
+  const top=matchedSkills().slice(0,3);
+  const ex=S.roles.flatMap(r=>selected(r)).sort((a,b)=>hits(b)-hits(a)).slice(0,2);
+  const d=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
+  const par=t=>`<p style="margin:0 0 10pt">${P(t,m)}</p>`;
+  const low=s=>s.charAt(0).toLowerCase()+s.slice(1);
+  let h=`<div style="font-family:${T.font};color:#1b1f23;font-size:11pt;line-height:1.55">`;
+  h+=par(`${(p.city||'').split(',')[0]||'[Cidade]'}, ${d}`);
+  h+=par(`Prezada equipe de recrutamento${emp?' da '+emp:''},`);
+  let intro=`Tenho interesse na vaga de ${cargo||'[cargo]'}${emp?' na '+emp:''}.`;
+  if(cur&&cur.title)intro+=` Atuo como ${cur.title}${cur.company?` na ${cur.company.split(/\s[—–|-]\s/)[0]}`:''}${y?`, com ${y} anos de experiência na área`:''}.`;
+  h+=par(intro);
+  if(top.length||ex.length){
+    let t=top.length?`No dia a dia trabalho com ${listPt(top)}, pontos centrais da vaga.`:'';
+    if(ex[0])t+=` Um exemplo: ${low(ex[0].text)}`;
+    h+=par(t.trim());
+  }
+  if(ex[1])h+=par(`Também ${low(ex[1].text)}`);
+  h+=par(`Acredito que essa experiência pode contribuir com ${emp||'a equipe'} desde o início. Fico à disposição para uma conversa.`);
+  h+=`<p style="margin:14pt 0 0">Atenciosamente,<br><b>${P(p.name||'Seu nome',m)}</b><br>${[p.phone,p.email].filter(Boolean).map(x=>P(x,m)).join(' · ')}</p>`;
+  return h+'</div>';
+}
+const docHTML=m=>S.view==='carta'?cartaHTML(m):cvHTML(m);
+const htmlText=h=>h.replace(/<br\s*\/?>/g,'\n').replace(/<\/p>/g,'\n').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\n{3,}/g,'\n\n').trim();
+const plain=()=>htmlText(docHTML(false));
+const placeholders=()=>(htmlText(docHTML(false)).match(/\[[^\]]+\]/g)||[]);
+
+/* ---------- aderência (o que o ATS lê é o texto do currículo, não a sua lista de competências) ---------- */
+let STATUS={ok:[],mid:[],miss:[],pct:0,req:{tot:0,ok:0}};
+function computeStatus(){
+  const cv=' '+norm(htmlText(cvHTML(false)))+' ';
+  const ok=[],mid=[],miss=[];let tot=0,got=0,rt=0,rk=0;
+  VT.forEach(l=>{const w=VW.get(l);tot+=w;if(w===1)rt++;
+    if(matchAny(termFor(l),cv)){ok.push(l);got+=w;if(w===1)rk++}else if(hasSkill(l))mid.push(l);else miss.push(l)});
+  const sortW=a=>a.sort((x,y)=>VW.get(y)-VW.get(x));
+  STATUS={ok:sortW(ok),mid:sortW(mid),miss:sortW(miss),pct:tot?Math.round(got/tot*100):0,req:{tot:rt,ok:rk}};
+}
+
+/* ---------- revisão ---------- */
+const WEAK=['responsavel por','fui responsavel','auxiliei','ajudei','participei','atuei em','atuei como','trabalhei','realizava','fazia','executava','cuidava','tarefas de'];
+function review(){
+  const out=[],p=S.profile,add=(lvl,t,d)=>out.push({lvl,t,d});
+  const ph=placeholders();
+  if(ph.length)add('bad',`${ph.length} campo${ph.length>1?'s':''} entre [colchetes] para preencher`,'Troque por números e dados reais. Um currículo com colchetes é descartado na hora.');
+  const miss=[];if(!p.name.trim())miss.push('nome');if(!p.phone.trim())miss.push('telefone');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email.trim()))miss.push('e-mail válido');if(!p.city.trim())miss.push('cidade');
+  if(miss.length)add('bad','Contato incompleto: falta '+listPt(miss),'Preencha em Perfil.');
+  else add('ok','Dados de contato completos');
+  if(/\[|seu-perfil/.test(p.linkedin)||!p.linkedin.trim())add('warn','Inclua o link do seu LinkedIn','Recrutadores conferem o perfil antes de chamar. Use a URL personalizada (linkedin.com/in/seu-nome).');
+  if(VT.length){
+    if(STATUS.pct>=70)add('ok',`Aderência de ${STATUS.pct}% à vaga`);
+    else add(STATUS.pct>=45?'warn':'bad',`Aderência de ${STATUS.pct}% à vaga`,'Inclua no currículo as palavras-chave que você domina (aba Vaga). Acima de 70% é o ideal.');
+    const rm=STATUS.miss.filter(l=>VW.get(l)===1);
+    if(rm.length)add('warn',`Requisitos da vaga sem menção: ${rm.slice(0,5).join(', ')}${rm.length>5?'…':''}`,'Se você tem, cite num bullet com resultado. Se não tem, seja honesto e valorize o que é parecido.');
+    if(STATUS.mid.length)add('warn',`${STATUS.mid.length} competência(s) do seu perfil pedidas na vaga ficaram fora do currículo`,STATUS.mid.join(', '));
+  }else add('warn','Nenhuma vaga colada','Sem a vaga, o currículo sai genérico. Cole a descrição na aba Vaga.');
+  const sel=S.roles.flatMap(r=>selected(r));
+  if(!sel.length)add('bad','Nenhuma realização na experiência','Adicione bullets na aba Experiência.');
+  const noNum=sel.filter(b=>!/\d/.test(b.text.replace(/\[[^\]]*\]/g,'')));
+  if(sel.length&&noNum.length)add(noNum.length>sel.length/2?'bad':'warn',`${noNum.length} de ${sel.length} bullets sem número`,'O modelo XYZ pede resultado mensurável: %, R$, prazo, quantidade. Ex.: “Reduzi o setup em 18% ao…”.');
+  else if(sel.length)add('ok','Todos os bullets têm resultado mensurável');
+  const weak=sel.filter(b=>WEAK.some(w=>norm(b.text).startsWith(w)));
+  if(weak.length)add('warn',`${weak.length} bullet(s) começam com verbo fraco`,'Troque “Responsável por / Auxiliei / Participei” por verbos de ação: Reduzi, Implantei, Coordenei, Aumentei, Negociei.');
+  const long=sel.filter(b=>b.text.length>240),short=sel.filter(b=>b.text.trim().length<45);
+  if(long.length)add('warn',`${long.length} bullet(s) muito longos`,'Mantenha cada bullet em até duas linhas (cerca de 240 caracteres).');
+  if(short.length)add('warn',`${short.length} bullet(s) curtos demais`,'Explique o que fez, o resultado e como.');
+  const first=sel.map(b=>norm(b.text).split(/\s+/)[0]).filter(Boolean),rep=[...new Set(first.filter((w,i)=>first.indexOf(w)!==i))].filter(w=>first.filter(x=>x===w).length>2);
+  if(rep.length)add('warn','Verbos repetidos no início dos bullets: '+rep.join(', '),'Varie para não parecer lista de tarefas.');
+  const sm=summary();
+  if(sm.length>750)add('warn','Resumo longo demais','Ideal: 3 a 5 linhas (até ~600 caracteres).');
+  if(S.profile.summary.trim()&&S.cargo.trim()&&!norm(S.profile.summary).includes(norm(S.cargo).split(' ')[0]))add('warn','Seu resumo fixo não menciona o cargo da vaga','Deixe o resumo em branco para gerar um sob medida, ou ajuste o texto.');
+  const chars=htmlText(cvHTML(false)).length,pages=chars/3300;
+  if(pages>2.05)add('warn',`Currículo com cerca de ${Math.ceil(pages)} páginas`,'Reduza o número de bullets dos cargos mais antigos. O ideal é 1 a 2 páginas.');
+  else add('ok',`Tamanho adequado (cerca de ${Math.max(1,Math.ceil(pages))} página${pages>1?'s':''})`);
+  if(!lines(p.education).length)add('warn','Formação não informada','Inclua curso, instituição e ano (ou “cursando — previsão 2027”).');
+  if(/@(hotmail|bol|yahoo)\./i.test(p.email)&&/[0-9]{3,}|_{2,}|gat|princes|lind/i.test(p.email))add('warn','Considere um e-mail mais profissional','Algo como nome.sobrenome@gmail.com.');
+  const order={bad:0,warn:1,ok:2};return out.sort((a,b)=>order[a.lvl]-order[b.lvl]);
+}
+
+/* ---------- render ---------- */
+function renderPreview(){
+  $('#paper').innerHTML=docHTML(true);
+  const n=placeholders().length,b=$('#phBadge');
+  b.className='badge '+(n?'warn':'okb');
+  b.textContent=n?`${n} campo${n>1?'s':''} [ ] para preencher`:(S.view==='cv'&&VT.length?`Pronto · aderência ${STATUS.pct}%`:'Pronto para enviar');
+  $('#sampleBanner').hidden=!S.sample;
+}
+function chipW(l){return `<span class="w">${VW.get(l)===1?'REQ':'DIF'}</span>`}
+function renderAnalysis(){
+  const pct=STATUS.pct,C=238.76,arc=$('#gArc');
+  arc.style.strokeDashoffset=C-C*pct/100;
+  arc.setAttribute('stroke',pct>=70?'var(--good)':pct>=45?'var(--signal)':'var(--bad)');
+  $('#gNum').textContent=pct;
+  const r=STATUS.req;
+  $('#gTxt').textContent=VT.length?`${STATUS.ok.length} de ${VT.length} palavras-chave da vaga aparecem no currículo${r.tot?` · ${r.ok} de ${r.tot} requisitos`:''}.`:'Cole uma vaga para calcular.';
+  $('#okChips').innerHTML=STATUS.ok.map(t=>`<span class="chip ok">✓ ${esc(t)} ${chipW(t)}</span>`).join('')||'<span class="note">Nenhuma ainda.</span>';
+  $('#midWrap').hidden=!STATUS.mid.length;
+  $('#midChips').innerHTML=STATUS.mid.map(t=>`<span class="chip mid">${esc(t)} ${chipW(t)}</span>`).join('');
+  $('#missChips').innerHTML=STATUS.miss.map(t=>`<span class="chip miss">${esc(t)} ${chipW(t)} <button data-add="${esc(t)}" aria-label="Tenho ${esc(t)}">Tenho</button></span>`).join('')||'<span class="note">Nada faltando.</span>';
+  const miss=STATUS.miss,tips=[];
+  if(miss.includes('Inglês'))tips.push('A vaga cita inglês. Informe seu nível real em Perfil › Idiomas (ex.: “Inglês intermediário — leitura técnica”).');
+  if(miss.some(t=>['Lean Manufacturing','Six Sigma','Kaizen','5S'].includes(t)))tips.push('A vaga pede Lean/Six Sigma. Se já aplicou na prática, cite o projeto num bullet; um Green Belt certificado fecha essa lacuna.');
+  const erps=['SAP','TOTVS','Baan','Oracle'];
+  const mErp=miss.find(t=>erps.includes(t)),hErp=erps.find(e=>hasSkill(e));
+  if(mErp&&hErp)tips.push(`A vaga cita ${mErp} e você usa ${hErp}. Deixe claro “ERP ${hErp}” e diga na entrevista que a lógica de MRP é a mesma.`);
+  if(miss.includes('OEE'))tips.push('A vaga cita OEE. Se você acompanha esse indicador, adicione-o e cite um número num bullet.');
+  if(STATUS.mid.length)tips.push(`Você tem ${listPt(STATUS.mid.slice(0,3))} no perfil, mas o currículo não mostra. Aumente o limite de competências ou cite num bullet.`);
+  if(VT.length&&pct<45)tips.push('Aderência baixa: confira se a vaga combina com seu momento antes de investir tempo nela.');
+  $('#tips').innerHTML=tips.map(t=>`<li>${esc(t)}</li>`).join('');
+  $('#vagaLbl').textContent=S.vaga===SAMPLE_VAGA?'Texto da vaga (exemplo — cole a sua aqui)':'Texto da vaga';
+}
+function renderRoles(){
+  $('#roles').innerHTML=S.roles.map((r,ri)=>{
+    const sel=selected(r).map(b=>b.id);
+    const bl=S.bullets.filter(b=>b.role===r.id).map(b=>{
+      const mode=S.pins[b.id]||'auto',inn=sel.includes(b.id),len=b.text.length;
+      const tg=bTerms(b).map(t=>`<span class="chip${VW.has(t)?' hit':''}">${esc(t)}</span>`).join('');
+      return `<div class="b${inn?' in':''}" data-b="${b.id}">
+        <div class="b-top"><select aria-label="Modo do bullet" data-mode="${b.id}">
+          <option value="auto"${mode==='auto'?' selected':''}>Auto</option><option value="on"${mode==='on'?' selected':''}>Incluir</option><option value="off"${mode==='off'?' selected':''}>Excluir</option></select>
+          <span class="state ${inn?'on':'off'}">${inn?'No currículo':'Fora'}</span>
+          <span class="len${len>240?' long':''}" data-len="${b.id}">${len}/240</span>
+          <button class="btn ghost small danger" data-del="${b.id}">Apagar</button></div>
+        <textarea data-txt="${b.id}" id="t-${b.id}" aria-label="Texto do bullet" placeholder="Verbo de ação + resultado com número + como. Ex.: Reduzi o setup em 18% ao padronizar…">${esc(b.text)}</textarea>
+        ${tg?`<div class="chips">${tg}</div>`:''}</div>`}).join('');
+    return `<div class="role"><div class="role-h">
+      <input type="text" data-r="${ri}" data-k="company" value="${esc(r.company)}" aria-label="Empresa" placeholder="Empresa — cidade">
+      <input type="text" data-r="${ri}" data-k="title" value="${esc(r.title)}" aria-label="Cargo" placeholder="Cargo">
+      <div class="r3">
+        <input type="text" data-r="${ri}" data-k="period" value="${esc(r.period)}" aria-label="Período" placeholder="03/2019 – atual">
+        <select data-r="${ri}" data-k="limit" aria-label="Máximo de bullets no currículo" title="Máximo de bullets no currículo">${[1,2,3,4,5,6,7,8].map(n=>`<option${n==r.limit?' selected':''}>${n}</option>`).join('')}</select>
+        <div class="btns"><button class="btn small ghost" data-mv="${ri}:-1" aria-label="Mover para cima"${ri?'':' disabled'}>↑</button><button class="btn small ghost" data-mv="${ri}:1" aria-label="Mover para baixo"${ri<S.roles.length-1?'':' disabled'}>↓</button><button class="btn small ghost danger" data-rdel="${r.id}">Remover</button></div>
+      </div></div><div class="blist">${bl||'<div class="b"><span class="note">Sem bullets ainda.</span></div>'}</div><div class="role-f"><button class="btn small" data-addb="${r.id}">+ Adicionar bullet</button></div></div>`}).join('');
+}
+function renderProfile(){
+  $$('[data-p]').forEach(el=>{if(document.activeElement!==el)el.value=S.profile[el.dataset.p]||''});
+  $('#skillChips').innerHTML=S.skills.length?S.skills.map(s=>`<button class="chip tog" aria-pressed="true" data-sk="${esc(s)}" title="Remover">${esc(s)} ✕</button>`).join(''):'<span class="note">Nenhuma ainda. Adicione abaixo ou use “Tenho” na aba Vaga.</span>';
+  $('#skillList').innerHTML=DICT.map(d=>d[0]).filter(l=>!hasSkill(l)).map(l=>`<option value="${esc(l)}">`).join('');
+}
+function renderReview(){
+  const r=review(),n=r.filter(x=>x.lvl!=='ok').length,c=$('#revCnt');
+  c.hidden=!n;c.textContent=n;
+  if($('#pane-rev').hidden)return;
+  $('#checks').innerHTML=r.map(x=>`<li class="${x.lvl}"><span class="ic" aria-hidden="true">${x.lvl==='ok'?'✓':x.lvl==='warn'?'!':'✕'}</span><div>${esc(x.t)}${x.d?`<small>${esc(x.d)}</small>`:''}<span class="sr"> (${x.lvl==='ok'?'ok':x.lvl==='warn'?'atenção':'corrigir'})</span></div></li>`).join('');
+}
+const STAGES=[['salva','Salva'],['enviada','Enviada'],['entrevista','Entrevista'],['proposta','Proposta'],['encerrada','Não avançou']];
+function renderVersions(){
+  const h=S.history,cnt=Object.fromEntries(STAGES.map(([k])=>[k,0]));h.forEach(v=>cnt[v.status||'enviada']++);
+  $('#funnel').innerHTML=STAGES.map(([k,l])=>`<div><b>${cnt[k]}</b><span>${l}</span></div>`).join('');
+  $('#vlist').innerHTML=h.length?h.map(v=>`<div class="v"><div class="v-h"><div><strong>${esc(v.cargo||'Sem cargo')}${v.empresa?' · '+esc(v.empresa):''}</strong>
+    <span>${new Date(v.ts).toLocaleDateString('pt-BR')} · aderência ${v.score}%</span></div>
+    <select data-vst="${v.id}" aria-label="Etapa">${STAGES.map(([k,l])=>`<option value="${k}"${(v.status||'enviada')===k?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="btns"><button class="btn small" data-open="${v.id}">Abrir</button>${v.text?`<button class="btn small" data-vcopy="${v.id}">Copiar o que enviei</button>`:''}<button class="btn small ghost danger" data-vdel="${v.id}" style="margin-left:auto">Excluir</button></div></div>`).join('')
+    :'<div class="empty">Nenhuma candidatura salva ainda. Depois de enviar o currículo, salve aqui para acompanhar.</div>';
+}
+function syncInputs(){
+  for(const k of ['vaga','cargo','empresa'])if(document.activeElement!==$('#'+k))$('#'+k).value=S[k];
+  $$('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===S.view));
+  $('#tpl').value=S.tpl;
+}
+const visible=t=>!$('#pane-'+t).hidden;
+function all(){
+  analyzeVaga();computeStatus();
+  renderAnalysis();renderPreview();renderReview();
+  if(visible('exp')&&!$('#roles').contains(document.activeElement))renderRoles();
+}
+function full(){syncInputs();all();if(visible('perfil'))renderProfile();if(visible('cand'))renderVersions();if(visible('exp'))renderRoles()}
+
+/* ---------- abas (teclado: setas, Home, End) ---------- */
+const tabs=$$('.tabs [role=tab]');
+function openTab(b,focus){
+  tabs.forEach(x=>{const on=x===b;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1});
+  $$('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  const t=b.dataset.tab;if(t==='exp')renderRoles();if(t==='perfil')renderProfile();if(t==='cand')renderVersions();if(t==='rev')renderReview();
+  if(focus)b.focus();
+}
+tabs.forEach((b,i)=>{b.onclick=()=>openTab(b);b.onkeydown=e=>{
+  const k=e.key,n=tabs.length,j=k==='ArrowRight'?(i+1)%n:k==='ArrowLeft'?(i-1+n)%n:k==='Home'?0:k==='End'?n-1:-1;
+  if(j>=0){e.preventDefault();openTab(tabs[j],true)}}});
+
+/* ---------- desfazer ---------- */
+let undoSnap=null;
+function withUndo(msg,fn){undoSnap=JSON.stringify(S);fn();save();full();toast(msg,'Desfazer',()=>{S=JSON.parse(undoSnap);undoSnap=null;save();full();toast('Desfeito.')})}
+
+/* ---------- eventos ---------- */
+$('#empresa').oninput=e=>{S.empresa=e.target.value;save();all()};
+$('#cargo').oninput=e=>{S.cargo=e.target.value;save();all()};
+let vT;$('#vaga').oninput=e=>{S.vaga=e.target.value;save();clearTimeout(vT);vT=setTimeout(all,180)};
+$('#limpar').onclick=()=>withUndo('Vaga limpa.',()=>{S.vaga='';S.cargo='';S.empresa='';S.pins={}});
+$('#exemplo').onclick=()=>{S.vaga=SAMPLE_VAGA;S.cargo='Analista de Planejamento (PCP) Pleno';S.empresa='';save();full()};
+$('#startMine').onclick=()=>withUndo('Pronto! Comece preenchendo seu Perfil.',()=>{const v={vaga:S.vaga===SAMPLE_VAGA?'':S.vaga};S=BLANK();Object.assign(S,v);openTab($('#tab-perfil'));setTimeout(()=>$('#p-name').focus(),50)});
+$('#tpl').onchange=e=>{S.tpl=e.target.value;save();renderPreview()};
+$('#addRole').onclick=()=>{const r={id:uid('r'),company:S.roles[0]?.company||'',title:'',period:'',limit:3};S.roles.unshift(r);save();renderRoles();all();$(`[data-r="0"][data-k="title"]`).focus()};
+function addSkill(raw){
+  const v=(raw||'').trim();if(!v)return false;
+  const dict=DICT_L.get(norm(v))||(termsIn(v,DICT_T).length===1&&norm(v).length>3?DICT_L.get(norm(termsIn(v,DICT_T)[0])):null);
+  const label=dict?dict.label:v;
+  if(hasSkill(label)){toast(`“${label}” já está no seu perfil.`);return false}
+  S.skills.push(label);save();return label;
+}
+$('#skillForm').onsubmit=e=>{e.preventDefault();const l=addSkill($('#skillIn').value);if(l){$('#skillIn').value='';renderProfile();all();toast(`“${l}” adicionada.`)}};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.add){const l=addSkill(d.add);if(l){all();if(visible('perfil'))renderProfile();toast(`“${l}” adicionada ao seu perfil e ao currículo.`)}}
+  if(d.sk){const s=d.sk;withUndo(`“${s}” removida.`,()=>{S.skills=S.skills.filter(x=>x!==s)})}
+  if(d.del){withUndo('Bullet apagado.',()=>{S.bullets=S.bullets.filter(b=>b.id!==d.del);delete S.pins[d.del]})}
+  if(d.rdel){const r=S.roles.find(x=>x.id===d.rdel);withUndo(`Experiência “${r.title||'sem cargo'}” removida.`,()=>{S.roles=S.roles.filter(x=>x.id!==d.rdel);S.bullets=S.bullets.filter(b=>b.role!==d.rdel)})}
+  if(d.mv){const[i,dir]=d.mv.split(':').map(Number),j=i+dir;if(j>=0&&j<S.roles.length){[S.roles[i],S.roles[j]]=[S.roles[j],S.roles[i]];save();renderRoles();all()}}
+  if(d.addb){const id=uid('b');S.bullets.push({id,role:d.addb,text:'',tags:[]});save();renderRoles();$('#t-'+id).focus()}
+  if(d.view){S.view=d.view;syncInputs();save();renderPreview()}
+  if(d.open){const v=S.history.find(x=>String(x.id)===d.open);if(v){Object.assign(S,{vaga:v.vaga,cargo:v.cargo,empresa:v.empresa,pins:{...v.pins}});
+    if(v.summary!=null)S.profile.summary=v.summary;if(v.tpl)S.tpl=v.tpl;save();full();openTab($('#tab-vaga'));toast('Candidatura aberta para edição.')}}
+  if(d.vcopy){const v=S.history.find(x=>String(x.id)===d.vcopy);if(v)copyText(v.text,'Texto enviado copiado.')}
+  if(d.vdel){withUndo('Candidatura excluída.',()=>{S.history=S.history.filter(x=>String(x.id)!==d.vdel)})}
+});
+document.addEventListener('input',e=>{
+  const t=e.target,d=t.dataset;
+  if(d.txt){const b=S.bullets.find(x=>x.id===d.txt);if(!b)return;b.text=t.value;const l=$(`[data-len="${b.id}"]`);if(l){l.textContent=t.value.length+'/240';l.classList.toggle('long',t.value.length>240)}save();all()}
+  if(d.p){S.profile[d.p]=t.value;S.sample=false;save();all()}
+  if(d.r&&d.k!=='limit'){S.roles[+d.r][d.k]=t.value;save();all()}
+});
+document.addEventListener('change',e=>{
+  const t=e.target,d=t.dataset;
+  if(d.mode){t.value==='auto'?delete S.pins[d.mode]:S.pins[d.mode]=t.value;save();all();renderRoles()}
+  if(d.txt)renderRoles();
+  if(d.k==='limit'){S.roles[+d.r].limit=+t.value;save();all();renderRoles()}
+  if(d.vst){const v=S.history.find(x=>String(x.id)===d.vst);if(v){v.status=t.value;save();renderVersions()}}
+});
+$('#salvarV').onclick=()=>{
+  if(!S.cargo.trim()&&!S.empresa.trim()){toast('Preencha a empresa ou o cargo da vaga antes de salvar.');openTab($('#tab-vaga'));$('#empresa').focus();return}
+  const prevView=S.view;S.view='cv';const text=plain();S.view=prevView;
+  S.history.unshift({id:Date.now(),ts:Date.now(),cargo:S.cargo,empresa:S.empresa,vaga:S.vaga,pins:{...S.pins},summary:S.profile.summary,tpl:S.tpl,score:STATUS.pct,status:'enviada',text});
+  save();renderVersions();toast('Candidatura salva.');
+};
+
+/* ---------- toast ---------- */
+function toast(m,act,fn){
+  const t=$('#toast'),a=$('#toastAct');$('#toastMsg').textContent=m;t.hidden=false;
+  a.hidden=!act;a.textContent=act||'';a.onclick=()=>{t.hidden=true;fn&&fn()};
+  clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,act?6000:2800);
+}
+
+/* ---------- copiar, PDF, .doc, compartilhar ---------- */
+function selectPaper(){const r=document.createRange();r.selectNodeContents($('#paper'));const s=getSelection();s.removeAllRanges();s.addRange(r)}
+function warnPh(){const n=placeholders().length;return n?` Atenção: ${n} campo(s) [ ] sem preencher.`:''}
+async function copyText(text,msg){
+  if(IS_ANDROID){Android.copy(esc(text).replace(/\n/g,'<br>'),text);toast(msg);return}
+  try{await navigator.clipboard.writeText(text);toast(msg)}catch(e){selectPaper();toast('Texto selecionado: use Ctrl+C.')}
+}
+$('#copyWord').onclick=async()=>{
+  const html=docHTML(false),text=plain(),w=warnPh();
+  if(IS_ANDROID){Android.copy(html,text);toast('Copiado. Cole no Word ou Google Docs.'+w);return}
+  try{
+    if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})]);toast('Copiado. Cole no Word (Ctrl+V).'+w)}
+    else throw 0;
+  }catch(e){try{await navigator.clipboard.writeText(text);toast('Copiado como texto simples.'+w)}catch(e2){selectPaper();toast('O texto foi selecionado: use Ctrl+C.')}}
+};
+$('#copyTxt').onclick=()=>copyText(plain(),'Texto copiado. Bom para colar em formulários de candidatura.'+warnPh());
+const fileName=ext=>{const n=(S.profile.name||'Curriculo').split(/\s+/).slice(0,2).join(' '),e=S.empresa.trim();return `${S.view==='carta'?'Carta':'Curriculo'} - ${n}${e?' - '+e:''}.${ext}`.replace(/[\\/:*?"<>|]/g,'')};
+function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+$('#pdfBtn').onclick=()=>{
+  const w=warnPh();const prev=document.title;document.title=fileName('pdf').replace(/\.pdf$/,'');
+  if(IS_ANDROID){toast('Escolha “Salvar como PDF” na próxima tela.'+w);Android.print()}
+  else{if(w)toast(w.trim());setTimeout(()=>{window.print();document.title=prev},w?400:0)}
+};
+$('#docBtn').onclick=()=>{
+  const html=`﻿<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(fileName('doc'))}</title><style>@page{size:21cm 29.7cm;margin:1.8cm}body{margin:0}</style></head><body>${docHTML(false)}</body></html>`;
+  download(fileName('doc'),html,'application/msword');toast('Arquivo .doc baixado. Abre no Word e no Google Docs.'+warnPh());
+};
+if(IS_ANDROID){$('#docBtn').hidden=true;$('#shareBtn').hidden=false;$('#shareBtn').onclick=()=>Android.share(plain());$('#impFileLbl').hidden=true}
+
+/* ---------- backup ---------- */
+$('#expBtn').onclick=()=>{
+  const data=JSON.stringify(S);
+  if(IS_ANDROID){Android.share(data);toast('Salve o texto do backup no Drive, e-mail ou WhatsApp.');return}
+  download(`curriculo-por-vaga-backup-${new Date().toISOString().slice(0,10)}.json`,data,'application/json');toast('Backup baixado.');
+};
+function restore(txt){
+  let o;try{o=migrate(JSON.parse(txt))}catch(e){o=null}
+  if(!o){toast('Backup inválido. Confira se copiou o texto inteiro.');return}
+  withUndo('Backup restaurado.',()=>{S=o});$('#impTxt').value='';
+}
+$('#impBtn').onclick=()=>restore($('#impTxt').value);
+$('#impFile').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(restore);e.target.value=''};
+$('#resetBtn').onclick=()=>withUndo('Tudo apagado.',()=>{S=BLANK()});
+
+/* ---------- início ---------- */
+full();
+</script>
+
+</body></html>
