@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Identidade TalentosLocais: verde-escuro (confiança), verde-vivo (ação), fundo claro. */
+@theme {
+  --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-bg: #f6f7f3;
+  --color-ink: #17231d;
+  --color-muted: #5b6760;
+  --color-line: #e1e6df;
+  --color-card: #ffffff;
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d5ecdd;
+  --color-brand-200: #a9d8b9;
+  --color-brand-600: #1d6b4a;
+  --color-brand-700: #145a3d;
+  --color-brand-800: #0f4a32;
+  --color-brand-900: #0b3825;
+  --color-lime-400: #49d17d;
+  --color-lime-500: #22b35e;
+  --color-lime-600: #179a4d;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); }
+:focus-visible { outline: 3px solid var(--color-lime-500); outline-offset: 2px; border-radius: 8px; }
+
+/* Modo de Baixa Complexidade: tudo maior e mais espaçado. */
+.lowc { font-size: 112.5%; }
+.lowc button, .lowc a.btn { min-height: 3.25rem; }
+
+.scroll-x { overflow-x: auto; scrollbar-width: none; }
+.scroll-x::-webkit-scrollbar { display: none; }
+.safe-b { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
