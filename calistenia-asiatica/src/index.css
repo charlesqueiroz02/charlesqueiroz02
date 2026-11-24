@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --papel: #f6f1e9;
+  --cartao: #fffdf9;
+  --tinta: #1f1b18;
+  --tinta-2: #6f6760;
+  --linha: #e6ddd0;
+  --vermelho: #c8372d;
+  --vermelho-claro: #ff8a7a;
+  color-scheme: light;
+}
+
+@layer base {
+  html, body {
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: 'Zen Kaku Gothic New', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  button { cursor: pointer; }
+  * { -webkit-tap-highlight-color: transparent; }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
