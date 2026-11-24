@@ -148,6 +148,15 @@ export function Player({ treino, programa, loja, nav }: { treino: Treino; progra
     }
   };
 
+  // Botão voltar do Android dentro do player pede confirmação para sair
+  useEffect(() => {
+    const w = window as unknown as { __calisSairPlayer?: () => void };
+    w.__calisSairPlayer = sair;
+    return () => {
+      delete w.__calisSairPlayer;
+    };
+  });
+
   const ordemAtual = etapa?.tipo === 'exercicio' ? (etapa.ordem ?? 0) + 1 : (etapas.slice(0, idx).filter((e) => e.tipo === 'exercicio').length);
   const progressoGeral = fase === 'fim' ? 1 : fase === 'preparo' ? 0 : (idx + (1 - restante / Math.max(1, duracaoFase))) / etapas.length;
   const fracao = duracaoFase > 0 ? restante / duracaoFase : 0;

@@ -30,6 +30,24 @@ React + Vite + Tailwind, mesmo padrão do Dicta AI. Funciona 100% offline (PWA) 
 `dist/` pode ser publicado em qualquer hospedagem estática (Vercel, Netlify, GitHub Pages) ou empacotado
 numa WebView Android como o Dicta AI (o `base: './'` já está configurado para isso).
 
+## App Android (APK)
+A pasta `android/` tem a casca nativa (WebView) que carrega o app de dentro do APK. Ela usa a voz
+nativa do Android (TextToSpeech) para o instrutor, mantém a tela acesa durante o treino e trata o
+botão voltar.
+
+Requisitos: JDK 17+, Node.js 20+ e Android SDK com `platforms;android-36` e `build-tools;36`.
+
+    export ANDROID_HOME=/caminho/do/android-sdk
+    export CALIS_KEYSTORE=/caminho/fora/do/repo/calistenia.keystore   # nunca versionar
+    export CALIS_KS_PASS='senha-do-keystore'
+    ./android/build.sh
+    # gera android/build/dist/CalisteniaAsiatica-v<versão>.apk
+
+- ID do app: `com.calisteniaasiatica.app`, `minSdk` 24 (Android 7.0), `targetSdk` 36.
+- Versão em `android/build.gradle.kts` (`versionCode` e `versionName`): aumente os dois a cada versão.
+- Para instalar uma atualização por cima da versão anterior (sem perder o histórico), o APK precisa
+  ser assinado com **a mesma chave**. Guarde o keystore e a senha em local seguro.
+
 ## Estrutura
 - `src/data/exercicios.ts`: biblioteca de exercícios (para incluir um, adicione um objeto aqui)
 - `src/data/treinos.ts`: treinos prontos (`blocoVolta` + `voltas` definem o circuito repetido)

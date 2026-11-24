@@ -1,5 +1,14 @@
 let ctx: AudioContext | null = null;
 
+/** Ponte com o app Android (MainActivity.java). No navegador ela não existe. */
+interface PonteNativa {
+  falar(texto: string): void;
+  calar(): void;
+  telaAcesa(ligar: boolean): void;
+}
+const nativo = (): PonteNativa | undefined => (window as unknown as { CalisNative?: PonteNativa }).CalisNative;
+export const noAppAndroid = () => !!nativo();
+
 export function desbloquearAudio() {
   try {
     if (!ctx) ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
@@ -38,6 +47,8 @@ function escolherVoz(): SpeechSynthesisVoice | null {
 
 export function falar(texto: string) {
   try {
+    const n = nativo();
+    if (n) return n.falar(texto);
     const s = window.speechSynthesis;
     if (!s) return;
     s.cancel();
@@ -54,6 +65,8 @@ export function falar(texto: string) {
 
 export function calar() {
   try {
+    const n = nativo();
+    if (n) return n.calar();
     window.speechSynthesis?.cancel();
   } catch {
     /* ignora */
@@ -63,6 +76,11 @@ export function calar() {
 /** Mantém a tela acesa durante o treino, quando o navegador permite. */
 export async function manterTelaAcesa(): Promise<() => void> {
   try {
+    const n = nativo();
+    if (n) {
+      n.telaAcesa(true);
+      return () => n.telaAcesa(false);
+    }
     const nav = navigator as Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } };
     if (!nav.wakeLock) return () => {};
     const lock = await nav.wakeLock.request('screen');

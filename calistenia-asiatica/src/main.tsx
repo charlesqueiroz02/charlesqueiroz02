@@ -9,7 +9,8 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-if ('serviceWorker' in navigator && import.meta.env.PROD && location.protocol.startsWith('http')) {
+// No app Android os arquivos já vêm do próprio APK: não precisa de service worker
+if ('serviceWorker' in navigator && import.meta.env.PROD && location.protocol.startsWith('http') && !('CalisNative' in window)) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });

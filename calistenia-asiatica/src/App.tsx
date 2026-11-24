@@ -79,6 +79,33 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  // Botão voltar do app Android (MainActivity chama window.__calisVoltar)
+  const atual = useRef({ pilha, aba });
+  atual.current = { pilha, aba };
+  useEffect(() => {
+    const w = window as unknown as { __calisVoltar?: () => boolean; __calisSairPlayer?: () => void };
+    w.__calisVoltar = () => {
+      const { pilha: p, aba: irAba } = atual.current;
+      const topo = p[p.length - 1];
+      if (topo.nome === 'player' && w.__calisSairPlayer) {
+        w.__calisSairPlayer();
+        return true;
+      }
+      if (p.length > 1) {
+        history.back();
+        return true;
+      }
+      if (topo.nome !== 'inicio') {
+        irAba('inicio');
+        return true;
+      }
+      return false;
+    };
+    return () => {
+      delete w.__calisVoltar;
+    };
+  }, []);
+
   const nav: Navegacao = { ir, voltar, aba };
   const abaAtual = ABAS.find((a) => a.id === tela.nome)?.id;
 
